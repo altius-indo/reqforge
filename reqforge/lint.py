@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections import Counter, defaultdict
 from itertools import combinations
 
 from .model import TAXONOMY, VAGUE_TERMS
@@ -47,12 +48,27 @@ def lint(store) -> dict:
         if not r.get("rationale"):
             add("info", "rationale", [r["id"]], "no rationale recorded")
 
-    # ---- mutual exclusivity: near-duplicate statements
-    toks = {r["id"]: _tokens(r.get("title", "") + " " + r.get("statement", "")) for r in reqs}
-    for a, b in combinations(reqs, 2):
+    # ---- mutual exclusivity: near-duplicate statements. Candidate pairs come from an
+    # inverted index over informative terms, so this stays fast with thousands of requirements.
+    toks = [_tokens(r.get("title", "") + " " + r.get("statement", "")) for r in reqs]
+    index: dict[str, list[int]] = defaultdict(list)
+    for i, ts in enumerate(toks):
+        for t in ts:
+            index[t].append(i)
+    cap = max(50, len(reqs) // 20)  # terms in more docs than this carry no overlap signal
+    shared: Counter = Counter()
+    for posting in index.values():
+        if len(posting) > cap:
+            continue
+        for a, b in combinations(posting, 2):
+            shared[(a, b)] += 1
+    for (i, j), n in shared.items():
+        if n < 2:
+            continue
+        a, b = reqs[i], reqs[j]
         if a.get("parent") == b["id"] or b.get("parent") == a["id"]:
             continue
-        s = jaccard(toks[a["id"]], toks[b["id"]])
+        s = jaccard(toks[i], toks[j])
         if s >= OVERLAP_THRESHOLD:
             add("error" if s >= 0.85 else "warning", "overlap", [a["id"], b["id"]],
                 f"statements overlap ({s:.0%} shared terms); merge, split the shared part into a parent, or sharpen the boundary")

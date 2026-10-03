@@ -16,4 +16,4 @@ reqforge = "reqforge.cli:main"
 include = ["reqforge*"]
 
 [tool.setuptools.package-data]
-reqforge = ["ui/*.html"]
+reqforge = ["ui/*.html", "*.md"]

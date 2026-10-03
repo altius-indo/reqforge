@@ -8,7 +8,7 @@ import json
 import sys
 import traceback
 
-from . import __version__, evals, lint, trace
+from . import __version__, changes, evals, lint, trace
 from .api import meta
 from .model import KINDS, kind_of_id
 from .store import Store, StoreError
@@ -48,6 +48,18 @@ TOOLS = [
           {"title": {"type": "string"}, "markdown": {"type": "string"}, "id": {"type": "string"}}, ["title", "markdown"]),
     _tool("config", "Read, or patch with `patch`, the project config (gates, coverage_waivers, cicd).", {"patch": OBJ}),
     _tool("sync", "Commit pending changes, pull --rebase and push the requirements repo to GitHub.", {"message": {"type": "string"}}),
+    _tool("context", "A record plus its links: parent/children, stories, tasks, evals and components it affects (impact), and its lint findings.",
+          {"id": {"type": "string"}}, ["id"]),
+    _tool("simulate_changeset", "Dry-run a changeset on an in-memory copy: validation errors, dangling references, lint (MECE) delta, traceability delta and blast radius. Writes nothing; iterate until clean. "
+          "changeset = {title, summary, rationale, ops: [{op: create, kind, ref, data} | {op: update, id, patch, add, remove} | {op: delete, id}], impact}. Use \"$ref\" to point at records created earlier in the same changeset.",
+          {"changeset": OBJ}, ["changeset"]),
+    _tool("propose_changeset", "Store a changeset for the user to review and apply in the UI. Returns changeset_id. Nothing is written to records until the user applies.",
+          {"changeset": OBJ}, ["changeset"]),
+    _tool("get_changeset", "Get a stored changeset with its analysis and status.", {"id": {"type": "string"}}, ["id"]),
+    _tool("list_changesets", "List changesets, optionally by status (pending, applied, rejected, stale).", {"status": {"type": "string"}}),
+    _tool("apply_changeset", "Apply a pending changeset atomically (only after the user explicitly confirmed it). exclude = op indexes to skip.",
+          {"id": {"type": "string"}, "exclude": {"type": "array", "items": {"type": "integer"}}}, ["id"]),
+    _tool("reject_changeset", "Reject a pending changeset.", {"id": {"type": "string"}, "reason": {"type": "string"}}, ["id"]),
     _tool("init_repo", "Initialise a requirements repository (optionally creating the GitHub repo owner/name).",
           {"path": {"type": "string"}, "key": {"type": "string"}, "name": {"type": "string"},
            "github": {"type": "string"}, "private": {"type": "boolean"}}, ["path", "key", "name"]),
@@ -86,6 +98,20 @@ def call(name: str, a: dict):
         return {"id": s.save_session(a["title"], a["markdown"], a.get("id"))}
     if name == "config":
         return s.save_config(a["patch"]) if a.get("patch") else s.config
+    if name == "context":
+        return changes.context(s, a["id"])
+    if name == "simulate_changeset":
+        return changes.simulate(s, a["changeset"])
+    if name == "propose_changeset":
+        return changes.propose(s, a["changeset"])
+    if name == "get_changeset":
+        return changes.get(s, a["id"])
+    if name == "list_changesets":
+        return changes.list_(s, a.get("status"))
+    if name == "apply_changeset":
+        return changes.apply(s, a["id"], a.get("exclude"))
+    if name == "reject_changeset":
+        return changes.reject(s, a["id"], a.get("reason", ""))
     if name == "sync":
         return s.sync(a.get("message", "reqforge: sync"))
     raise ValueError(f"unknown tool {name}")

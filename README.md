@@ -52,6 +52,26 @@ No dependencies: Python ≥ 3.10 stdlib, plus `git`, and `gh` for creating GitHu
 | `traceability-evaluator` | trace gate plus a semantic judge (realisation / proof / scope); writes `reports/trace-review-<date>.md` |
 | `cicd-engineer` | configures and generates the pipeline, and lists the GitHub secrets and branch protection a human must set |
 
+## Web UI at scale, and chat with Claude
+
+`reqforge serve` (or `/reqforge:ui`) opens a UI built for repositories with thousands of fine-grained requirements:
+
+- **Category tree.** The sidebar shows type → category with counts, a story-coverage bar and lint error/warning badges per cell. It marks *gap* cells (empty and not waived) and faded *waived* cells. Click to drill down; breadcrumbs and filter pills show where you are.
+- **Facets.** Status, priority, tags (and epic, component, deliverable for stories) with live counts, plus a *Not linked to a story* filter. Each facet ignores its own filter so sibling values stay visible.
+- **Large lists.** Server-side paging (50–500 per page) and sorting by any column, including story and children counts. Children counts drill into the hierarchy. Each row shows the statement inline.
+- **Bulk edits.** Select a page, then **Select all N matching** to update a whole filtered set: set a field, or add/remove list values. Dry runs are available, and the write is all-or-nothing.
+- **Record drawer.** A **Links & impact** tab shows the parent, children, realising stories, tasks, the evals covering each acceptance criterion, components, and the record's lint findings.
+- **Lint and traceability.** Lint is paged and filterable by rule, severity and category; traceability drills into uncovered requirements. Measured on 3,000 requirements: 28–170 ms per call.
+
+**Chat with Claude** (right panel) runs your local Claude Code (`claude -p`, resumed per conversation) with this plugin loaded:
+
+1. The agent reviews what exists (`search`, `context`, `lint`, `trace`), using your current view and selection as context. It asks multiple-choice questions, rendered as buttons, only when a product decision is needed.
+2. It drafts a **changeset**: creates, updates and deletes across requirements, stories, tasks and evals, including traceability remaps. It loops on `simulate_changeset`, which applies the ops in memory and reports validation errors, dangling references, the MECE/lint delta, the trace delta and the blast radius, until the result is clean.
+3. It reads code components (`config.components: {name: path}` → passed as `--add-dir`) to assess code impact, then proposes. The UI shows a card with per-op diffs and include checkboxes, verdicts, impact and risks, and **Apply / Ask to revise / Reject**.
+4. **Apply** is deterministic and atomic. It rejects the changeset as *stale* if any touched record changed since it was proposed, writes one git commit, and feeds the result back to the agent, which verifies traceability and proposes follow-up remaps if needed.
+
+The chat agent's tool allowlist contains no direct write tools (`create`, `update`, `delete`, `bulk_update`, `upsert_many`, `apply_changeset`, `Bash`, `Write`, `Edit` are denied), so nothing changes without your click. Environment: `REQFORGE_CLAUDE_BIN` (path to `claude`), `REQFORGE_CHAT_MODEL`, `REQFORGE_PLUGIN_DIR`. Changesets are stored in `changesets/CS-NNNN.json` and listed in the **Changes** tab.
+
 ## How MECE is enforced
 
 - **Mutually exclusive.** Types are tested in a fixed decision order, and a requirement takes the *first* type whose test passes: `constraint → interface → data → quality → functional`. Quality categories are the 9 ISO/IEC 25010:2023 characteristics. The lint flags near-duplicate statements (term overlap) and compound "shall … and shall" statements.
@@ -99,7 +119,7 @@ The repo is found from `--repo`, then `$REQFORGE_REPO`, then by walking up from 
 
 ## REST API
 
-`GET /api/meta` · `GET|POST /api/{requirements|epics|stories|tasks}` (`?q=` plus `field=value` filters) · `GET|PATCH|DELETE /api/{kind}/{id}` (send `_version` for optimistic concurrency → 409 on conflict) · `POST /api/{kind}/bulk` `{ids|q|where, set, add, remove, dry_run}` · `POST /api/{kind}/import` (JSON rows or `text/csv`) · `GET /api/{kind}/export.csv` · `GET /api/lint` · `GET /api/trace` · `GET /api/evals?stage=` · `GET|POST /api/sessions` · `POST /api/sync` · `PATCH /api/config`.
+`GET /api/meta` · `GET|POST /api/{requirements|epics|stories|tasks}` (`?q=` plus `field=value` filters; add `limit/offset/sort/order` for `{total, items}` pages with link counts; pseudo-filter `covered=yes|no`) · `GET /api/{kind}/facets` (facet counts and the category tree) · `GET /api/context/{id}` · `GET /api/changesets` · `POST /api/changesets[/simulate]` · `POST /api/changesets/{id}/apply|reject` · `POST /api/chat` (SSE) · `POST /api/chat/cancel` · `GET|PATCH|DELETE /api/{kind}/{id}` (send `_version` for optimistic concurrency → 409 on conflict) · `POST /api/{kind}/bulk` `{ids|q|where, set, add, remove, dry_run}` · `POST /api/{kind}/import` (JSON rows or `text/csv`) · `GET /api/{kind}/export.csv` · `GET /api/lint` · `GET /api/trace` · `GET /api/evals?stage=` · `GET|POST /api/sessions` · `POST /api/sync` · `PATCH /api/config`.
 Set `REQFORGE_TOKEN` to require `Authorization: Bearer <token>`.
 
 ## Repository layout (the requirements repo)
@@ -108,6 +128,7 @@ Set `REQFORGE_TOKEN` to require `Authorization: Bearer <token>`.
 reqforge.json              key, gates, coverage_waivers, cicd settings
 requirements/REQ-0001.json epics/EPIC-0001.json stories/STORY-0001.json tasks/TASK-0001.json
 sessions/ELI-0001.md       elicitation transcripts: research with sources, Q&A, decisions
+changesets/CS-0001.json    proposed/applied/rejected change batches with their analysis
 reports/                   traceability reviews
 ```
 
@@ -116,5 +137,6 @@ reports/                   traceability reviews
 ```bash
 python3 -m unittest discover tests      # store, lint, trace, evals, cicd, REST, MCP, CLI, console
 python3 examples/seed_demo.py /tmp/demo && REQFORGE_REPO=/tmp/demo bin/reqforge serve
+python3 examples/seed_large.py /tmp/big 3000 && REQFORGE_REPO=/tmp/big bin/reqforge serve   # scale demo
 claude plugin validate .
 ```

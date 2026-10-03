@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import contextlib
+import copy
 import datetime as _dt
 import fcntl
 import json
@@ -70,6 +71,9 @@ class Store:
         if not cfg.exists():
             raise StoreError(f"{self.root} is not a reqforge repository (no {CONFIG_FILE}); run `reqforge init`", 404)
         self.config = {**DEFAULT_CONFIG, **json.loads(cfg.read_text())}
+        # per-file cache: kind -> {filename: (mtime_ns, size, record, lowercase search blob)}
+        self._files: dict[str, dict[str, tuple]] = {k: {} for k in KINDS}
+        self._memo: dict[str, tuple] = {}
 
     # ---------------------------------------------------------------- lifecycle
     @classmethod
@@ -96,8 +100,9 @@ class Store:
         for meta in KINDS.values():
             (root / meta["dir"]).mkdir(exist_ok=True)
             (root / meta["dir"] / ".gitkeep").touch()
-        (root / "sessions").mkdir(exist_ok=True)
-        (root / "sessions" / ".gitkeep").touch()
+        for extra in ("sessions", "changesets"):
+            (root / extra).mkdir(exist_ok=True)
+            (root / extra / ".gitkeep").touch()
         readme = root / "README.md"
         if not readme.exists():
             readme.write_text(
@@ -168,40 +173,59 @@ class Store:
             raise StoreError(f"invalid {kind[:-1]} {rec.get('id', '')}".strip(), 422, errors)
 
     # ---------------------------------------------------------------- reads
-    def all(self, kind: str) -> list[dict]:
+    def _scan(self, kind: str) -> dict[str, tuple]:
+        """Refresh the per-file cache: only files whose mtime/size changed are re-read,
+        so reads stay cheap with thousands of records and still see external edits (git pull)."""
         kind = normalize_kind(kind)
-        out = []
-        for p in sorted((self.root / KINDS[kind]["dir"]).glob("*.json")):
-            out.append(json.loads(p.read_text()))
-        return out
+        d = self.root / KINDS[kind]["dir"]
+        with self._thread_lock:
+            cache = self._files[kind]
+            seen = {}
+            for e in os.scandir(d):
+                if not e.name.endswith(".json"):
+                    continue
+                st = e.stat()
+                hit = cache.get(e.name)
+                if hit and hit[0] == st.st_mtime_ns and hit[1] == st.st_size:
+                    seen[e.name] = hit
+                else:
+                    rec = json.loads(Path(e.path).read_text())
+                    seen[e.name] = (st.st_mtime_ns, st.st_size, rec, json.dumps(rec, ensure_ascii=False).lower())
+            self._files[kind] = dict(sorted(seen.items()))
+            return self._files[kind]
+
+    def all(self, kind: str) -> list[dict]:
+        """All records of a kind, id-ordered. Returned dicts are shared cache entries: do not mutate."""
+        return [v[2] for v in self._scan(kind).values()]
+
+    def revision(self) -> tuple:
+        """Cheap signature of the whole repository state, for memoising derived views."""
+        sig = [(self.root / CONFIG_FILE).stat().st_mtime_ns]
+        for kind in KINDS:
+            sig.append(hash(tuple((n, v[0], v[1]) for n, v in self._scan(kind).items())))
+        return tuple(sig)
+
+    def memo(self, name: str, fn):
+        rev = self.revision()
+        hit = self._memo.get(name)
+        if hit and hit[0] == rev:
+            return hit[1]
+        val = fn()
+        self._memo[name] = (rev, val)
+        return val
 
     def get(self, kind: str, rid: str) -> dict:
         kind = normalize_kind(kind)
-        p = self._path(kind, rid)
-        if not p.exists():
+        hit = self._scan(kind).get(f"{rid}.json")
+        if not hit:
             raise StoreError(f"{rid} not found", 404)
-        return json.loads(p.read_text())
+        return copy.deepcopy(hit[2])
 
     def search(self, kind: str, q: str = "", where: dict | None = None) -> list[dict]:
         """Free-text search. Tokens of the form field:value (or field:a|b) filter exactly;
         other tokens must each appear (case-insensitive) somewhere in the record."""
-        kind = normalize_kind(kind)
-        where = dict(where or {})
-        words = []
-        for tok in (q or "").split():
-            if ":" in tok and not tok.startswith("http"):
-                f, v = tok.split(":", 1)
-                where[f] = v
-            else:
-                words.append(tok.lower())
-        out = []
-        for rec in self.all(kind):
-            if not all(_match(rec.get(f), v) for f, v in where.items()):
-                continue
-            blob = json.dumps(rec, ensure_ascii=False).lower()
-            if all(w in blob for w in words):
-                out.append(rec)
-        return out
+        words, w = parse_query(q, where)
+        return [v[2] for v in self._scan(kind).values() if _keep(v[2], v[3], words, w)]
 
     # ---------------------------------------------------------------- writes
     def create(self, kind: str, data: dict, message: str | None = None) -> dict:
@@ -333,6 +357,22 @@ class Store:
     def sync(self, message: str = "reqforge: sync") -> dict:
         with self._locked():
             return gitsync.sync(self.root, message)
+
+
+def parse_query(q: str, where: dict | None = None) -> tuple[list[str], dict]:
+    where = dict(where or {})
+    words = []
+    for tok in (q or "").split():
+        if ":" in tok and not tok.startswith("http"):
+            f, v = tok.split(":", 1)
+            where[f] = v
+        else:
+            words.append(tok.lower())
+    return words, where
+
+
+def _keep(rec: dict, blob: str, words: list[str], where: dict) -> bool:
+    return all(_match(rec.get(f), v) for f, v in where.items()) and all(w in blob for w in words)
 
 
 def _as_list(v):
