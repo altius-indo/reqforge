@@ -3,3 +3,5 @@ __pycache__/
 .reqforge.lock
 *.json.tmp
 reqforge-reports/
+server/target/
+web/node_modules/

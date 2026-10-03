@@ -1,16 +1,14 @@
-"""Seed a demo requirements repo: `python3 examples/seed_demo.py /tmp/reqforge-demo`.
+"""Seed a demo requirements repo through the reqforge CLI: `python3 examples/seed_demo.py /tmp/reqforge-demo`.
 
 Shows the shape the agents produce: classified requirements with ACs, an epic,
 stories with evals covering the ACs, and typed tasks across the lifecycle."""
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from reqforge.store import Store  # noqa: E402
+from _loader import Loader  # noqa: E402
 
 root = sys.argv[1] if len(sys.argv) > 1 else "reqforge-demo"
-s = Store.init(root, "SHOP", "Demo shop checkout")
-s.config["autocommit"] = False
+s = Loader(root, "SHOP", "Demo shop checkout")
 
 reqs = s.upsert_many("requirements", [
     {"title": "Guest checkout", "type": "functional", "category": "checkout", "priority": "must", "status": "approved",
@@ -50,6 +48,5 @@ for kind, title in [("design", "Checkout API contract + PSP hosted-fields flow")
                     ("deployment", "Feature-flagged rollout of guest checkout"), ("monitoring", "Checkout SLO, latency alert, synthetic purchase")]:
     s.create("tasks", {"title": title, "story": story, "kind": kind, "done_when": "reviewed and merged"})
 s.save_config({"coverage_waivers": {"interface/hardware": "web only", "data/migration": "greenfield"}})
-s.config["autocommit"] = True
-s.save_config({"autocommit": True})
-print(f"demo repo at {s.root}; try: REQFORGE_REPO={s.root} bin/reqforge serve")
+s.flush()
+print(f"demo repo at {s.root}; try: bin/reqforge --repo {s.root} serve")

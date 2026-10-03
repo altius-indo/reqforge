@@ -17,7 +17,7 @@ A Claude Code plugin that takes a plain-language requirement and runs it all the
 
 The requirement repository is plain JSON in git, one file per record, and every change is a commit pushed to GitHub. You can reach it six ways, all sharing one validated store: the **agents (MCP)**, the **web UI**, the **REST API**, the **CLI**, the **console**, and **CSV** round-trips.
 
-No dependencies: Python ≥ 3.10 stdlib, plus `git`, and `gh` for creating GitHub repos.
+**Stack.** The backend is a single Rust binary (`server/`: axum + tokio). It serves the REST API, the chat bridge, the MCP server, the CLI and the console, and it embeds the web UI. The UI (`web/`) is React + TypeScript + Tailwind + shadcn/ui, built with Vite. At runtime you need `git` (plus `gh` to create GitHub repos), and `claude` for the chat. To build from source you need Rust (cargo); `bin/reqforge` builds the binary on first use. Node is only needed to change the UI: the built `web/dist` is committed and embedded.
 
 ## Install
 
@@ -61,7 +61,7 @@ No dependencies: Python ≥ 3.10 stdlib, plus `git`, and `gh` for creating GitHu
 - **Large lists.** Server-side paging (50–500 per page) and sorting by any column, including story and children counts. Children counts drill into the hierarchy. Each row shows the statement inline.
 - **Bulk edits.** Select a page, then **Select all N matching** to update a whole filtered set: set a field, or add/remove list values. Dry runs are available, and the write is all-or-nothing.
 - **Record drawer.** A **Links & impact** tab shows the parent, children, realising stories, tasks, the evals covering each acceptance criterion, components, and the record's lint findings.
-- **Lint and traceability.** Lint is paged and filterable by rule, severity and category; traceability drills into uncovered requirements. Measured on 3,000 requirements: 28–170 ms per call.
+- **Lint and traceability.** Lint is paged and filterable by rule, severity and category; traceability drills into uncovered requirements. Every list, facet and lint call is server-side and stays fast at 3,000+ requirements.
 
 **Chat with Claude** (right panel) runs your local Claude Code (`claude -p`, resumed per conversation) with this plugin loaded:
 
@@ -93,7 +93,7 @@ Each story carries `evals: [{id, name, kind, command, covers: ["REQ-0007#AC1"], 
 | post-deploy | smoke | after deploy on main |
 | monitor | synthetic-monitor | cron |
 
-Before any stage runs, a `traceability` job gates on `reqforge lint --gate` and `reqforge trace --gate`. Each stage job runs `reqforge evals run --stage <s>`, so **adding an eval to a story extends the pipeline without regenerating the workflow**. A failed eval reports the requirement IDs at risk. The runner is vendored into `.reqforge/`, so CI needs no install.
+Before any stage runs, a `traceability` job gates on `reqforge lint --gate` and `reqforge trace --gate`. Each stage job runs `reqforge evals run --stage <s>`, so **adding an eval to a story extends the pipeline without regenerating the workflow**. A failed eval reports the requirement IDs at risk. CI builds the reqforge binary from the server sources vendored into `.reqforge/server` (cached), or from `cicd.reqforge_git` if you set it.
 
 Trace checks: requirement→story coverage, orphan stories, non-empty epics, tasks per story, evals on every code story, runnable commands, acceptance-criteria→eval coverage, quality requirements verified by a matching eval kind (performance→performance, security→security, …), lifecycle coverage (design/deployment/monitoring), and valid eval references. Thresholds are in `reqforge.json → gates`.
 
@@ -109,7 +109,8 @@ bin/reqforge export req > reqs.csv   # edit in a spreadsheet…
 bin/reqforge import req reqs.csv     # …and upsert back (all-or-nothing validation)
 bin/reqforge lint --md ; bin/reqforge trace --md --gate
 bin/reqforge evals run --stage commit --workdir ../shop
-bin/reqforge cicd ../shop            # writes the workflow + vendored runner
+bin/reqforge cicd ../shop            # writes the workflow + vendored reqforge sources
+bin/reqforge config --set 'components={"web":"../shop-web"}'   # read/patch reqforge.json
 bin/reqforge sync                    # commit, pull --rebase, push
 bin/reqforge serve --port 8787       # UI + REST
 bin/reqforge console                 # REPL: ls / show / set / new / bulk / lint / trace / sync
@@ -134,9 +135,29 @@ reports/                   traceability reviews
 
 ## Develop
 
+```
+server/   Rust crate `reqforge`
+  src/model.rs     kinds, MECE taxonomy, schemas, validation
+  src/store.rs     JSON-file store (mtime cache, write lock + flock), git/GitHub sync
+  src/lint.rs      MECE + ISO 29148 quality lint (inverted-index overlap detection)
+  src/trace.rs     traceability gate
+  src/changes.rs   changesets: in-memory simulation, impact, propose/apply/reject
+  src/query.rs     paging, sorting, facets, category tree, paged lint
+  src/evals.rs     eval registry + stage runner     src/cicd.rs  GitHub Actions generator
+  src/api.rs       axum REST + SSE + embedded UI    src/chat.rs  `claude -p` bridge
+  src/mcp.rs       stdio MCP server                 src/cli.rs, console.rs
+  tests/integration.rs
+web/      React + TypeScript + Tailwind + shadcn/ui (Vite) → web/dist, embedded in the binary
+```
+
 ```bash
-python3 -m unittest discover tests      # store, lint, trace, evals, cicd, REST, MCP, CLI, console
-python3 examples/seed_demo.py /tmp/demo && REQFORGE_REPO=/tmp/demo bin/reqforge serve
-python3 examples/seed_large.py /tmp/big 3000 && REQFORGE_REPO=/tmp/big bin/reqforge serve   # scale demo
+cargo test --manifest-path server/Cargo.toml           # 28 integration tests
+cargo clippy --manifest-path server/Cargo.toml --all-targets -- -D warnings
+(cd web && npm ci && npm run dev)                      # UI dev server; proxies /api to :8787
+(cd web && npm run build)                              # rebuild web/dist (bin/reqforge then re-embeds it)
+python3 examples/seed_demo.py /tmp/demo && bin/reqforge --repo /tmp/demo serve
+python3 examples/seed_large.py /tmp/big 3000 && bin/reqforge --repo /tmp/big serve   # scale demo
 claude plugin validate .
 ```
+
+`REQFORGE_UI_DIR=<dir>` makes the server serve the UI from disk instead of the embedded copy.

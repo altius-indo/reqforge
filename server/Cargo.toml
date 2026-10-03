@@ -1,0 +1,35 @@
+[package]
+name = "reqforge"
+version = "0.2.0"
+edition = "2021"
+description = "Requirements -> epics/stories/tasks -> evals -> CI/CD, stored in git/GitHub: CLI, console, REST API + embedded web UI, MCP server."
+license = "MIT"
+
+[features]
+default = ["ui"]
+ui = ["dep:rust-embed"]   # embed ../web/dist; CI installs with --no-default-features
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+clap = { version = "4", features = ["derive"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+regex = "1"
+csv = "1"
+fs2 = "0.4"
+form_urlencoded = "1"
+mime_guess = "2"
+shlex = "1"
+rust-embed = { version = "8", optional = true }
+subtle = "2"
+
+[dev-dependencies]
+tempfile = "3"
+ureq = { version = "2", features = ["json"] }
+
+[profile.release]
+opt-level = 3
+strip = true

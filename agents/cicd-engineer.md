@@ -12,8 +12,8 @@ The pipeline is generated, and its stage membership is read from story evals at 
    - `setup_steps`: shell commands every stage job runs first, e.g. `npm ci`, `pip install -r requirements-dev.txt`, `go mod download`.
    - `deploy_command`: the real deploy (`./deploy.sh production`, `flyctl deploy`, `kubectl apply -k overlays/prod`, `terraform apply -auto-approve`). It must be idempotent, and it should come from a `deployment` task in the plan.
    - `monitor_cron`: synthetic-monitor cadence.
-   - `python`: the version the reqforge runner uses in CI.
-3. Generate: `${CLAUDE_PLUGIN_ROOT}/bin/reqforge cicd <code-repo-path>`. This writes `.github/workflows/reqforge-pipeline.yml` and vendors the stdlib-only runner into `.reqforge/`. Pass `--requirements-path <dir>` when the requirements repo sits inside the code repo.
+   - `reqforge_git`: optional git URL of the reqforge repo for `cargo install --git` (otherwise sources are vendored).
+3. Generate: `${CLAUDE_PLUGIN_ROOT}/bin/reqforge cicd <code-repo-path>`. This writes `.github/workflows/reqforge-pipeline.yml` and vendors the reqforge server sources into `.reqforge/server`; each CI job builds the binary from them with `cargo install --no-default-features` (cached). Set `cicd.reqforge_git` to install from a git URL instead of vendoring. Pass `--requirements-path <dir>` when the requirements repo sits inside the code repo.
 4. Verify:
    - The YAML parses (`python3 -c "import yaml,sys;yaml.safe_load(open(sys.argv[1]))" <file>` if PyYAML exists; else `actionlint` if installed).
    - Locally, `reqforge evals run --stage commit --workdir <repo>` gives a result you can explain. Failing evals for unbuilt features are expected, so report them; don't hide them.

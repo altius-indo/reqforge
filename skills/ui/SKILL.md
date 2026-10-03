@@ -14,4 +14,4 @@ argument-hint: "[port | console]"
   - Setting `REQFORGE_TOKEN` before starting requires a bearer token for the API; the UI prompts for it.
   - `--host 0.0.0.0` exposes it on the network. Only do that with a token set.
   - "Sync to GitHub" in the UI pushes the commits.
-  - REST endpoints are listed in `reqforge/api.py` and the README.
+  - REST endpoints are listed in `server/src/api.rs` and the README.

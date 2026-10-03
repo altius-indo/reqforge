@@ -8,9 +8,7 @@ import random
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from reqforge.model import TAXONOMY  # noqa: E402
-from reqforge.store import Store  # noqa: E402
+from _loader import TAXONOMY, Loader  # noqa: E402
 
 root = sys.argv[1] if len(sys.argv) > 1 else "reqforge-large"
 n = int(sys.argv[2]) if len(sys.argv) > 2 else 3000
@@ -41,8 +39,7 @@ OTHER_TPL = {
 STDS = ["GDPR Art. 17", "PCI DSS v4.0 SAQ A", "SOC 2 CC6.1", "DPDP Act 2023 s.8", "CCPA 1798.105", "EN 301 549"]
 PROTOS = ["REST/OpenAPI 3.1", "gRPC", "AsyncAPI event", "GraphQL", "webhook"]
 
-s = Store.init(root, "BIG", f"Large synthetic shop ({n} requirements)")
-s.config["autocommit"] = False
+s = Loader(root, "BIG", f"Large synthetic shop ({n} requirements)")
 cells = [(t, c) for t, spec in TAXONOMY.items() for c in (spec["categories"] or AREAS)]
 weights = [8 if t == "functional" else 3 if t == "quality" else 1 for t, _ in cells]
 reqs = []
@@ -103,6 +100,5 @@ for area, rs in by_area.items():
         for kind in rnd.sample(["design", "code", "deployment", "monitoring"], rnd.randint(1, 4)):
             tid += 1
             s.create("tasks", {"id": f"TASK-{tid:04d}", "story": story, "kind": kind, "title": f"{kind} for {story}"})
-s.config["autocommit"] = True
-s.save_config({"autocommit": True, "components": {}})
+s.flush()
 print(f"seeded {root}: {len(reqs)} requirements, {eid} epics, {sid} stories, {tid} tasks")

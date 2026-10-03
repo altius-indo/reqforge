@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
-# Plugin entry point: runs the stdlib-only reqforge package without installation.
+# Plugin entry point: runs the Rust reqforge binary, building it on first use (or when sources
+# are newer than the binary). Build output goes to stderr so stdout stays clean for MCP.
+set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}" exec "${REQFORGE_PYTHON:-python3}" -m reqforge "$@"
+BIN="${REQFORGE_BIN:-$HERE/server/target/release/reqforge}"
+if [ -z "${REQFORGE_BIN:-}" ]; then
+  if [ ! -x "$BIN" ] || [ -n "$(find "$HERE/server/src" "$HERE/server/Cargo.toml" "$HERE/web/dist" -newer "$BIN" -print -quit 2>/dev/null)" ]; then
+    if ! command -v cargo >/dev/null 2>&1; then
+      echo "reqforge: Rust toolchain (cargo) not found; install it from https://rustup.rs or set REQFORGE_BIN" >&2
+      exit 127
+    fi
+    echo "reqforge: building release binary (first run takes a minute)…" >&2
+    cargo build --release --quiet --manifest-path "$HERE/server/Cargo.toml" 1>&2
+  fi
+fi
+exec "$BIN" "$@"
