@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Plugin entry point: runs the stdlib-only reqforge package without installation.
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}" exec "${REQFORGE_PYTHON:-python3}" -m reqforge "$@"

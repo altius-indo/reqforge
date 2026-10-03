@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reqforge"
+version = "0.1.0"
+description = "Requirements -> epics/stories/tasks -> evals -> CI/CD, stored in GitHub. Claude Code plugin + CLI + REST + UI + MCP."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+reqforge = "reqforge.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["reqforge*"]
+
+[tool.setuptools.package-data]
+reqforge = ["ui/*.html"]

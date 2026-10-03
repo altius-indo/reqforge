@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "reqforge": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/reqforge",
+      "args": ["mcp"]
+    }
+  }
+}

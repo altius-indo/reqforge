@@ -1,0 +1,8 @@
+{
+  "name": "reqforge-marketplace",
+  "owner": { "name": "jsanyal" },
+  "description": "reqforge: agentic requirements engineering to eval-driven CI/CD",
+  "plugins": [
+    { "name": "reqforge", "source": "./", "description": "Requirements -> epics/stories/tasks -> evals -> CI/CD, stored in GitHub" }
+  ]
+}

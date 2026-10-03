@@ -1,0 +1,7 @@
+{
+  "name": "reqforge",
+  "version": "0.1.0",
+  "description": "Agentic requirements engineering: research-backed elicitation into MECE requirement sets stored in GitHub, planning into epics/stories/tasks with evals from the start, traceability evaluation, and an eval-driven CI/CD pipeline. Ships a CLI, console, REST API, web UI and MCP server.",
+  "author": { "name": "jsanyal", "email": "subhajyoti@gmail.com" },
+  "keywords": ["requirements", "planning", "traceability", "evals", "ci-cd", "mcp"]
+}

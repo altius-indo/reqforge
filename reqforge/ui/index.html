@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>reqforge</title>
+<style>
+:root{--bg:#f7f7f5;--panel:#fff;--ink:#1d1d1b;--muted:#6b6b66;--line:#e3e2dd;--accent:#2f5bd3;--accent-ink:#fff;
+--ok:#1f7a4d;--warn:#a86400;--err:#b3261e;--chip:#efeee9;--sel:#e9effd;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--panel:#1d1d1b;--ink:#ecebe6;--muted:#9c9b94;--line:#33322e;--accent:#7b9cff;--accent-ink:#0d0d0c;
+--ok:#5cc28f;--warn:#e0a24a;--err:#f2867c;--chip:#2a2926;--sel:#23293a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-size:14px}
+header{display:flex;gap:16px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+header h1{font-size:15px;margin:0;font-weight:650}header .proj{color:var(--muted)}
+nav{display:flex;gap:2px;flex-wrap:wrap}nav button{background:none;border:0;padding:6px 10px;border-radius:6px;color:var(--muted);cursor:pointer;font:inherit}
+nav button.on{background:var(--chip);color:var(--ink);font-weight:600}
+.sp{flex:1}button,select,input,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--panel);padding:5px 10px;border-radius:6px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.btn.danger{color:var(--err)}
+main{padding:16px;max-width:1400px;margin:0 auto}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.bar input[type=search]{flex:1;min-width:220px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+select,input[type=text],input[type=password],input[type=number],textarea{border:1px solid var(--line);border-radius:6px;padding:5px 8px;background:var(--panel)}
+.bulk{background:var(--sel);border-radius:8px;padding:8px 10px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line)}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600}
+tbody tr{cursor:pointer}tbody tr:hover{background:var(--chip)}tbody tr.sel{background:var(--sel)}
+.id{font-family:ui-monospace,Menlo,monospace;font-size:12px;white-space:nowrap}
+.chip{display:inline-block;background:var(--chip);border-radius:10px;padding:1px 8px;font-size:12px;margin:1px 2px 1px 0;white-space:nowrap}
+.s-ok{color:var(--ok)}.s-warn{color:var(--warn)}.s-err{color:var(--err)}
+.wrap{overflow-x:auto;border-radius:8px}
+aside{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:var(--panel);border-left:1px solid var(--line);
+transform:translateX(100%);transition:transform .18s;z-index:10;display:flex;flex-direction:column}
+aside.open{transform:none}aside .hd{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+aside .bd{padding:12px 16px;overflow:auto;flex:1}aside .ft{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px}
+.f{margin-bottom:10px}.f label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+.f input,.f select,.f textarea{width:100%}.f textarea{min-height:70px}.f textarea.code{font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:120px}
+.err{color:var(--err);font-size:13px;white-space:pre-wrap}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.on{opacity:1}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}.card b{display:block;font-size:20px}.card span{font-size:12px;color:var(--muted)}
+.muted{color:var(--muted)}h2{font-size:15px;margin:18px 0 8px}
+@media (max-width:640px){main{padding:12px 16px}th:nth-child(n+5),td:nth-child(n+5){display:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>reqforge</h1><span class="proj" id="proj"></span>
+  <nav id="tabs"></nav><span class="sp"></span>
+  <input type="password" id="token" placeholder="API token" style="display:none;width:140px">
+  <button class="btn" id="syncBtn" title="commit, pull --rebase, push to GitHub">Sync to GitHub</button>
+</header>
+<main id="main"></main>
+<aside id="drawer"><div class="hd"><b id="dTitle"></b><span class="sp"></span><button class="btn" id="dClose">Close</button></div>
+<div class="bd" id="dBody"></div><div class="ft" id="dFoot"></div></aside>
+<div class="toast" id="toast"></div>
+<script>
+const KINDS={requirements:"Requirements",epics:"Epics",stories:"Stories",tasks:"Tasks"};
+const COLS={requirements:["title","type","category","priority","status","tags"],epics:["title","requirements","status","tags"],
+  stories:["title","epic","requirements","deliverable","evals","status"],tasks:["title","story","kind","status","estimate"]};
+const FILTERS={requirements:["type","priority","status"],epics:["status"],stories:["deliverable","status"],tasks:["kind","status"]};
+let META=null,state={tab:"requirements",q:"",filters:{},rows:[],sel:new Set()};
+const $=s=>document.querySelector(s);
+const h=(t,a={},...c)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){
+  if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(k==="value")e.value=v??"";else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v)}
+  for(const x of c.flat())if(x!=null)e.append(x.nodeType?x:document.createTextNode(x));return e};
+const store={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
+async function api(method,path,body,raw){const headers={};const t=store.get("reqforge.token");if(t)headers.Authorization="Bearer "+t;
+  let data;if(body!==undefined){headers["Content-Type"]=raw?"text/csv":"application/json";data=raw?body:JSON.stringify(body)}
+  const r=await fetch(path,{method,headers,body:data});
+  if(r.status===401){$("#token").style.display="";throw new Error("unauthorized: enter the API token (REQFORGE_TOKEN)")}
+  const out=(r.headers.get("content-type")||"").includes("json")?await r.json():await r.text();
+  if(!r.ok){const e=new Error(out.error||r.statusText);e.details=out.details||[];throw e}return out}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),2800)}
+function showErr(e){toast(e.message);const b=$("#dErr");if(b&&$("#drawer").classList.contains("open"))
+  b.textContent=[e.message,...(e.details||[]).map(d=>"• "+(typeof d==="string"?d:JSON.stringify(d)))].join("\n")}
+const sch=(k,f)=>META.schemas[k][f];
+function cell(r,f){const v=r[f];if(f==="evals")return v&&v.length?h("span",{class:"chip"},`${v.length} eval${v.length>1?"s":""}`):h("span",{class:"s-warn"},"none");
+  if(Array.isArray(v))return v.map(x=>h("span",{class:"chip"},typeof x==="string"?x:x.id||"…"));return v??""}
+
+function tabs(){$("#tabs").replaceChildren(...[...Object.entries(KINDS),["trace","Traceability"],["lint","Lint"]].map(([k,l])=>
+  h("button",{class:state.tab===k?"on":"",onclick:()=>{state.tab=k;state.sel.clear();state.filters={};state.q="";render()}},l)))}
+function render(){tabs();store.set("reqforge.tab",state.tab);
+  return state.tab==="trace"?renderTrace():state.tab==="lint"?renderLint():renderList()}
+
+async function renderList(){const kind=state.tab,m=$("#main");
+  const p=new URLSearchParams({q:state.q,...Object.fromEntries(Object.entries(state.filters).filter(([,v])=>v))});
+  try{state.rows=await api("GET",`/api/${kind}?${p}`)}catch(e){m.replaceChildren(h("p",{class:"err"},e.message));return}
+  state.sel=new Set([...state.sel].filter(id=>state.rows.some(r=>r.id===id)));
+  const search=h("input",{type:"search",placeholder:"Search: free text, or field:value (category:security tags:pci status:draft|proposed)",value:state.q,
+    onkeydown:e=>{if(e.key==="Enter"){state.q=e.target.value;renderList()}}});
+  const fsel=FILTERS[kind].map(f=>h("select",{onchange:e=>{state.filters[f]=e.target.value;renderList()}},h("option",{value:""},`${f}: any`),
+    ...sch(kind,f).values.map(v=>h("option",{value:v,selected:state.filters[f]===v},v))));
+  const fileIn=h("input",{type:"file",accept:".csv",style:"display:none",onchange:async e=>{const f=e.target.files[0];if(!f)return;
+    try{const r=await api("POST",`/api/${kind}/import`,await f.text(),true);toast(`imported: ${r.created.length} created, ${r.updated.length} updated`);renderList()}catch(err){showErr(err)}}});
+  const all=h("input",{type:"checkbox",checked:state.rows.length>0&&state.sel.size===state.rows.length,onclick:e=>{e.stopPropagation();
+    state.sel=e.target.checked?new Set(state.rows.map(r=>r.id)):new Set();renderList()}});
+  const rows=state.rows.map(r=>h("tr",{class:state.sel.has(r.id)?"sel":"",onclick:()=>openEditor(kind,r)},
+    h("td",{},h("input",{type:"checkbox",checked:state.sel.has(r.id),onclick:e=>{e.stopPropagation();e.target.checked?state.sel.add(r.id):state.sel.delete(r.id);renderList()}})),
+    h("td",{class:"id"},r.id),...COLS[kind].map(f=>h("td",{},cell(r,f)))));
+  m.replaceChildren(
+    h("div",{class:"bar"},search,...fsel,h("button",{class:"btn primary",onclick:()=>openEditor(kind,null)},"New"),
+      h("button",{class:"btn",onclick:()=>{location.href=`/api/${kind}/export.csv?${p}`}},"Export CSV"),
+      h("button",{class:"btn",onclick:()=>fileIn.click()},"Import CSV"),fileIn),
+    state.sel.size?bulkBar(kind):"",
+    h("div",{class:"wrap"},h("table",{},h("thead",{},h("tr",{},h("th",{},all),h("th",{},"id"),...COLS[kind].map(c=>h("th",{},c)))),h("tbody",{},...rows))),
+    h("p",{class:"muted"},`${state.rows.length} ${kind}${state.sel.size?` · ${state.sel.size} selected`:""}`))}
+
+function bulkBar(kind){const fields=Object.entries(META.schemas[kind]).filter(([,s])=>!["objlist","text"].includes(s.type));
+  const fSel=h("select",{},...fields.map(([f])=>h("option",{value:f},f)));
+  const mode=h("select",{},h("option",{value:"set"},"set to"),h("option",{value:"add"},"add to list"),h("option",{value:"remove"},"remove from list"));
+  const holder=h("span",{});let val;
+  const sync=()=>{const s=sch(kind,fSel.value),isList=s.type.includes("list");
+    val=s.values?h("select",{},...s.values.map(v=>h("option",{value:v},v))):h("input",{type:"text",placeholder:isList?"comma, separated":"value"});
+    holder.replaceChildren(val);for(const o of mode.options)o.disabled=o.value!=="set"&&!isList;if(!isList)mode.value="set"};
+  fSel.onchange=sync;sync();
+  const go=async dry=>{const f=fSel.value,isList=sch(kind,f).type.includes("list");
+    const v=isList?val.value.split(",").map(s=>s.trim()).filter(Boolean):val.value;
+    const body={ids:[...state.sel],dry_run:dry,[mode.value]:{[f]:v}};
+    try{const r=await api("POST",`/api/${kind}/bulk`,body);toast(`${dry?"would change":"changed"} ${r.changed.length} record(s)`);if(!dry)renderList()}catch(e){showErr(e)}};
+  return h("div",{class:"bar bulk"},h("b",{},`${state.sel.size} selected:`),fSel,mode,holder,
+    h("button",{class:"btn",onclick:()=>go(true)},"Dry run"),h("button",{class:"btn primary",onclick:()=>go(false)},"Apply"),
+    h("button",{class:"btn",onclick:()=>{state.sel.clear();renderList()}},"Clear"))}
+
+function field(kind,f,s,v){const id="f_"+f;let input;
+  if(s.values)input=h("select",{id},h("option",{value:""},"—"),...s.values.map(x=>h("option",{value:x,selected:v===x},x)));
+  else if(kind==="requirements"&&f==="category")input=h("input",{id,type:"text",value:v,list:"catlist"});
+  else if(s.type==="text")input=h("textarea",{id,value:v});
+  else if(s.type==="objlist")input=h("textarea",{id,class:"code",value:JSON.stringify(v||[],null,2)});
+  else if(s.type.includes("list"))input=h("input",{id,type:"text",value:(v||[]).join(", ")});
+  else input=h("input",{id,type:s.type==="int"?"number":"text",value:v});
+  const hint=s.type==="objlist"?` (JSON list: ${s.keys.join(", ")}${f==="evals"?", covers[], required":""})`:s.type.includes("list")?" (comma-separated)":"";
+  return h("div",{class:"f"},h("label",{for:id},f+(s.required?" *":"")+hint),input)}
+
+function openEditor(kind,rec){const body=$("#dBody");body.replaceChildren();
+  $("#dTitle").textContent=rec?`${rec.id} · v${rec.version}`:`New ${kind.replace(/ies$/,"y").replace(/s$/,"")}`;
+  for(const[f,s]of Object.entries(META.schemas[kind]))body.append(field(kind,f,s,rec?rec[f]:s.default));
+  if(kind==="requirements"){const dl=h("datalist",{id:"catlist"});body.append(dl);
+    const upd=()=>{const cats=META.taxonomy[$("#f_type").value]?.categories;dl.replaceChildren(...Object.keys(cats||{}).map(c=>h("option",{value:c})))};
+    $("#f_type").addEventListener("change",upd);upd()}
+  if(rec)body.append(h("p",{class:"muted"},`created ${rec.created} · updated ${rec.updated}`));
+  body.append(h("div",{class:"err",id:"dErr"}));
+  $("#dFoot").replaceChildren(h("button",{class:"btn primary",onclick:()=>save(kind,rec)},"Save"),
+    rec?h("button",{class:"btn danger",onclick:e=>del(kind,rec,e.target)},"Delete"):"");
+  $("#drawer").classList.add("open")}
+
+async function save(kind,rec){const out={};
+  try{for(const[f,s]of Object.entries(META.schemas[kind])){let v=$("#f_"+f).value;
+      if(s.type==="objlist"){try{v=JSON.parse(v||"[]")}catch{throw new Error(`${f}: invalid JSON`)}}
+      else if(s.type.includes("list"))v=v.split(",").map(x=>x.trim()).filter(Boolean);
+      else if(s.type==="int")v=v===""?null:parseInt(v,10);
+      else if(v==="")v=null;
+      if(!rec&&v==null)continue;out[f]=v}
+    const r=rec?await api("PATCH",`/api/${kind}/${rec.id}`,{...out,_version:rec.version}):await api("POST",`/api/${kind}`,out);
+    toast(`${r.id} saved (v${r.version})`);closeDrawer();renderList()}catch(e){showErr(e)}}
+async function del(kind,rec,btn){if(btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="Click again to delete";return}
+  try{await api("DELETE",`/api/${kind}/${rec.id}`);toast(`${rec.id} deleted`);closeDrawer();renderList()}catch(e){showErr(e)}}
+function closeDrawer(){$("#drawer").classList.remove("open")}
+
+async function renderTrace(){const m=$("#main");let r;try{r=await api("GET","/api/trace")}catch(e){m.replaceChildren(h("p",{class:"err"},e.message));return}
+  const x=r.metrics,pct=v=>Math.round(v*100)+"%";
+  m.replaceChildren(h("div",{class:"cards"},
+    h("div",{class:"card"},h("b",{class:r.ok?"s-ok":"s-err"},r.ok?"PASS":"FAIL"),h("span",{},`CI gate · score ${pct(r.score)}`)),
+    h("div",{class:"card"},h("b",{},pct(x.requirement_coverage)),h("span",{},"requirements → stories")),
+    h("div",{class:"card"},h("b",{},pct(x.criteria_coverage)),h("span",{},"criteria → evals")),
+    ...["requirements","stories","tasks","evals"].map(k=>h("div",{class:"card"},h("b",{},x[k]),h("span",{},k)))),
+    h("h2",{},"Checks"),
+    h("div",{class:"wrap"},h("table",{},h("thead",{},h("tr",{},h("th",{},"check"),h("th",{},"result"),h("th",{},"failures"))),
+      h("tbody",{},...r.checks.map(c=>h("tr",{},h("td",{},c.name),h("td",{class:c.passed?"s-ok":c.severity==="error"?"s-err":"s-warn"},c.passed?"pass":c.severity),
+        h("td",{},c.failures.length?h("details",{},h("summary",{},String(c.failures.length)),h("ul",{},...c.failures.map(f=>h("li",{},f)))):"—")))))),
+    h("h2",{},"Requirement → story → eval matrix"),
+    h("div",{class:"wrap"},h("table",{},h("thead",{},h("tr",{},...["requirement","status","stories","acceptance criteria"].map(t=>h("th",{},t)))),
+      h("tbody",{},...Object.entries(r.matrix).map(([id,row])=>h("tr",{},h("td",{},h("span",{class:"id"},id)," ",row.title),h("td",{},row.status),
+        h("td",{class:row.stories.length?"":"s-err"},row.stories.length?row.stories.map(s=>h("span",{class:"chip"},s)):"none"),
+        h("td",{},...row.criteria.map(c=>h("span",{class:"chip "+(c.covered?"s-ok":"s-err")},(c.covered?"✓ ":"✗ ")+c.id)))))))))}
+
+async function renderLint(){const m=$("#main");let r;try{r=await api("GET","/api/lint")}catch(e){m.replaceChildren(h("p",{class:"err"},e.message));return}
+  const sev={error:"s-err",warning:"s-warn",info:"muted"};
+  m.replaceChildren(h("div",{class:"cards"},h("div",{class:"card"},h("b",{class:r.ok?"s-ok":"s-err"},r.ok?"OK":"ERRORS"),h("span",{},`${r.requirements} requirements`)),
+    ...["error","warning","info"].map(k=>h("div",{class:"card"},h("b",{},r.counts[k]),h("span",{},k+"s"))),
+    h("div",{class:"card"},h("b",{},r.coverage.gaps.length),h("span",{},`taxonomy gaps of ${r.coverage.cells} cells`))),
+    h("div",{class:"wrap"},h("table",{},h("thead",{},h("tr",{},...["severity","rule","records","message"].map(t=>h("th",{},t)))),
+      h("tbody",{},...r.findings.map(f=>h("tr",{onclick:()=>{if(f.ids[0]){state.tab="requirements";state.filters={};state.q=f.ids[0];render()}}},
+        h("td",{class:sev[f.severity]},f.severity),h("td",{},f.rule),h("td",{},...f.ids.map(i=>h("span",{class:"chip"},i))),h("td",{},f.message)))))))}
+
+$("#dClose").onclick=closeDrawer;document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
+$("#token").onchange=e=>{store.set("reqforge.token",e.target.value);boot()};
+$("#syncBtn").onclick=async()=>{try{const r=await api("POST","/api/sync",{});toast(r.ok?(r.pushed?"pushed to GitHub":r.note||"committed"):`sync failed: ${r.error}`)}catch(e){toast(e.message)}};
+async function boot(){try{META=await api("GET","/api/meta");$("#proj").textContent=`${META.config.name} (${META.config.key})`;$("#token").style.display="none"}
+  catch(e){$("#main").replaceChildren(h("p",{class:"err"},e.message));return}
+  const t=store.get("reqforge.tab");if(t)state.tab=t;render()}
+boot();
+</script>
+</body>
+</html>
