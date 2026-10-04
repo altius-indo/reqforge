@@ -10,7 +10,7 @@
   "acceptance_criteria": [
     {
       "id": "AC1",
-      "text": "A confirmation dialog shows the component path, the branch name reqforge/TASK-NNNN and the full brief; nothing runs until the user confirms"
+      "text": "For a run started from the UI, a confirmation dialog shows the component path, the branch name reqforge/TASK-NNNN and the full brief, and nothing runs until the user confirms; runs started by the agent queue are authorised by the user who turned the queue on"
     },
     {
       "id": "AC2",
@@ -40,7 +40,7 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:12:08+00:00"
+  "updated": "2026-10-04T02:29:01+00:00"
 }

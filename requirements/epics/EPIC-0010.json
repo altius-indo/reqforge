@@ -1,16 +1,17 @@
 {
   "id": "EPIC-0010",
   "title": "Task execution from the UI",
-  "description": "Start planned tasks from the web UI, manually or with a sandboxed coding agent, respecting task dependencies.",
+  "description": "Start planned tasks from the web UI, manually, with a sandboxed coding agent, or automatically through a per-project agent queue, respecting task dependencies.",
   "requirements": [
     "REQ-0049",
     "REQ-0050",
     "REQ-0051",
-    "REQ-0052"
+    "REQ-0052",
+    "REQ-0053"
   ],
   "status": "todo",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:12:08+00:00"
+  "updated": "2026-10-04T02:29:01+00:00"
 }

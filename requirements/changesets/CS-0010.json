@@ -3,7 +3,7 @@
   "title": "Auto-start queue for coding agent runs",
   "summary": "Adds a per-project agent run queue (new REQ, story STORY-0014, 3 tasks, 2 evals). It is off by default, its concurrency limit defaults to 2, and it auto-starts todo tasks whose story's requirements are all approved. REQ-0051 AC1 and REQ-0052 AC4 are updated to cover queued runs.",
   "rationale": "The product owner wants approved work to start in Claude Code without a click per task. Decisions: a task is eligible when every requirement linked to its story is approved (stories have no approval status). The concurrency limit is configurable per project, default 2. The queue is off by default, and the user who turns it on is the accountable starting user of every queued run.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T02:27:15+00:00",
   "valid": true,
   "ops": [
@@ -724,5 +724,14 @@
       ],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-04T02:29:01+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "r1": "REQ-0053",
+    "s1": "STORY-0014",
+    "t1": "TASK-0030",
+    "t2": "TASK-0031",
+    "t3": "TASK-0032"
   }
 }

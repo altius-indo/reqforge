@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0031",
+  "title": "Agent queue scheduler in the server",
+  "story": "STORY-0014",
+  "kind": "code",
+  "description": "Per-project scheduler that starts eligible tasks through the agent launcher up to the concurrency limit; project settings for queue on/off and limit; audit fields.",
+  "done_when": "agent_queue integration tests pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:29:01+00:00",
+  "updated": "2026-10-04T02:29:01+00:00"
+}

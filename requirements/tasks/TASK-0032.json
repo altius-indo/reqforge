@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0032",
+  "title": "Queue toggle and queue view in the tasks tab",
+  "story": "STORY-0014",
+  "kind": "code",
+  "description": "Per-project on/off toggle with confirmation, concurrency setting, and a view of running and waiting tasks.",
+  "done_when": "agent-queue e2e suite passes.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:29:01+00:00",
+  "updated": "2026-10-04T02:29:01+00:00"
+}

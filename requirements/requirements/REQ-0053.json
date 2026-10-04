@@ -1,0 +1,46 @@
+{
+  "id": "REQ-0053",
+  "title": "Agent run queue",
+  "statement": "The system shall, while a project's agent queue is on, automatically start a coding agent run for each eligible todo task, with at most the project's configured number of concurrent runs (default 2).",
+  "type": "functional",
+  "category": "task-execution",
+  "priority": "could",
+  "status": "proposed",
+  "rationale": "Lets approved work start in Claude Code without a click per task, while bounding machine load and keeping each run attributable to a user.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The queue is off for every project by default; turning it on or off is a per-project setting, requires a confirmation showing the number of eligible tasks, and records the user and time"
+    },
+    {
+      "id": "AC2",
+      "text": "A task is eligible only if its status is todo, every requirement linked to its story has status approved, every task in its depends_on is done, and its story's component has a path; no other task is started"
+    },
+    {
+      "id": "AC3",
+      "text": "The number of concurrent runs per project never exceeds the configured limit (integer 1 to 8, default 2); when a run ends, the next eligible task in ascending task id order starts within 30 s"
+    },
+    {
+      "id": "AC4",
+      "text": "A queued run uses the same worktree, branch, brief and progress view as a UI-started run (REQ-0051 AC2 to AC5) and moves the task to in-progress when it starts"
+    },
+    {
+      "id": "AC5",
+      "text": "A run that fails or is cancelled is not restarted by the queue; turning the queue off starts 0 new runs and leaves active runs running"
+    },
+    {
+      "id": "AC6",
+      "text": "The tasks view shows the queue state (on/off, enabling user), the running tasks and the waiting eligible tasks in start order"
+    }
+  ],
+  "tags": [
+    "tasks",
+    "agent"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-03",
+  "version": 1,
+  "created": "2026-10-04T02:29:01+00:00",
+  "updated": "2026-10-04T02:29:01+00:00"
+}

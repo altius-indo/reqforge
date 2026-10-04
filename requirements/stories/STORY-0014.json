@@ -1,0 +1,43 @@
+{
+  "id": "STORY-0014",
+  "title": "Auto-start approved tasks through an agent queue",
+  "epic": "EPIC-0010",
+  "narrative": "As a product owner, I want approved tasks to start in Claude Code automatically, a few at a time, so that planned work progresses without me starting each task.",
+  "requirements": [
+    "REQ-0053"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "agent queue scheduler (stub claude)",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test agent_queue",
+      "covers": [
+        "REQ-0053#AC1",
+        "REQ-0053#AC2",
+        "REQ-0053#AC3",
+        "REQ-0053#AC4",
+        "REQ-0053#AC5"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: agent queue",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-queue.xml --suite agent-queue",
+      "covers": [
+        "REQ-0053#AC1",
+        "REQ-0053#AC6"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 5,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:29:01+00:00",
+  "updated": "2026-10-04T02:29:01+00:00"
+}
