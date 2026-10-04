@@ -3,7 +3,7 @@
   "title": "Reset in-progress tasks to todo",
   "summary": "Move TASK-0009, TASK-0019, TASK-0020, TASK-0023 and TASK-0024 from in-progress back to todo so they can be picked up and started again.",
   "rationale": "Product owner asked to restart all in-progress tasks.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T02:20:23+00:00",
   "valid": true,
   "ops": [
@@ -201,5 +201,8 @@
       "components": [],
       "in_progress_work": []
     }
-  }
+  },
+  "applied_at": "2026-10-04T02:20:37+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }
