@@ -1,7 +1,7 @@
 {
   "id": "REQ-0044",
   "title": "Stage membership from evals at run time",
-  "statement": "The system shall derive which evals each pipeline stage runs at run time, so that adding an eval needs no workflow regeneration.",
+  "statement": "The system shall derive which evals each pipeline stage runs at run time, so that adding an eval needs 0 workflow edits.",
   "type": "quality",
   "category": "flexibility",
   "priority": "must",
@@ -10,14 +10,14 @@
   "acceptance_criteria": [
     {
       "id": "AC1",
-      "text": "Stage jobs call reqforge evals run --stage instead of listing commands"
+      "text": "Each of the 6 stage jobs calls reqforge evals run --stage instead of listing commands"
     }
   ],
   "tags": [],
   "standards": [],
   "stakeholders": [],
   "source": "reverse-engineered from code @ reqforge 0.2",
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:01:26+00:00"
+  "updated": "2026-10-04T01:02:15+00:00"
 }
