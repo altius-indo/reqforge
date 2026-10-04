@@ -1,12 +1,12 @@
 {
   "component": "server",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "d5a2befa2c5f8fd0a7db1f027fb74096f456555a",
-  "scanned_at": "2026-10-04T02:32:05+00:00",
-  "files_scanned": 33,
+  "commit": "eb7b646c61c950e39f9466b791fb6fcc50ac71d6",
+  "scanned_at": "2026-10-04T04:30:31+00:00",
+  "files_scanned": 35,
   "files": {
-    "server/src/agent.rs": "4429cbfc879c9a11fb7d32ef448d4172a3b7a578cc63d6877c2403f0d8734c3f",
-    "server/src/api.rs": "ede067b567ad954f045a2723d75ac8bdcf4867c9c97d110b46f804c2b63b2821",
+    "server/src/agent.rs": "c56c15140b394f2bd322a099d21c17adb89556dcacb6d7b6b8df1ff2e842d699",
+    "server/src/api.rs": "cdba1eb6c08e12b52767f77ac953d93f5df983b297bbaeaf86cbf50b05603166",
     "server/src/changes.rs": "1a5b49c7a0d889f31010d5bc0b77e98ad36a850ddcc6f35acbc148d1b1fe1c82",
     "server/src/chat.rs": "bef971dfcc914457c230da2bcf80c170bcf9553288fcbcdc03486fb6f6eb2da4",
     "server/src/cicd.rs": "cf32485e3c038414daae292fb157add03d0ba708024c45e959ad58a2303e275c",
@@ -21,11 +21,13 @@
     "server/src/mcp.rs": "54833f89652567c7e89849b91f3d36635d245a1d933ebcbd0659a76e84dbbaa2",
     "server/src/model.rs": "2468673e2320c577fdcf953af2d2ad43f42642a1f58c09ae2fd0b546e98c247b",
     "server/src/query.rs": "29fdf2c1f01324be684e275c632b4b1f5ee9538eff54285e666642cbbc4c544a",
+    "server/src/queue.rs": "ba2f67510626dc4e65530feebc82318face6e68c4c8d1cd7cddf788bcabca2d4",
     "server/src/store.rs": "39c48183e684835fed82fe90509da3ecb080339fc2c4134d3c14080c109f7e31",
     "server/src/taskflow.rs": "27f6e10bb33904d0675b7123b6d57ad49f5c6cb07a4badabb6d4684e24e5511c",
     "server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
     "server/src/verify.rs": "fa147e48a34db72b8b660bdaffc21bbdeb1dd00cc668780bfec10b127c1ab902",
     "server/src/workspace.rs": "53bdc5132044397de7eabf4b2e18b1709572ab42aed9cdbac69398d3c4653ca5",
+    "server/tests/agent_queue.rs": "f65a0f78f6b0592bf682d798cebe766d05ca896bb54833b66abd1c44aa25b764",
     "server/tests/agent_run.rs": "fc15ccbd30fe71e67cde764084990072ff17b32fd36135730c384882016f9f50",
     "server/tests/agent_sandbox.rs": "400ee9813c5091a596716084263fd851c5dea01b053bb2165656aa022286629b",
     "server/tests/codetrace.rs": "b899d20b6c79e539df86f120ca994b3ed61face354cd7f22a5105f1b9cd8974c",
@@ -74,7 +76,7 @@
       "req": "REQ-0051",
       "kind": "implements",
       "file": "server/src/agent.rs",
-      "line": 301,
+      "line": 347,
       "symbol": "run",
       "text": "// reqforge: implements REQ-0051",
       "component": "server"
@@ -83,16 +85,25 @@
       "req": "REQ-0052",
       "kind": "implements",
       "file": "server/src/agent.rs",
-      "line": 302,
+      "line": 348,
       "symbol": "run",
       "text": "// reqforge: implements REQ-0052",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0053",
+      "kind": "implements",
+      "file": "server/src/api.rs",
+      "line": 124,
+      "symbol": "spawn_scheduler",
+      "text": "// reqforge: implements REQ-0053",
       "component": "server"
     },
     {
       "req": "REQ-0040",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 116,
+      "line": 158,
       "symbol": "same_origin",
       "text": "// reqforge: implements REQ-0040",
       "component": "server"
@@ -101,7 +112,7 @@
       "req": "REQ-0040",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 147,
+      "line": 189,
       "symbol": "authorized",
       "text": "// reqforge: implements REQ-0040",
       "component": "server"
@@ -110,7 +121,7 @@
       "req": "REQ-0046",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 165,
+      "line": 207,
       "symbol": "static_file",
       "text": "// reqforge: implements REQ-0046",
       "component": "server"
@@ -119,7 +130,7 @@
       "req": "REQ-0020",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 306,
+      "line": 368,
       "symbol": "projects_route",
       "text": "// reqforge: implements REQ-0020",
       "component": "server"
@@ -128,7 +139,7 @@
       "req": "REQ-0026",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 346,
+      "line": 408,
       "symbol": "route",
       "text": "// reqforge: implements REQ-0026",
       "component": "server"
@@ -395,6 +406,24 @@
       "component": "server"
     },
     {
+      "req": "REQ-0053",
+      "kind": "implements",
+      "file": "server/src/queue.rs",
+      "line": 23,
+      "symbol": "set",
+      "text": "// reqforge: implements REQ-0053",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0053",
+      "kind": "implements",
+      "file": "server/src/queue.rs",
+      "line": 45,
+      "symbol": "eligible",
+      "text": "// reqforge: implements REQ-0053",
+      "component": "server"
+    },
+    {
       "req": "REQ-0037",
       "kind": "implements",
       "file": "server/src/store.rs",
@@ -545,6 +574,56 @@
       "line": 323,
       "symbol": "delete",
       "text": "// reqforge: implements REQ-0019",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "server/tests/agent_queue.rs",
+      "line": 15,
+      "symbol": "queue_is_off_by_default_and_toggling_needs_confirmation",
+      "text": "// reqforge: verifies REQ-0053#AC1",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "server/tests/agent_queue.rs",
+      "line": 36,
+      "symbol": "only_eligible_tasks_are_queued",
+      "text": "// reqforge: verifies REQ-0053#AC2",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "server/tests/agent_queue.rs",
+      "line": 54,
+      "symbol": "concurrency_limit_and_start_order",
+      "text": "// reqforge: verifies REQ-0053#AC3",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "server/tests/agent_queue.rs",
+      "line": 55,
+      "symbol": "concurrency_limit_and_start_order",
+      "text": "// reqforge: verifies REQ-0053#AC4",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "server/tests/agent_queue.rs",
+      "line": 85,
+      "symbol": "failed_runs_are_not_retried_and_off_starts_nothing",
+      "text": "// reqforge: verifies REQ-0053#AC5",
       "component": "server"
     },
     {
