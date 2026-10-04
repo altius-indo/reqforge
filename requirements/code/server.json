@@ -1,8 +1,8 @@
 {
   "component": "server",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "eb7b646c61c950e39f9466b791fb6fcc50ac71d6",
-  "scanned_at": "2026-10-04T04:30:31+00:00",
+  "commit": "23c20df1cc69d578706ba78f68b579a5c48f5a55",
+  "scanned_at": "2026-10-04T04:54:00+00:00",
   "files_scanned": 35,
   "files": {
     "server/src/agent.rs": "c56c15140b394f2bd322a099d21c17adb89556dcacb6d7b6b8df1ff2e842d699",

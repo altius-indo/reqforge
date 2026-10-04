@@ -1,14 +1,14 @@
 {
   "component": "web",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "eb7b646c61c950e39f9466b791fb6fcc50ac71d6",
-  "scanned_at": "2026-10-04T04:30:31+00:00",
+  "commit": "23c20df1cc69d578706ba78f68b579a5c48f5a55",
+  "scanned_at": "2026-10-04T04:54:00+00:00",
   "files_scanned": 66,
   "files": {
     "web/e2e/suites/code.js": "2da5e170317d3c5b666e477107641b6dac899c9875c079473c6684dddf929aba",
     "web/e2e/suites/core.js": "8c3dfbf3a76ca7f60b09e91fe83aec657e13e818aef6451adebaa97491ebdce2",
     "web/e2e/suites/help-a11y.js": "f6ee2faa6e3e5e872a87611271d5364595daaca2003a6e1ba25c935e8e48da9c",
-    "web/e2e/suites/help.js": "c96a4bd029081b2d51908bcde6c1638cec546bc1b32828ad66f1e0d6d6189bbd",
+    "web/e2e/suites/help.js": "9ad72a638977af46c47cf4a199d6efde42083e6660cae75effecd332dda91ac1",
     "web/e2e/suites/projects.js": "018377a916e2d5d3dc849ba9569eccae082b22b19d39871186fac0d320cde205",
     "web/e2e/suites/theme.js": "fdd924cc11441c9d81bb07b6f84ae656601304046d77014481e0b1f1bdab9ca0",
     "web/src/components/ChangesetCard.tsx": "0625e3936262322509661d900e2b6ec661c51efbd347f7967412af8cf380a9ca",
@@ -19,9 +19,9 @@
     "web/src/components/Sidebar.tsx": "2c6b25386929362844caa9927889a107b88f5efddfbb6cadd41e4e5f75678ea4",
     "web/src/components/chat/ChatPanel.tsx": "c5993ef9d2528aead73457db6e587ba7b3c1621874054ba4ebf5f366a1c77672",
     "web/src/components/help/HelpButton.tsx": "2882e49c565e7a9e5dbdc90f6eddb1952c996214ab971c49ade60c043f97e78d",
-    "web/src/components/help/HelpPanel.tsx": "71e08327107a3e4915888bbb2d3fda6371a5e37de765b57e43f6184cbc23b274",
+    "web/src/components/help/HelpPanel.tsx": "edff9592d261275ecd85ad1eac094fb6be9982496b58948412f9e60d9e96f69a",
     "web/src/components/verification.tsx": "7f1330063ca71a732a333a46581e0e8a940eacce11af90085e77c9e13b25de9b",
-    "web/src/state/help.tsx": "f610a1b74d62d554208a12b0a2629a9776fa7e5eb43e2284ea8bf847e14c4750",
+    "web/src/state/help.tsx": "44be0123ee06357a3241456107b4238bea48722f432a75bdf16cf03d826f518b",
     "web/src/views/LintView.tsx": "5b62203ecb356a46dc8600b5b3086807c2a90932fe55c9e707ffd9780f20fcbc",
     "web/src/views/ListView.tsx": "2261c89e4e3c1759709b57458a00595b9f143c47fd667ae570057e29eb6b9652",
     "web/src/views/TraceView.tsx": "2e8cebb2c805bf2cc9a1499f969e48cfbf3230bf49cfeec7684626d8c5ee249d",
@@ -293,7 +293,7 @@
       "ac": "AC2",
       "kind": "verifies",
       "file": "web/e2e/suites/help.js",
-      "line": 68,
+      "line": 69,
       "symbol": "openHelp",
       "text": "// reqforge: verifies REQ-0048#AC2",
       "component": "web"
@@ -303,7 +303,7 @@
       "ac": "AC3",
       "kind": "verifies",
       "file": "web/e2e/suites/help.js",
-      "line": 108,
+      "line": 109,
       "symbol": "openHelp",
       "text": "// reqforge: verifies REQ-0048#AC3",
       "component": "web"
@@ -313,7 +313,7 @@
       "ac": "AC4",
       "kind": "verifies",
       "file": "web/e2e/suites/help.js",
-      "line": 120,
+      "line": 121,
       "symbol": "matches",
       "text": "// reqforge: verifies REQ-0048#AC4",
       "component": "web"
@@ -323,7 +323,7 @@
       "ac": "AC5",
       "kind": "verifies",
       "file": "web/e2e/suites/help.js",
-      "line": 139,
+      "line": 140,
       "symbol": "search",
       "text": "// reqforge: verifies REQ-0048#AC5",
       "component": "web"
@@ -333,7 +333,7 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "web/e2e/suites/help.js",
-      "line": 159,
+      "line": 160,
       "symbol": "openHelp",
       "text": "// reqforge: verifies REQ-0048#AC1",
       "component": "web"
@@ -343,7 +343,7 @@
       "ac": "AC2",
       "kind": "verifies",
       "file": "web/e2e/suites/help.js",
-      "line": 161,
+      "line": 162,
       "symbol": "openHelp",
       "text": "// reqforge: verifies REQ-0048#AC2",
       "component": "web"
@@ -610,7 +610,7 @@
       "req": "REQ-0048",
       "kind": "implements",
       "file": "web/src/state/help.tsx",
-      "line": 24,
+      "line": 25,
       "symbol": "HelpProvider",
       "text": "// reqforge: implements REQ-0048",
       "component": "web"
