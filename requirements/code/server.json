@@ -1,8 +1,8 @@
 {
   "component": "server",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "61d1a126604317b6b0174a2cb352683089b478e6",
-  "scanned_at": "2026-10-04T01:04:16+00:00",
+  "commit": "e91b9595d0e9fe0520b971c2917cb3c9052facb0",
+  "scanned_at": "2026-10-04T01:04:36+00:00",
   "files_scanned": 26,
   "files": {
     "server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
@@ -20,7 +20,7 @@
     "server/src/mcp.rs": "54833f89652567c7e89849b91f3d36635d245a1d933ebcbd0659a76e84dbbaa2",
     "server/src/model.rs": "16192e4f78f75bc26b83fedbcee7d555cd93ca93094ec6579ab107705580d56a",
     "server/src/query.rs": "29fdf2c1f01324be684e275c632b4b1f5ee9538eff54285e666642cbbc4c544a",
-    "server/src/store.rs": "744078dc7fe264ed6b3074d6189b62a16893438a903ab240e2c7a1c8badc479e",
+    "server/src/store.rs": "47f5b89ced3c8be9d7fe3142d29620739615a8e5c377d77e9e29dfbe91ad7ac4",
     "server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
     "server/src/verify.rs": "b604e3110fbe68e808e0644c24cc297bfc9907488fd368ae58b18bbd5293d18c",
     "server/src/workspace.rs": "53bdc5132044397de7eabf4b2e18b1709572ab42aed9cdbac69398d3c4653ca5",
@@ -346,10 +346,19 @@
       "component": "server"
     },
     {
+      "req": "REQ-0039",
+      "kind": "implements",
+      "file": "server/src/store.rs",
+      "line": 374,
+      "symbol": "entries",
+      "text": "// reqforge: implements REQ-0039",
+      "component": "server"
+    },
+    {
       "req": "REQ-0006",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 466,
+      "line": 467,
       "symbol": "search",
       "text": "// reqforge: implements REQ-0006",
       "component": "server"
@@ -358,7 +367,7 @@
       "req": "REQ-0003",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 482,
+      "line": 483,
       "symbol": "create_unlocked",
       "text": "// reqforge: implements REQ-0003",
       "component": "server"
@@ -367,7 +376,7 @@
       "req": "REQ-0005",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 515,
+      "line": 516,
       "symbol": "apply_unlocked",
       "text": "// reqforge: implements REQ-0005",
       "component": "server"
@@ -376,7 +385,7 @@
       "req": "REQ-0007",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 561,
+      "line": 562,
       "symbol": "bulk_update",
       "text": "// reqforge: implements REQ-0007",
       "component": "server"
@@ -385,7 +394,7 @@
       "req": "REQ-0035",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 758,
+      "line": 759,
       "symbol": "commit_all",
       "text": "// reqforge: implements REQ-0035",
       "component": "server"
@@ -394,7 +403,7 @@
       "req": "REQ-0035",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 777,
+      "line": 778,
       "symbol": "sync",
       "text": "// reqforge: implements REQ-0035",
       "component": "server"
