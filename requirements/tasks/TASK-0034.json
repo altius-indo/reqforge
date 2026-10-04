@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0034",
+  "title": "Design document endpoints and lint rule",
+  "story": "STORY-0015",
+  "kind": "code",
+  "depends_on": [],
+  "description": "GET /api/design (list: slug, title, realises) and GET /api/design/{slug} (raw Markdown) with slug validation; lint rule for unknown realises ids; realising documents in record context.",
+  "done_when": "design_docs integration tests pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T06:40:10+00:00",
+  "updated": "2026-10-04T06:40:10+00:00"
+}

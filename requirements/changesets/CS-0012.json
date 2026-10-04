@@ -3,7 +3,7 @@
   "title": "Design tab and design documents",
   "summary": "Adds REQ-0054 (design/*.md format with a 'realises' list) and REQ-0055 (read-only Design tab), STORY-0015 under EPIC-0007 with 3 tasks and 2 evals, including a task to commit the 5 reverse-engineered design specs.",
   "rationale": "The app has no design artifacts. Decisions: specs are Markdown files in the requirements repo, versioned in git, each listing the REQ ids it realises; they cover architecture, data model, API contracts, UI flows, and agent integration/security. The specs were drafted from code on 2026-10-03.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T06:39:49+00:00",
   "valid": true,
   "ops": [
@@ -537,5 +537,15 @@
       ],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-04T06:40:10+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "r1": "REQ-0054",
+    "r2": "REQ-0055",
+    "s1": "STORY-0015",
+    "t1": "TASK-0033",
+    "t2": "TASK-0034",
+    "t3": "TASK-0035"
   }
 }

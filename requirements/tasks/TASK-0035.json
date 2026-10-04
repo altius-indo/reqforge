@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0035",
+  "title": "Design tab and drawer links",
+  "story": "STORY-0015",
+  "kind": "code",
+  "depends_on": [],
+  "description": "Design tab in the header nav with a document list and Markdown viewer; linkified record ids; design documents section in the requirement drawer's Links & impact tab; help guide section for the tab.",
+  "done_when": "design e2e suite passes.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T06:40:10+00:00",
+  "updated": "2026-10-04T06:40:10+00:00"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "STORY-0015",
+  "title": "Design tab with reverse-engineered design specs",
+  "epic": "EPIC-0007",
+  "narrative": "As a product owner, I want to read the system's design specs in a Design tab, linked to the requirements they realise, so that I understand how each requirement is built without reading code.",
+  "requirements": [
+    "REQ-0054",
+    "REQ-0055"
+  ],
+  "deliverable": "code",
+  "component": "web",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "design document store and lint",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- design_docs",
+      "covers": [
+        "REQ-0054#AC1",
+        "REQ-0054#AC2",
+        "REQ-0054#AC3"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: design tab",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-design.xml --suite design",
+      "covers": [
+        "REQ-0055#AC1",
+        "REQ-0055#AC2",
+        "REQ-0055#AC3",
+        "REQ-0055#AC4"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 5,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T06:40:10+00:00",
+  "updated": "2026-10-04T06:40:10+00:00"
+}

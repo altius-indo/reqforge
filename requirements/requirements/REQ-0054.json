@@ -1,0 +1,33 @@
+{
+  "id": "REQ-0054",
+  "title": "Design document format",
+  "statement": "The system shall read design documents from design/<slug>.md files in the requirements repository, each with front matter giving a title and the list of requirement ids it realises.",
+  "type": "data",
+  "category": "model",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "Design specs need to be versioned and reviewed like records and traced to the requirements they realise, without a new record kind.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "A design document is a file design/<slug>.md where slug matches ^[a-z0-9][a-z0-9-]{0,63}$, with front matter fields title (string) and realises (list of REQ ids)"
+    },
+    {
+      "id": "AC2",
+      "text": "Lint reports an error naming the file and id for every realises entry that is not an existing requirement id"
+    },
+    {
+      "id": "AC3",
+      "text": "Design documents are served read-only by slug; a slug that does not match the pattern returns 400 and 0 files outside design/ are read"
+    }
+  ],
+  "tags": [
+    "design"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-03",
+  "version": 1,
+  "created": "2026-10-04T06:40:10+00:00",
+  "updated": "2026-10-04T06:40:10+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0033",
+  "title": "Commit the 5 reverse-engineered design specs",
+  "story": "STORY-0015",
+  "kind": "design",
+  "depends_on": [],
+  "description": "Commit the specs drafted from code on 2026-10-03 as design/architecture.md (realises REQ-0026..0029, REQ-0036, REQ-0046, REQ-0047), design/data-model.md (REQ-0003..0008, REQ-0035, REQ-0037, REQ-0042, REQ-0049), design/api.md (REQ-0013, REQ-0014, REQ-0020, REQ-0026, REQ-0027), design/ui.md (REQ-0030..0034, REQ-0045, REQ-0048, REQ-0050, REQ-0053) and design/agents-security.md (REQ-0015, REQ-0040, REQ-0041, REQ-0047, REQ-0051, REQ-0052), with front matter per the design document format.",
+  "done_when": "5 files are committed in design/ and lint reports 0 unknown realises ids.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T06:40:10+00:00",
+  "updated": "2026-10-04T06:40:10+00:00"
+}

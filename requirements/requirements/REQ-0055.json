@@ -1,0 +1,37 @@
+{
+  "id": "REQ-0055",
+  "title": "Design tab",
+  "statement": "The system shall provide a Design tab that lists the project's design documents and renders the selected document as Markdown with its realised requirements linked.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "Gives product owners and developers one place in the UI to read how the system is built and which requirements each part realises.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The Design tab lists every design document by title, sorted by slug, and shows an empty state with the expected design/ path when there are none"
+    },
+    {
+      "id": "AC2",
+      "text": "The selected document renders GitHub-flavoured Markdown, including tables and code blocks"
+    },
+    {
+      "id": "AC3",
+      "text": "Each document shows its realises list, and every REQ-, STORY- or TASK- id in the list or body opens that record in the drawer in 1 click"
+    },
+    {
+      "id": "AC4",
+      "text": "The Links & impact tab of a requirement lists the design documents that realise it"
+    }
+  ],
+  "tags": [
+    "design"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-03",
+  "version": 1,
+  "created": "2026-10-04T06:40:10+00:00",
+  "updated": "2026-10-04T06:40:10+00:00"
+}
