@@ -1,0 +1,563 @@
+{
+  "id": "CS-0002",
+  "title": "Close criteria-coverage gaps: REQ-0035#AC2, REQ-0045#AC2",
+  "summary": "Add evals and test-writing tasks for GitHub init/sync and dark-mode contrast, the two acceptance criteria with no eval.",
+  "rationale": "After CS-0001, the trace criteria-coverage check still fails on REQ-0035#AC2 and REQ-0045#AC2. Both gaps existed before CS-0001. No tests for either exist in server/tests or web/e2e, so each new eval comes with a task to write its test.",
+  "status": "pending",
+  "created": "2026-10-04T01:57:03+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "STORY-0002",
+      "add": {
+        "evals": [
+          {
+            "id": "E3",
+            "name": "GitHub init and sync",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- init_github_attaches_and_sync_pushes",
+            "covers": [
+              "REQ-0035#AC2"
+            ]
+          }
+        ]
+      },
+      "patch": {
+        "status": "in-progress"
+      },
+      "reason": "REQ-0035#AC2 has no eval"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "Integration test: init --github attaches remote and sync pushes",
+        "story": "STORY-0002",
+        "kind": "code",
+        "description": "Add init_github_attaches_and_sync_pushes in server/tests/codetrace.rs using a local bare repo as the remote (no network), tagged REQ-0035#AC2.",
+        "done_when": "Test passes in CI and REQ-0035#AC2 reports verified."
+      },
+      "reason": "Test backing the new eval"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0007",
+      "add": {
+        "evals": [
+          {
+            "id": "E3",
+            "name": "Theme and dark-mode contrast",
+            "kind": "accessibility",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-theme.xml --suite theme",
+            "covers": [
+              "REQ-0045#AC2"
+            ]
+          }
+        ]
+      },
+      "patch": {
+        "status": "in-progress"
+      },
+      "reason": "REQ-0045#AC2 has no eval"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "E2E suite: prefers-color-scheme and dark-mode contrast",
+        "story": "STORY-0007",
+        "kind": "code",
+        "description": "Add web/e2e/suites/theme.js emulating light and dark prefers-color-scheme and asserting WCAG 2.2 AA text contrast (4.5:1) on list, drawer and chat; tag REQ-0045#AC2; register in run.mjs.",
+        "done_when": "Suite passes for both schemes and REQ-0045#AC2 reports verified."
+      },
+      "reason": "Test backing the new eval"
+    },
+    {
+      "op": "update",
+      "id": "EPIC-0002",
+      "patch": {
+        "status": "in-progress"
+      },
+      "reason": "STORY-0002 reopened for test work"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "STORY-0002 and STORY-0007 reopened (done -> in-progress) for test work only; no scope change",
+      "EPIC-0002 reopened (done -> in-progress)"
+    ],
+    "code": [
+      "server/tests/codetrace.rs (exists): new test init_github_attaches_and_sync_pushes, tagged REQ-0035#AC2, exercising Store::init/sync in server/src/store.rs",
+      "web/e2e/suites/theme.js (new), registered in web/e2e/run.mjs; tagged REQ-0045#AC2. Dark theme lives in web/src/index.css",
+      "No production code changes expected unless dark-mode contrast fails the 4.5:1 check"
+    ],
+    "evals": [
+      "STORY-0002/E3 integration covers REQ-0035#AC2",
+      "STORY-0007/E3 accessibility covers REQ-0045#AC2",
+      "Criteria coverage 0.979 -> 1.0"
+    ],
+    "risks": [
+      "Until the tests are written, the new evals will fail in CI: the commands reference a test and a suite that don't exist yet",
+      "The contrast check may expose real dark-mode contrast defects"
+    ]
+  },
+  "base_versions": {
+    "STORY-0002": 6,
+    "STORY-0007": 6,
+    "EPIC-0002": 6
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0002",
+        "title": "JSON record store with git commits",
+        "reason": "REQ-0035#AC2 has no eval",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "store integration tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration",
+                "covers": [
+                  "REQ-0003#AC1",
+                  "REQ-0003#AC2",
+                  "REQ-0004#AC1",
+                  "REQ-0004#AC2",
+                  "REQ-0005#AC1",
+                  "REQ-0006#AC1",
+                  "REQ-0007#AC1",
+                  "REQ-0007#AC2",
+                  "REQ-0008#AC1",
+                  "REQ-0037#AC1",
+                  "REQ-0042#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "scoped commits",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- commits_are_scoped",
+                "covers": [
+                  "REQ-0035#AC1"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "store integration tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration",
+                "covers": [
+                  "REQ-0003#AC1",
+                  "REQ-0003#AC2",
+                  "REQ-0004#AC1",
+                  "REQ-0004#AC2",
+                  "REQ-0005#AC1",
+                  "REQ-0006#AC1",
+                  "REQ-0007#AC1",
+                  "REQ-0007#AC2",
+                  "REQ-0008#AC1",
+                  "REQ-0037#AC1",
+                  "REQ-0042#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "scoped commits",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- commits_are_scoped",
+                "covers": [
+                  "REQ-0035#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "GitHub init and sync",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- init_github_attaches_and_sync_pushes",
+                "covers": [
+                  "REQ-0035#AC2"
+                ]
+              }
+            ]
+          ],
+          "status": [
+            "done",
+            "in-progress"
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 1,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0023",
+        "ref": null,
+        "title": "Integration test: init --github attaches remote and sync pushes",
+        "reason": "Test backing the new eval",
+        "data": {
+          "id": "TASK-0023",
+          "status": "todo",
+          "title": "Integration test: init --github attaches remote and sync pushes",
+          "story": "STORY-0002",
+          "kind": "code",
+          "description": "Add init_github_attaches_and_sync_pushes in server/tests/codetrace.rs using a local bare repo as the remote (no network), tagged REQ-0035#AC2.",
+          "done_when": "Test passes in CI and REQ-0035#AC2 reports verified."
+        }
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0007",
+        "title": "Web UI lists, drawer and chat",
+        "reason": "REQ-0045#AC2 has no eval",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "query tests",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- page_sort facets_and_tree",
+                "covers": [
+                  "REQ-0016#AC1",
+                  "REQ-0017#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "UI e2e: core",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-core.xml --suite core",
+                "covers": [
+                  "REQ-0030#AC1",
+                  "REQ-0030#AC2",
+                  "REQ-0030#AC3",
+                  "REQ-0030#AC4",
+                  "REQ-0030#AC5",
+                  "REQ-0030#AC6",
+                  "REQ-0031#AC1",
+                  "REQ-0031#AC2",
+                  "REQ-0031#AC3",
+                  "REQ-0032#AC1",
+                  "REQ-0032#AC2",
+                  "REQ-0032#AC3",
+                  "REQ-0032#AC4",
+                  "REQ-0045#AC1"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "query tests",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- page_sort facets_and_tree",
+                "covers": [
+                  "REQ-0016#AC1",
+                  "REQ-0017#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "UI e2e: core",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-core.xml --suite core",
+                "covers": [
+                  "REQ-0030#AC1",
+                  "REQ-0030#AC2",
+                  "REQ-0030#AC3",
+                  "REQ-0030#AC4",
+                  "REQ-0030#AC5",
+                  "REQ-0030#AC6",
+                  "REQ-0031#AC1",
+                  "REQ-0031#AC2",
+                  "REQ-0031#AC3",
+                  "REQ-0032#AC1",
+                  "REQ-0032#AC2",
+                  "REQ-0032#AC3",
+                  "REQ-0032#AC4",
+                  "REQ-0045#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "Theme and dark-mode contrast",
+                "kind": "accessibility",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-theme.xml --suite theme",
+                "covers": [
+                  "REQ-0045#AC2"
+                ]
+              }
+            ]
+          ],
+          "status": [
+            "done",
+            "in-progress"
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 3,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0024",
+        "ref": null,
+        "title": "E2E suite: prefers-color-scheme and dark-mode contrast",
+        "reason": "Test backing the new eval",
+        "data": {
+          "id": "TASK-0024",
+          "status": "todo",
+          "title": "E2E suite: prefers-color-scheme and dark-mode contrast",
+          "story": "STORY-0007",
+          "kind": "code",
+          "description": "Add web/e2e/suites/theme.js emulating light and dark prefers-color-scheme and asserting WCAG 2.2 AA text contrast (4.5:1) on list, drawer and chat; tag REQ-0045#AC2; register in run.mjs.",
+          "done_when": "Suite passes for both schemes and REQ-0045#AC2 reports verified."
+        }
+      },
+      {
+        "i": 4,
+        "op": "update",
+        "kind": "epics",
+        "id": "EPIC-0002",
+        "title": "Requirements store and GitHub persistence",
+        "reason": "STORY-0002 reopened for test work",
+        "changes": {
+          "status": [
+            "done",
+            "in-progress"
+          ]
+        },
+        "base_version": 6
+      }
+    ],
+    "refmap": {},
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 48,
+        "active": 48,
+        "epics": 9,
+        "stories": 10,
+        "tasks": 22,
+        "evals": 24,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 0.979
+      },
+      "metrics_after": {
+        "requirements": 48,
+        "active": 48,
+        "epics": 9,
+        "stories": 10,
+        "tasks": 24,
+        "evals": 26,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": [
+        {
+          "check": "criteria-coverage",
+          "name": "Requirement acceptance criteria are covered by evals",
+          "severity": "warning",
+          "new_failures": [],
+          "fixed": [
+            "REQ-0035#AC2 not covered by any eval",
+            "REQ-0045#AC2 not covered by any eval"
+          ]
+        }
+      ]
+    },
+    "impact": {
+      "requirements": [],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0002",
+          "title": "JSON record store with git commits",
+          "status": "in-progress",
+          "component": "server",
+          "via": []
+        },
+        {
+          "id": "STORY-0007",
+          "title": "Web UI lists, drawer and chat",
+          "status": "in-progress",
+          "component": "web",
+          "via": []
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0004",
+          "title": "On-disk record format",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0002"
+        },
+        {
+          "id": "TASK-0005",
+          "title": "Store, validation, bulk, CSV, git sync",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0002"
+        },
+        {
+          "id": "TASK-0014",
+          "title": "UI information architecture for thousands of rows",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0007"
+        },
+        {
+          "id": "TASK-0015",
+          "title": "React UI: lists, drawer, chat",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0007"
+        },
+        {
+          "id": "TASK-0023",
+          "title": "Integration test: init --github attaches remote and sync pushes",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0002"
+        },
+        {
+          "id": "TASK-0024",
+          "title": "E2E suite: prefers-color-scheme and dark-mode contrast",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0007"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0002",
+          "id": "E1",
+          "name": "store integration tests",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration",
+          "covers": [
+            "REQ-0003#AC1",
+            "REQ-0003#AC2",
+            "REQ-0004#AC1",
+            "REQ-0004#AC2",
+            "REQ-0005#AC1",
+            "REQ-0006#AC1",
+            "REQ-0007#AC1",
+            "REQ-0007#AC2",
+            "REQ-0008#AC1",
+            "REQ-0037#AC1",
+            "REQ-0042#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0002",
+          "id": "E2",
+          "name": "scoped commits",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- commits_are_scoped",
+          "covers": [
+            "REQ-0035#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0002",
+          "id": "E3",
+          "name": "GitHub init and sync",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- init_github_attaches_and_sync_pushes",
+          "covers": [
+            "REQ-0035#AC2"
+          ]
+        },
+        {
+          "story": "STORY-0007",
+          "id": "E1",
+          "name": "query tests",
+          "kind": "unit",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- page_sort facets_and_tree",
+          "covers": [
+            "REQ-0016#AC1",
+            "REQ-0017#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0007",
+          "id": "E2",
+          "name": "UI e2e: core",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-core.xml --suite core",
+          "covers": [
+            "REQ-0030#AC1",
+            "REQ-0030#AC2",
+            "REQ-0030#AC3",
+            "REQ-0030#AC4",
+            "REQ-0030#AC5",
+            "REQ-0030#AC6",
+            "REQ-0031#AC1",
+            "REQ-0031#AC2",
+            "REQ-0031#AC3",
+            "REQ-0032#AC1",
+            "REQ-0032#AC2",
+            "REQ-0032#AC3",
+            "REQ-0032#AC4",
+            "REQ-0045#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0007",
+          "id": "E3",
+          "name": "Theme and dark-mode contrast",
+          "kind": "accessibility",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-theme.xml --suite theme",
+          "covers": [
+            "REQ-0045#AC2"
+          ]
+        }
+      ],
+      "components": [
+        "server",
+        "web"
+      ],
+      "in_progress_work": [
+        "TASK-0004",
+        "TASK-0005",
+        "TASK-0014",
+        "TASK-0015",
+        "STORY-0002",
+        "STORY-0007"
+      ]
+    }
+  }
+}
