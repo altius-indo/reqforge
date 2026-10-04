@@ -3,7 +3,7 @@
   "title": "Start open tasks",
   "summary": "Move the 3 tasks with no dependency on another open task to in-progress, and start STORY-0010.",
   "rationale": "Product owner asked to get the tasks started. TASK-0021 and TASK-0022 stay todo because they build on the help panel design and guide outline from TASK-0020.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T02:04:57+00:00",
   "valid": true,
   "ops": [
@@ -237,5 +237,8 @@
         "STORY-0010"
       ]
     }
-  }
+  },
+  "applied_at": "2026-10-04T02:06:32+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }

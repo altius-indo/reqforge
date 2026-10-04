@@ -5,9 +5,9 @@
   "kind": "code",
   "description": "Add init_github_attaches_and_sync_pushes in server/tests/codetrace.rs using a local bare repo as the remote (no network), tagged REQ-0035#AC2.",
   "done_when": "Test passes in CI and REQ-0035#AC2 reports verified.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T01:58:19+00:00",
-  "updated": "2026-10-04T01:58:19+00:00"
+  "updated": "2026-10-04T02:06:32+00:00"
 }

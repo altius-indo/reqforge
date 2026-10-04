@@ -5,9 +5,9 @@
   "kind": "design",
   "description": "Define panel layout, the tab-to-section map, and the outline of each how-to guide.",
   "done_when": "Outline covers all 6 topics and every UI tab maps to a section.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T01:56:31+00:00",
-  "updated": "2026-10-04T01:56:31+00:00"
+  "updated": "2026-10-04T02:06:32+00:00"
 }
