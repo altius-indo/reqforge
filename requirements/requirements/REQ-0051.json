@@ -5,7 +5,7 @@
   "type": "functional",
   "category": "task-execution",
   "priority": "could",
-  "status": "proposed",
+  "status": "approved",
   "rationale": "Lets a product owner hand a planned task straight to an agent while keeping the work traceable to requirements.",
   "acceptance_criteria": [
     {
@@ -33,6 +33,7 @@
       "text": "Start with agent is disabled, with the reason shown, when the story has no component, the component has no path, or any task in depends_on is not done"
     }
   ],
+  "parent": null,
   "tags": [
     "tasks",
     "agent"
@@ -40,7 +41,8 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
-  "version": 2,
+  "notes": null,
+  "version": 3,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:29:01+00:00"
+  "updated": "2026-10-04T02:30:31+00:00"
 }
