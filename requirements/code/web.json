@@ -1,39 +1,146 @@
 {
   "component": "web",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "23c20df1cc69d578706ba78f68b579a5c48f5a55",
-  "scanned_at": "2026-10-04T04:54:00+00:00",
-  "files_scanned": 66,
+  "commit": "b62297f38eb17676a8b04ca52d33682017f76492",
+  "scanned_at": "2026-10-04T05:32:36+00:00",
+  "files_scanned": 73,
   "files": {
-    "web/e2e/suites/code.js": "2da5e170317d3c5b666e477107641b6dac899c9875c079473c6684dddf929aba",
+    "web/e2e/suites/agent-queue.js": "3cdc6c6ac55a704534cfeb7f5aad87c8179fc17c814ca1db81375bb400a3f55f",
+    "web/e2e/suites/agent-start.js": "99e059eac345a95cd0673f9f03b5c6f74c3e06b6fde3070e97d9fb97caa357a3",
+    "web/e2e/suites/code.js": "c0fc20d80859110f11199bbef29ef1dce9fb699a079bbd9054bfa5c5a0bb8ed4",
     "web/e2e/suites/core.js": "8c3dfbf3a76ca7f60b09e91fe83aec657e13e818aef6451adebaa97491ebdce2",
     "web/e2e/suites/help-a11y.js": "f6ee2faa6e3e5e872a87611271d5364595daaca2003a6e1ba25c935e8e48da9c",
     "web/e2e/suites/help.js": "9ad72a638977af46c47cf4a199d6efde42083e6660cae75effecd332dda91ac1",
     "web/e2e/suites/projects.js": "018377a916e2d5d3dc849ba9569eccae082b22b19d39871186fac0d320cde205",
+    "web/e2e/suites/task-start.js": "3f770f1393e987e8fe33aee39dc12e17e405fff9642370d528c5d10cd1d8e605",
     "web/e2e/suites/theme.js": "fdd924cc11441c9d81bb07b6f84ae656601304046d77014481e0b1f1bdab9ca0",
+    "web/src/components/AgentQueuePanel.tsx": "5bc270ae13a9020852aa3824e143e5046aba71e18fb766d4879d923253533803",
     "web/src/components/ChangesetCard.tsx": "0625e3936262322509661d900e2b6ec661c51efbd347f7967412af8cf380a9ca",
     "web/src/components/CodeEvidence.tsx": "02026364e455451d8978acbbe1070ffbc3c3d8c7abea9d4622ed9463264709d4",
     "web/src/components/ProjectDialogs.tsx": "bfb973073fadf85a54e79ad10315ebe64f420dd6cca959ffb4b42bbd2821962d",
     "web/src/components/ProjectSwitcher.tsx": "62d5b4f2caf11aa59e77680a520d43f17767ca8fd44f2179e0fd3362f817355a",
-    "web/src/components/RecordDrawer.tsx": "fef3483d03433928d5d53c8c5d2c256507b4b43e1ef80b5e62a1855f97c8db71",
+    "web/src/components/RecordDrawer.tsx": "4e1eade7b9c40a1deac14d45f241d574ce209fe4726708e0a76796c496405c39",
     "web/src/components/Sidebar.tsx": "2c6b25386929362844caa9927889a107b88f5efddfbb6cadd41e4e5f75678ea4",
+    "web/src/components/TaskAgent.tsx": "b0b76963d17717b3bcb956729cff729aa2357d0cfa8bcfbf8cfe925ef1fc2281",
+    "web/src/components/TaskStart.tsx": "0e8e5ffd0a09719f30f75b5e7f3806e8cb56fc4eabca757553c2bc8d2932c54b",
+    "web/src/components/VerifiedTrend.tsx": "a74bdc30fb44581d01275538db582518a630fd8df70a15f31a8380aafb7eac1e",
     "web/src/components/chat/ChatPanel.tsx": "c5993ef9d2528aead73457db6e587ba7b3c1621874054ba4ebf5f366a1c77672",
     "web/src/components/help/HelpButton.tsx": "2882e49c565e7a9e5dbdc90f6eddb1952c996214ab971c49ade60c043f97e78d",
     "web/src/components/help/HelpPanel.tsx": "edff9592d261275ecd85ad1eac094fb6be9982496b58948412f9e60d9e96f69a",
     "web/src/components/verification.tsx": "7f1330063ca71a732a333a46581e0e8a940eacce11af90085e77c9e13b25de9b",
     "web/src/state/help.tsx": "44be0123ee06357a3241456107b4238bea48722f432a75bdf16cf03d826f518b",
     "web/src/views/LintView.tsx": "5b62203ecb356a46dc8600b5b3086807c2a90932fe55c9e707ffd9780f20fcbc",
-    "web/src/views/ListView.tsx": "2261c89e4e3c1759709b57458a00595b9f143c47fd667ae570057e29eb6b9652",
+    "web/src/views/ListView.tsx": "10cfa7ba3b6478ad0c5f749d619ffbb014e31ca33ca0953a753cb6809c9dd271",
     "web/src/views/TraceView.tsx": "2e8cebb2c805bf2cc9a1499f969e48cfbf3230bf49cfeec7684626d8c5ee249d",
-    "web/src/views/VerificationView.tsx": "fb50028e79c1f85d94ea2d6472e06467a39028726c29f4aa82b18b9610ed1836"
+    "web/src/views/VerificationView.tsx": "efa0a1d11a27f2c3b669e9cc5c8ac6ff9259627230e301079038fd4723b466fa"
   },
   "tags": [
+    {
+      "req": "REQ-0053",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-queue.js",
+      "line": 25,
+      "symbol": "offByDefault",
+      "text": "// reqforge: verifies REQ-0053#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC6",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-queue.js",
+      "line": 26,
+      "symbol": "offByDefault",
+      "text": "// reqforge: verifies REQ-0053#AC6",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-queue.js",
+      "line": 41,
+      "symbol": "turnOnWithConfirmation",
+      "text": "// reqforge: verifies REQ-0053#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC6",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-queue.js",
+      "line": 59,
+      "symbol": "runningAndWaiting",
+      "text": "// reqforge: verifies REQ-0053#AC6",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-queue.js",
+      "line": 71,
+      "symbol": "turnOff",
+      "text": "// reqforge: verifies REQ-0053#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0053",
+      "ac": "AC6",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-queue.js",
+      "line": 72,
+      "symbol": "turnOff",
+      "text": "// reqforge: verifies REQ-0053#AC6",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-start.js",
+      "line": 44,
+      "symbol": "confirmDialog",
+      "text": "// reqforge: verifies REQ-0051#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-start.js",
+      "line": 69,
+      "symbol": "streamedRun",
+      "text": "// reqforge: verifies REQ-0051#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-start.js",
+      "line": 86,
+      "symbol": "cancelRun",
+      "text": "// reqforge: verifies REQ-0051#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/agent-start.js",
+      "line": 103,
+      "symbol": "runStartedElsewhere",
+      "text": "// reqforge: verifies REQ-0051#AC4",
+      "component": "web"
+    },
     {
       "req": "REQ-0034",
       "ac": "AC1",
       "kind": "verifies",
       "file": "web/e2e/suites/code.js",
-      "line": 39,
+      "line": 40,
       "symbol": "verificationColumnAndFacet",
       "text": "// reqforge: verifies REQ-0034#AC1",
       "component": "web"
@@ -43,7 +150,7 @@
       "ac": "AC3",
       "kind": "verifies",
       "file": "web/e2e/suites/code.js",
-      "line": 68,
+      "line": 69,
       "symbol": "codeEvidenceDrawer",
       "text": "// reqforge: verifies REQ-0031#AC3",
       "component": "web"
@@ -53,7 +160,7 @@
       "ac": "AC2",
       "kind": "verifies",
       "file": "web/e2e/suites/code.js",
-      "line": 91,
+      "line": 92,
       "symbol": "dashboard",
       "text": "// reqforge: verifies REQ-0034#AC2",
       "component": "web"
@@ -63,9 +170,19 @@
       "ac": "AC3",
       "kind": "verifies",
       "file": "web/e2e/suites/code.js",
-      "line": 116,
+      "line": 117,
       "symbol": "scanAndIngest",
       "text": "// reqforge: verifies REQ-0034#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0034",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 149,
+      "symbol": "trendChart",
+      "text": "// reqforge: verifies REQ-0034#AC5",
       "component": "web"
     },
     {
@@ -73,7 +190,7 @@
       "ac": "AC4",
       "kind": "verifies",
       "file": "web/e2e/suites/code.js",
-      "line": 148,
+      "line": 183,
       "symbol": "impact",
       "text": "// reqforge: verifies REQ-0034#AC4",
       "component": "web"
@@ -83,7 +200,7 @@
       "ac": "AC3",
       "kind": "verifies",
       "file": "web/e2e/suites/code.js",
-      "line": 222,
+      "line": 257,
       "symbol": "coreOnBig",
       "text": "// reqforge: verifies REQ-0030#AC3",
       "component": "web"
@@ -93,7 +210,7 @@
       "ac": "AC6",
       "kind": "verifies",
       "file": "web/e2e/suites/code.js",
-      "line": 223,
+      "line": 258,
       "symbol": "coreOnBig",
       "text": "// reqforge: verifies REQ-0030#AC6",
       "component": "web"
@@ -103,7 +220,7 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "web/e2e/suites/code.js",
-      "line": 224,
+      "line": 259,
       "symbol": "coreOnBig",
       "text": "// reqforge: verifies REQ-0031#AC1",
       "component": "web"
@@ -469,6 +586,76 @@
       "component": "web"
     },
     {
+      "req": "REQ-0050",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-start.js",
+      "line": 39,
+      "symbol": "shownOnlyOnTodo",
+      "text": "// reqforge: verifies REQ-0050#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-start.js",
+      "line": 51,
+      "symbol": "blockedByDependencies",
+      "text": "// reqforge: verifies REQ-0050#AC5",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-start.js",
+      "line": 67,
+      "symbol": "startCascades",
+      "text": "// reqforge: verifies REQ-0050#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-start.js",
+      "line": 68,
+      "symbol": "startCascades",
+      "text": "// reqforge: verifies REQ-0050#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-start.js",
+      "line": 79,
+      "symbol": "parentsLeftAlone",
+      "text": "// reqforge: verifies REQ-0050#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-start.js",
+      "line": 88,
+      "symbol": "staleVersion",
+      "text": "// reqforge: verifies REQ-0050#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-start.js",
+      "line": 112,
+      "symbol": "unblocked",
+      "text": "// reqforge: verifies REQ-0050#AC5",
+      "component": "web"
+    },
+    {
       "req": "REQ-0045",
       "ac": "AC2",
       "kind": "verifies",
@@ -496,6 +683,15 @@
       "line": 147,
       "symbol": "until",
       "text": "// reqforge: verifies REQ-0045#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0053",
+      "kind": "implements",
+      "file": "web/src/components/AgentQueuePanel.tsx",
+      "line": 22,
+      "symbol": "AgentQueuePanel",
+      "text": "// reqforge: implements REQ-0053",
       "component": "web"
     },
     {
@@ -544,10 +740,28 @@
       "component": "web"
     },
     {
+      "req": "REQ-0050",
+      "kind": "implements",
+      "file": "web/src/components/RecordDrawer.tsx",
+      "line": 473,
+      "symbol": "TaskActions",
+      "text": "// reqforge: implements REQ-0050",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0051",
+      "kind": "implements",
+      "file": "web/src/components/RecordDrawer.tsx",
+      "line": 474,
+      "symbol": "TaskActions",
+      "text": "// reqforge: implements REQ-0051",
+      "component": "web"
+    },
+    {
       "req": "REQ-0031",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 489,
+      "line": 625,
       "symbol": "RecordDrawer",
       "text": "// reqforge: implements REQ-0031",
       "component": "web"
@@ -556,7 +770,7 @@
       "req": "REQ-0045",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 490,
+      "line": 626,
       "symbol": "RecordDrawer",
       "text": "// reqforge: implements REQ-0045",
       "component": "web"
@@ -568,6 +782,42 @@
       "line": 383,
       "symbol": "Sidebar",
       "text": "// reqforge: implements REQ-0030",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0051",
+      "kind": "implements",
+      "file": "web/src/components/TaskAgent.tsx",
+      "line": 143,
+      "symbol": "AgentConfirmDialog",
+      "text": "// reqforge: implements REQ-0051",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0051",
+      "kind": "implements",
+      "file": "web/src/components/TaskAgent.tsx",
+      "line": 302,
+      "symbol": "AgentRunView",
+      "text": "// reqforge: implements REQ-0051",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0050",
+      "kind": "implements",
+      "file": "web/src/components/TaskStart.tsx",
+      "line": 22,
+      "symbol": "StartButton",
+      "text": "// reqforge: implements REQ-0050",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0034",
+      "kind": "implements",
+      "file": "web/src/components/VerifiedTrend.tsx",
+      "line": 28,
+      "symbol": "VerifiedTrend",
+      "text": "// reqforge: implements REQ-0034",
       "component": "web"
     },
     {
@@ -628,7 +878,7 @@
       "req": "REQ-0030",
       "kind": "implements",
       "file": "web/src/views/ListView.tsx",
-      "line": 310,
+      "line": 323,
       "symbol": "ListView",
       "text": "// reqforge: implements REQ-0030",
       "component": "web"
@@ -646,7 +896,7 @@
       "req": "REQ-0034",
       "kind": "implements",
       "file": "web/src/views/VerificationView.tsx",
-      "line": 372,
+      "line": 373,
       "symbol": "VerificationView",
       "text": "// reqforge: implements REQ-0034",
       "component": "web"
