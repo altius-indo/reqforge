@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0025",
+  "title": "Add depends_on to the task schema with cycle check",
+  "story": "STORY-0011",
+  "kind": "code",
+  "description": "Add depends_on (reflist of tasks) to the task schema; validate existence, self-reference and cycles; include it in reference-protected deletes, CSV and the drawer form.",
+  "done_when": "task_depends_on tests pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:12:08+00:00",
+  "updated": "2026-10-04T02:12:08+00:00"
+}

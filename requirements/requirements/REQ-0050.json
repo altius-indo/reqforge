@@ -1,0 +1,42 @@
+{
+  "id": "REQ-0050",
+  "title": "Start task action",
+  "statement": "The system shall offer a Start action on every todo task in the tasks list and the record drawer that moves the task to in-progress in 1 click.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "Starting work today means opening the drawer and editing the status field.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Start is shown only on tasks with status todo, in the list row and in the record drawer"
+    },
+    {
+      "id": "AC2",
+      "text": "1 click sets the task to in-progress as a single commit"
+    },
+    {
+      "id": "AC3",
+      "text": "In the same commit, the task's story and that story's epic move from todo to in-progress; parents that are blocked or done are left unchanged"
+    },
+    {
+      "id": "AC4",
+      "text": "If the task changed since it was loaded, Start returns 409, the status is unchanged and the row refreshes"
+    },
+    {
+      "id": "AC5",
+      "text": "While any task in depends_on is not done, Start is disabled and lists the unfinished tasks, and the start route refuses the request with the status unchanged"
+    }
+  ],
+  "tags": [
+    "tasks",
+    "workflow"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-03",
+  "version": 1,
+  "created": "2026-10-04T02:12:08+00:00",
+  "updated": "2026-10-04T02:12:08+00:00"
+}

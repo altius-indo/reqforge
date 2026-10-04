@@ -1,0 +1,31 @@
+{
+  "id": "STORY-0011",
+  "title": "Task dependencies in the record model",
+  "epic": "EPIC-0010",
+  "narrative": "As a planner, I want to record which tasks a task depends on so that work can't start before its prerequisites are done.",
+  "requirements": [
+    "REQ-0049"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "task dependency validation",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- task_depends_on",
+      "covers": [
+        "REQ-0049#AC1",
+        "REQ-0049#AC2",
+        "REQ-0049#AC3"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 3,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:12:08+00:00",
+  "updated": "2026-10-04T02:12:08+00:00"
+}

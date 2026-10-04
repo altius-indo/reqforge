@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0028",
+  "title": "Agent launcher and sandbox in the server",
+  "story": "STORY-0013",
+  "kind": "code",
+  "description": "Create worktree and branch, build the brief, run claude -p with the coding tool policy, stream events, support cancel, write the run log.",
+  "done_when": "agent_run and agent_sandbox tests pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:12:08+00:00",
+  "updated": "2026-10-04T02:12:08+00:00"
+}

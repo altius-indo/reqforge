@@ -1,0 +1,33 @@
+{
+  "id": "STORY-0012",
+  "title": "Start a task in one click",
+  "epic": "EPIC-0010",
+  "narrative": "As a product owner, I want a Start button on a task so that I can start work and have its story and epic follow without editing each record.",
+  "requirements": [
+    "REQ-0050"
+  ],
+  "deliverable": "code",
+  "component": "web",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "UI e2e: start task",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-start.xml --suite task-start",
+      "covers": [
+        "REQ-0050#AC1",
+        "REQ-0050#AC2",
+        "REQ-0050#AC3",
+        "REQ-0050#AC4",
+        "REQ-0050#AC5"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 3,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:12:08+00:00",
+  "updated": "2026-10-04T02:12:08+00:00"
+}

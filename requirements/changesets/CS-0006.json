@@ -3,7 +3,7 @@
   "title": "Start tasks from the UI, with an optional coding agent and dependency blocking (replaces CS-0005)",
   "summary": "Add task dependencies to the record model, a one-click Start action that is blocked until dependencies are done, and an optional sandboxed 'Start with agent' action. Supersedes CS-0005.",
   "rationale": "Product owner chose both a Start button and an optional agent launch, and to block Start until a task's earlier work is done. Tasks have no dependency field today, so this adds a depends_on data requirement (REQ-0049 here). It is otherwise the same as CS-0005, plus the blocking criteria (Start AC5, Start with agent AC6). Reject CS-0005 and apply this one.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T02:11:41+00:00",
   "valid": true,
   "ops": [
@@ -1009,5 +1009,17 @@
       ],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-04T02:12:08+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "r4": "REQ-0049",
+    "r1": "REQ-0050",
+    "r2": "REQ-0051",
+    "r3": "REQ-0052",
+    "e1": "EPIC-0010",
+    "s0": "STORY-0011",
+    "s1": "STORY-0012",
+    "s2": "STORY-0013"
   }
 }

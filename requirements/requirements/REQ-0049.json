@@ -1,0 +1,33 @@
+{
+  "id": "REQ-0049",
+  "title": "Task dependencies",
+  "statement": "The system shall let a task declare the tasks it depends on in a depends_on list of task ids, rejecting unknown ids, self-references and dependency cycles.",
+  "type": "data",
+  "category": "model",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "Starting a task must be blocked until the work it builds on is done, which needs dependencies recorded on tasks.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "depends_on accepts ids of existing tasks and rejects an unknown id with a field error"
+    },
+    {
+      "id": "AC2",
+      "text": "A self-reference or any dependency cycle is rejected with a field error naming the cycle"
+    },
+    {
+      "id": "AC3",
+      "text": "Deleting a task that another task depends on is refused unless forced, as for other references"
+    }
+  ],
+  "tags": [
+    "tasks"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-03",
+  "version": 1,
+  "created": "2026-10-04T02:12:08+00:00",
+  "updated": "2026-10-04T02:12:08+00:00"
+}

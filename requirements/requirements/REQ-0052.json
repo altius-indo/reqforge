@@ -1,0 +1,39 @@
+{
+  "id": "REQ-0052",
+  "title": "Coding agent sandbox",
+  "statement": "The system shall confine a task's coding agent to its own worktree and task branch so that 0 commits reach the default branch and 0 files outside that worktree change without human review.",
+  "type": "quality",
+  "category": "security",
+  "priority": "must",
+  "status": "proposed",
+  "rationale": "Unlike the chat agent (REQ-0041), the coding agent edits code and runs commands, so its blast radius must be bounded and its runs auditable.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+    },
+    {
+      "id": "AC2",
+      "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+    },
+    {
+      "id": "AC3",
+      "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+    },
+    {
+      "id": "AC4",
+      "text": "Every run is logged with task id, starting user, start and end time, branch and exit status"
+    }
+  ],
+  "tags": [
+    "agent"
+  ],
+  "standards": [
+    "OWASP Top 10 for LLM Applications 2025 LLM06 Excessive Agency"
+  ],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-03",
+  "version": 1,
+  "created": "2026-10-04T02:12:08+00:00",
+  "updated": "2026-10-04T02:12:08+00:00"
+}
