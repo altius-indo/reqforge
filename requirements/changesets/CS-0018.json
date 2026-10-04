@@ -1,0 +1,704 @@
+{
+  "id": "CS-0018",
+  "title": "Move the parallel-branch warning to REQ-0051 and sandbox Complete's eval run (re-proposed; CS-0017 went stale)",
+  "summary": "Moves REQ-0056 AC7 to REQ-0051 as AC7, and adds REQ-0052 AC5 so the evals that Complete runs on agent-written code stay inside the agent sandbox. STORY-0016 now also realises REQ-0051 and REQ-0052; its evals are remapped and it gains a security eval (E3).",
+  "rationale": "AC7 changes 'Start with agent' behaviour, so it belongs to REQ-0051 (one obligation per requirement). REQ-0056 AC4 runs the story's evals in the task worktree. That executes code the agent wrote with the server's privileges, outside the REQ-0052 sandbox, which only constrains the agent session itself.",
+  "status": "pending",
+  "created": "2026-10-04T18:21:36+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "REQ-0056",
+      "patch": {
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "The task drawer lists the agent branch's commits and changed files and shows its diff against the merge base"
+          },
+          {
+            "id": "AC2",
+            "text": "Complete is refused, with the reason shown, while the component checkout has uncommitted changes outside the requirements folder"
+          },
+          {
+            "id": "AC3",
+            "text": "Complete first merges the checked-out branch into the task branch in its worktree; on conflict it aborts, leaves both branches unchanged and lists the conflicting files"
+          },
+          {
+            "id": "AC4",
+            "text": "The story's evals then run in the task worktree; Complete is refused while any of them fails, listing the failing evals and their output tail"
+          },
+          {
+            "id": "AC5",
+            "text": "On success the task branch is merged into the checked-out branch with --no-ff, the task becomes done, and its worktree and branch are removed, within 1 action"
+          },
+          {
+            "id": "AC6",
+            "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+          }
+        ]
+      },
+      "reason": "AC7 moved to REQ-0051 (Start with agent behaviour)"
+    },
+    {
+      "op": "update",
+      "id": "REQ-0051",
+      "patch": {
+        "status": "approved",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "For a run started from the UI, a confirmation dialog shows the component path, the branch name reqforge/TASK-NNNN and the full brief, and nothing runs until the user confirms; runs started by the agent queue are authorised by the user who turned the queue on"
+          },
+          {
+            "id": "AC2",
+            "text": "The agent runs via the local claude CLI in a git worktree of the component on branch reqforge/TASK-NNNN"
+          },
+          {
+            "id": "AC3",
+            "text": "The brief contains the task description and done_when, the story narrative, each linked requirement statement and acceptance criteria, and the trace tag convention"
+          },
+          {
+            "id": "AC4",
+            "text": "Agent progress streams to the task drawer and the user can cancel the run"
+          },
+          {
+            "id": "AC5",
+            "text": "When the run ends, the task shows its branch, commits and exit status, and the task status is never set to done automatically"
+          },
+          {
+            "id": "AC6",
+            "text": "Start with agent is disabled, with the reason shown, when the story has no component, the component has no path, or any task in depends_on is not done"
+          },
+          {
+            "id": "AC7",
+            "text": "Start with agent warns, before confirmation, about other in-progress tasks of the same story with unmerged agent branches and offers to add them to depends_on"
+          }
+        ]
+      },
+      "reason": "Receives the parallel-branch warning from REQ-0056; new criterion not yet built"
+    },
+    {
+      "op": "update",
+      "id": "REQ-0052",
+      "patch": {
+        "status": "approved",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+          },
+          {
+            "id": "AC2",
+            "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+          },
+          {
+            "id": "AC3",
+            "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+          },
+          {
+            "id": "AC4",
+            "text": "Every run is logged with task id, starting user (for queued runs, the user who turned the queue on), whether it was queued, start and end time, branch and exit status"
+          },
+          {
+            "id": "AC5",
+            "text": "Evals that Complete runs on an agent branch write 0 files outside the task worktree and make 0 commits or pushes; any violation refuses Complete and is logged with the task's runs"
+          }
+        ]
+      },
+      "reason": "Extend the sandbox to evals executed on agent-written code"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0016",
+      "add": {
+        "requirements": [
+          "REQ-0051",
+          "REQ-0052"
+        ]
+      },
+      "patch": {
+        "evals": [
+          {
+            "id": "E1",
+            "name": "complete flow",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+            "covers": [
+              "REQ-0056#AC2",
+              "REQ-0056#AC3",
+              "REQ-0056#AC4",
+              "REQ-0056#AC5",
+              "REQ-0056#AC6",
+              "REQ-0051#AC7"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: task complete",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+            "covers": [
+              "REQ-0056#AC1",
+              "REQ-0056#AC5",
+              "REQ-0051#AC7"
+            ]
+          },
+          {
+            "id": "E3",
+            "name": "Complete eval-run sandbox",
+            "kind": "security",
+            "command": "cargo test --manifest-path server/Cargo.toml --test task_complete -- eval_run_sandboxed",
+            "covers": [
+              "REQ-0052#AC5"
+            ]
+          }
+        ]
+      },
+      "reason": "Remap AC7 coverage and add a security eval for the eval-run sandbox"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0039",
+      "patch": {
+        "description": "GET tasks/{id}/branch (commits, files, diff) and POST tasks/{id}/complete implementing REQ-0056 AC2-AC6; run the story's evals under the coding-agent sandbox limits (REQ-0052 AC5); parallel-branch warning in the agent plan (REQ-0051 AC7). Tag tests REQ-0056#AC2..AC6, REQ-0052#AC5, REQ-0051#AC7."
+      },
+      "reason": "Reflect remapped criteria and sandboxed eval run"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "STORY-0016 now also realises REQ-0051 (AC7) and REQ-0052 (AC5); the work stays in its existing tasks, TASK-0039 and TASK-0040.",
+      "STORY-0013 stays done; its evals and verified criteria are untouched."
+    ],
+    "code": [
+      "No code exists yet for REQ-0056 (all criteria pending), so no trace tags move. New tests in server/tests/task_complete.rs and web/e2e/suites/task-complete.js must tag REQ-0051#AC7 (not REQ-0056#AC7), and eval_run_sandboxed must tag REQ-0052#AC5.",
+      "Sandboxing the eval run will likely reuse the snapshot/violation check in server/src/agent.rs:200-227."
+    ],
+    "evals": [
+      "STORY-0016/E1 and E2 cover REQ-0051#AC7 instead of REQ-0056#AC7. New security eval STORY-0016/E3 covers REQ-0052#AC5."
+    ],
+    "risks": [
+      "REQ-0051 and REQ-0052 drop from implemented to approved until STORY-0016 lands; their existing criteria stay verified.",
+      "File-write and commit checks after the fact don't stop network access or long-running processes during the eval run; add limits if that matters."
+    ]
+  },
+  "base_versions": {
+    "REQ-0056": 1,
+    "REQ-0051": 4,
+    "REQ-0052": 4,
+    "STORY-0016": 2,
+    "TASK-0039": 1
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0056",
+        "title": "Complete task from agent branch",
+        "reason": "AC7 moved to REQ-0051 (Start with agent behaviour)",
+        "changes": {
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "The task drawer lists the agent branch's commits and changed files and shows its diff against the merge base"
+              },
+              {
+                "id": "AC2",
+                "text": "Complete is refused, with the reason shown, while the component checkout has uncommitted changes outside the requirements folder"
+              },
+              {
+                "id": "AC3",
+                "text": "Complete first merges the checked-out branch into the task branch in its worktree; on conflict it aborts, leaves both branches unchanged and lists the conflicting files"
+              },
+              {
+                "id": "AC4",
+                "text": "The story's evals then run in the task worktree; Complete is refused while any of them fails, listing the failing evals and their output tail"
+              },
+              {
+                "id": "AC5",
+                "text": "On success the task branch is merged into the checked-out branch with --no-ff, the task becomes done, and its worktree and branch are removed, within 1 action"
+              },
+              {
+                "id": "AC6",
+                "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+              },
+              {
+                "id": "AC7",
+                "text": "Start with agent warns, before confirmation, about other in-progress tasks of the same story with unmerged agent branches and offers to add them to depends_on"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "The task drawer lists the agent branch's commits and changed files and shows its diff against the merge base"
+              },
+              {
+                "id": "AC2",
+                "text": "Complete is refused, with the reason shown, while the component checkout has uncommitted changes outside the requirements folder"
+              },
+              {
+                "id": "AC3",
+                "text": "Complete first merges the checked-out branch into the task branch in its worktree; on conflict it aborts, leaves both branches unchanged and lists the conflicting files"
+              },
+              {
+                "id": "AC4",
+                "text": "The story's evals then run in the task worktree; Complete is refused while any of them fails, listing the failing evals and their output tail"
+              },
+              {
+                "id": "AC5",
+                "text": "On success the task branch is merged into the checked-out branch with --no-ff, the task becomes done, and its worktree and branch are removed, within 1 action"
+              },
+              {
+                "id": "AC6",
+                "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+              }
+            ]
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0051",
+        "title": "Start task with coding agent",
+        "reason": "Receives the parallel-branch warning from REQ-0056; new criterion not yet built",
+        "changes": {
+          "status": [
+            "implemented",
+            "approved"
+          ],
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "For a run started from the UI, a confirmation dialog shows the component path, the branch name reqforge/TASK-NNNN and the full brief, and nothing runs until the user confirms; runs started by the agent queue are authorised by the user who turned the queue on"
+              },
+              {
+                "id": "AC2",
+                "text": "The agent runs via the local claude CLI in a git worktree of the component on branch reqforge/TASK-NNNN"
+              },
+              {
+                "id": "AC3",
+                "text": "The brief contains the task description and done_when, the story narrative, each linked requirement statement and acceptance criteria, and the trace tag convention"
+              },
+              {
+                "id": "AC4",
+                "text": "Agent progress streams to the task drawer and the user can cancel the run"
+              },
+              {
+                "id": "AC5",
+                "text": "When the run ends, the task shows its branch, commits and exit status, and the task status is never set to done automatically"
+              },
+              {
+                "id": "AC6",
+                "text": "Start with agent is disabled, with the reason shown, when the story has no component, the component has no path, or any task in depends_on is not done"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "For a run started from the UI, a confirmation dialog shows the component path, the branch name reqforge/TASK-NNNN and the full brief, and nothing runs until the user confirms; runs started by the agent queue are authorised by the user who turned the queue on"
+              },
+              {
+                "id": "AC2",
+                "text": "The agent runs via the local claude CLI in a git worktree of the component on branch reqforge/TASK-NNNN"
+              },
+              {
+                "id": "AC3",
+                "text": "The brief contains the task description and done_when, the story narrative, each linked requirement statement and acceptance criteria, and the trace tag convention"
+              },
+              {
+                "id": "AC4",
+                "text": "Agent progress streams to the task drawer and the user can cancel the run"
+              },
+              {
+                "id": "AC5",
+                "text": "When the run ends, the task shows its branch, commits and exit status, and the task status is never set to done automatically"
+              },
+              {
+                "id": "AC6",
+                "text": "Start with agent is disabled, with the reason shown, when the story has no component, the component has no path, or any task in depends_on is not done"
+              },
+              {
+                "id": "AC7",
+                "text": "Start with agent warns, before confirmation, about other in-progress tasks of the same story with unmerged agent branches and offers to add them to depends_on"
+              }
+            ]
+          ]
+        },
+        "base_version": 4
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0052",
+        "title": "Coding agent sandbox",
+        "reason": "Extend the sandbox to evals executed on agent-written code",
+        "changes": {
+          "status": [
+            "implemented",
+            "approved"
+          ],
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+              },
+              {
+                "id": "AC2",
+                "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+              },
+              {
+                "id": "AC3",
+                "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+              },
+              {
+                "id": "AC4",
+                "text": "Every run is logged with task id, starting user (for queued runs, the user who turned the queue on), whether it was queued, start and end time, branch and exit status"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+              },
+              {
+                "id": "AC2",
+                "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+              },
+              {
+                "id": "AC3",
+                "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+              },
+              {
+                "id": "AC4",
+                "text": "Every run is logged with task id, starting user (for queued runs, the user who turned the queue on), whether it was queued, start and end time, branch and exit status"
+              },
+              {
+                "id": "AC5",
+                "text": "Evals that Complete runs on an agent branch write 0 files outside the task worktree and make 0 commits or pushes; any violation refuses Complete and is logged with the task's runs"
+              }
+            ]
+          ]
+        },
+        "base_version": 4
+      },
+      {
+        "i": 3,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0016",
+        "title": "Complete a task from its agent branch",
+        "reason": "Remap AC7 coverage and add a security eval for the eval-run sandbox",
+        "changes": {
+          "requirements": [
+            [
+              "REQ-0056"
+            ],
+            [
+              "REQ-0056",
+              "REQ-0051",
+              "REQ-0052"
+            ]
+          ],
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "complete flow",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+                "covers": [
+                  "REQ-0056#AC2",
+                  "REQ-0056#AC3",
+                  "REQ-0056#AC4",
+                  "REQ-0056#AC5",
+                  "REQ-0056#AC6",
+                  "REQ-0056#AC7"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "UI e2e: task complete",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+                "covers": [
+                  "REQ-0056#AC1",
+                  "REQ-0056#AC5",
+                  "REQ-0056#AC7"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "complete flow",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+                "covers": [
+                  "REQ-0056#AC2",
+                  "REQ-0056#AC3",
+                  "REQ-0056#AC4",
+                  "REQ-0056#AC5",
+                  "REQ-0056#AC6",
+                  "REQ-0051#AC7"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "UI e2e: task complete",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+                "covers": [
+                  "REQ-0056#AC1",
+                  "REQ-0056#AC5",
+                  "REQ-0051#AC7"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "Complete eval-run sandbox",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test task_complete -- eval_run_sandboxed",
+                "covers": [
+                  "REQ-0052#AC5"
+                ]
+              }
+            ]
+          ]
+        },
+        "base_version": 2
+      },
+      {
+        "i": 4,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0039",
+        "title": "Complete endpoint in the server",
+        "reason": "Reflect remapped criteria and sandboxed eval run",
+        "changes": {
+          "description": [
+            "GET tasks/{id}/branch (commits, files, diff) and POST tasks/{id}/complete implementing AC2-AC6; parallel-branch warning in the agent plan (AC7).",
+            "GET tasks/{id}/branch (commits, files, diff) and POST tasks/{id}/complete implementing REQ-0056 AC2-AC6; run the story's evals under the coding-agent sandbox limits (REQ-0052 AC5); parallel-branch warning in the agent plan (REQ-0051 AC7). Tag tests REQ-0056#AC2..AC6, REQ-0052#AC5, REQ-0051#AC7."
+          ]
+        },
+        "base_version": 1
+      }
+    ],
+    "refmap": {},
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 56,
+        "active": 56,
+        "epics": 10,
+        "stories": 16,
+        "tasks": 40,
+        "evals": 40,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 56,
+        "active": 56,
+        "epics": 10,
+        "stories": 16,
+        "tasks": 40,
+        "evals": 41,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0051",
+        "REQ-0052",
+        "REQ-0056"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0013",
+          "title": "Start a task with a sandboxed coding agent",
+          "status": "done",
+          "component": "server",
+          "via": [
+            "REQ-0051",
+            "REQ-0052"
+          ]
+        },
+        {
+          "id": "STORY-0016",
+          "title": "Complete a task from its agent branch",
+          "status": "in-progress",
+          "component": "server",
+          "via": [
+            "REQ-0051",
+            "REQ-0052",
+            "REQ-0056"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0027",
+          "title": "Agent run design: brief, worktree, tool policy, run log",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0013"
+        },
+        {
+          "id": "TASK-0028",
+          "title": "Agent launcher and sandbox in the server",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0013"
+        },
+        {
+          "id": "TASK-0029",
+          "title": "Start with agent dialog and run view",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0013"
+        },
+        {
+          "id": "TASK-0038",
+          "title": "Complete-flow design: merge order, eval run, cleanup, parallel-task warning",
+          "kind": "design",
+          "status": "in-progress",
+          "story": "STORY-0016"
+        },
+        {
+          "id": "TASK-0039",
+          "title": "Complete endpoint in the server",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0016"
+        },
+        {
+          "id": "TASK-0040",
+          "title": "Review & complete UI in the task drawer",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0016"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0013",
+          "id": "E1",
+          "name": "agent launcher integration (stub claude)",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test agent_run",
+          "covers": [
+            "REQ-0051#AC2",
+            "REQ-0051#AC3",
+            "REQ-0051#AC5",
+            "REQ-0051#AC6"
+          ]
+        },
+        {
+          "story": "STORY-0013",
+          "id": "E2",
+          "name": "UI e2e: start with agent",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-start.xml --suite agent-start",
+          "covers": [
+            "REQ-0051#AC1",
+            "REQ-0051#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0013",
+          "id": "E3",
+          "name": "agent sandbox security",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test agent_sandbox",
+          "covers": [
+            "REQ-0052#AC1",
+            "REQ-0052#AC2",
+            "REQ-0052#AC3",
+            "REQ-0052#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0016",
+          "id": "E1",
+          "name": "complete flow",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+          "covers": [
+            "REQ-0056#AC2",
+            "REQ-0056#AC3",
+            "REQ-0056#AC4",
+            "REQ-0056#AC5",
+            "REQ-0056#AC6",
+            "REQ-0051#AC7"
+          ]
+        },
+        {
+          "story": "STORY-0016",
+          "id": "E2",
+          "name": "UI e2e: task complete",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+          "covers": [
+            "REQ-0056#AC1",
+            "REQ-0056#AC5",
+            "REQ-0051#AC7"
+          ]
+        },
+        {
+          "story": "STORY-0016",
+          "id": "E3",
+          "name": "Complete eval-run sandbox",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test task_complete -- eval_run_sandboxed",
+          "covers": [
+            "REQ-0052#AC5"
+          ]
+        }
+      ],
+      "components": [
+        "server"
+      ],
+      "in_progress_work": [
+        "TASK-0027",
+        "TASK-0028",
+        "TASK-0029",
+        "TASK-0038",
+        "STORY-0013",
+        "STORY-0016"
+      ]
+    }
+  }
+}
