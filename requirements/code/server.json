@@ -1,8 +1,8 @@
 {
   "component": "server",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "1de9dabed1119952adcb07b5f5212b4618660458",
-  "scanned_at": "2026-10-04T01:27:43+00:00",
+  "commit": "4ad748fb47218d06cd67f27e3a2ae92b0523b60c",
+  "scanned_at": "2026-10-04T01:37:08+00:00",
   "files_scanned": 26,
   "files": {
     "server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
@@ -22,9 +22,9 @@
     "server/src/query.rs": "29fdf2c1f01324be684e275c632b4b1f5ee9538eff54285e666642cbbc4c544a",
     "server/src/store.rs": "47f5b89ced3c8be9d7fe3142d29620739615a8e5c377d77e9e29dfbe91ad7ac4",
     "server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
-    "server/src/verify.rs": "b604e3110fbe68e808e0644c24cc297bfc9907488fd368ae58b18bbd5293d18c",
+    "server/src/verify.rs": "c133410e2cff0b270dc4068364955c8492461a0e71b763b77c3bee9caa9610c2",
     "server/src/workspace.rs": "53bdc5132044397de7eabf4b2e18b1709572ab42aed9cdbac69398d3c4653ca5",
-    "server/tests/codetrace.rs": "22160bc2931cbf52b3b88ec20ea1c139454c953f37a0f57e82f845d24d07edff",
+    "server/tests/codetrace.rs": "00a4ecabb18bffb3f08c17a52a8e1aa63aa3e1ddf365f462b663034454541efd",
     "server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9",
     "server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952",
     "server/tests/projects.rs": "a9a7cea85e49e89a9b51696fd47a43c0a0f59b1a40c2a15d40c26f73952c426d"
@@ -508,7 +508,7 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 212,
+      "line": 215,
       "symbol": "impact_of_a_change",
       "text": "// reqforge: verifies REQ-0023#AC1",
       "component": "server"
@@ -518,7 +518,7 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 233,
+      "line": 236,
       "symbol": "component_keys_validated_and_unique",
       "text": "// reqforge: verifies REQ-0024#AC1",
       "component": "server"
@@ -528,7 +528,7 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 248,
+      "line": 251,
       "symbol": "list_annotations_filters_and_facets",
       "text": "// reqforge: verifies REQ-0025#AC1",
       "component": "server"
@@ -538,7 +538,7 @@
       "ac": "AC2",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 265,
+      "line": 268,
       "symbol": "http_routes",
       "text": "// reqforge: verifies REQ-0026#AC2",
       "component": "server"
@@ -548,7 +548,7 @@
       "ac": "AC3",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 287,
+      "line": 290,
       "symbol": "cli_scan_verify_impact",
       "text": "// reqforge: verifies REQ-0028#AC3",
       "component": "server"
@@ -558,7 +558,7 @@
       "ac": "AC2",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 308,
+      "line": 311,
       "symbol": "cicd_includes_impact_and_verification",
       "text": "// reqforge: verifies REQ-0012#AC2",
       "component": "server"
@@ -568,7 +568,7 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 330,
+      "line": 333,
       "symbol": "chat_can_read_verification_but_not_write_evidence",
       "text": "// reqforge: verifies REQ-0041#AC1",
       "component": "server"
@@ -578,7 +578,7 @@
       "ac": "AC4",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 342,
+      "line": 345,
       "symbol": "explicit_mode_regions_and_ignore_file",
       "text": "// reqforge: verifies REQ-0021#AC4",
       "component": "server"
@@ -588,7 +588,7 @@
       "ac": "AC2",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 363,
+      "line": 366,
       "symbol": "cargo_test_output_is_evidence",
       "text": "// reqforge: verifies REQ-0022#AC2",
       "component": "server"
@@ -598,9 +598,19 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "server/tests/codetrace.rs",
-      "line": 377,
+      "line": 380,
       "symbol": "commits_are_scoped_to_the_requirements_folder",
       "text": "// reqforge: verifies REQ-0035#AC1",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0022",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "server/tests/codetrace.rs",
+      "line": 403,
+      "symbol": "evidence_from_sources_that_stop_claiming_is_ignored",
+      "text": "// reqforge: verifies REQ-0022#AC1",
       "component": "server"
     },
     {
