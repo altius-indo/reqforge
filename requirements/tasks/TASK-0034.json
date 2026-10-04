@@ -6,9 +6,9 @@
   "depends_on": [],
   "description": "GET /api/design (list: slug, title, realises) and GET /api/design/{slug} (raw Markdown) with slug validation; lint rule for unknown realises ids; realising documents in record context.",
   "done_when": "design_docs integration tests pass.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T06:40:10+00:00",
-  "updated": "2026-10-04T06:40:10+00:00"
+  "updated": "2026-10-04T06:49:59+00:00"
 }
