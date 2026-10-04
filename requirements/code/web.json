@@ -1,16 +1,17 @@
 {
   "component": "web",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "b62297f38eb17676a8b04ca52d33682017f76492",
-  "scanned_at": "2026-10-04T05:32:36+00:00",
-  "files_scanned": 73,
+  "commit": "f9b06df8831c3c7876d1e26119cc3770073a5734",
+  "scanned_at": "2026-10-04T16:22:36+00:00",
+  "files_scanned": 75,
   "files": {
     "web/e2e/suites/agent-queue.js": "3cdc6c6ac55a704534cfeb7f5aad87c8179fc17c814ca1db81375bb400a3f55f",
     "web/e2e/suites/agent-start.js": "99e059eac345a95cd0673f9f03b5c6f74c3e06b6fde3070e97d9fb97caa357a3",
     "web/e2e/suites/code.js": "c0fc20d80859110f11199bbef29ef1dce9fb699a079bbd9054bfa5c5a0bb8ed4",
     "web/e2e/suites/core.js": "8c3dfbf3a76ca7f60b09e91fe83aec657e13e818aef6451adebaa97491ebdce2",
+    "web/e2e/suites/design.js": "0f858927861a46877f97463455ae519ce4377406a056cb8e4da4bf20b37c81b2",
     "web/e2e/suites/help-a11y.js": "f6ee2faa6e3e5e872a87611271d5364595daaca2003a6e1ba25c935e8e48da9c",
-    "web/e2e/suites/help.js": "9ad72a638977af46c47cf4a199d6efde42083e6660cae75effecd332dda91ac1",
+    "web/e2e/suites/help.js": "9b76e8aeeb06c9ce06469cd6e2b8ff7adf1661c02b5eb7a1eb0497073ddb6468",
     "web/e2e/suites/projects.js": "018377a916e2d5d3dc849ba9569eccae082b22b19d39871186fac0d320cde205",
     "web/e2e/suites/task-start.js": "3f770f1393e987e8fe33aee39dc12e17e405fff9642370d528c5d10cd1d8e605",
     "web/e2e/suites/theme.js": "fdd924cc11441c9d81bb07b6f84ae656601304046d77014481e0b1f1bdab9ca0",
@@ -19,8 +20,8 @@
     "web/src/components/CodeEvidence.tsx": "02026364e455451d8978acbbe1070ffbc3c3d8c7abea9d4622ed9463264709d4",
     "web/src/components/ProjectDialogs.tsx": "bfb973073fadf85a54e79ad10315ebe64f420dd6cca959ffb4b42bbd2821962d",
     "web/src/components/ProjectSwitcher.tsx": "62d5b4f2caf11aa59e77680a520d43f17767ca8fd44f2179e0fd3362f817355a",
-    "web/src/components/RecordDrawer.tsx": "4e1eade7b9c40a1deac14d45f241d574ce209fe4726708e0a76796c496405c39",
-    "web/src/components/Sidebar.tsx": "2c6b25386929362844caa9927889a107b88f5efddfbb6cadd41e4e5f75678ea4",
+    "web/src/components/RecordDrawer.tsx": "d08969e396fcaf3214fde0f832ec9cc4cf140464c65827e3323a9ab8128047bd",
+    "web/src/components/Sidebar.tsx": "079daa0c19472400f5b019f53ee3cff8a03d23bc595b1297009531f631d31984",
     "web/src/components/TaskAgent.tsx": "b0b76963d17717b3bcb956729cff729aa2357d0cfa8bcfbf8cfe925ef1fc2281",
     "web/src/components/TaskStart.tsx": "0e8e5ffd0a09719f30f75b5e7f3806e8cb56fc4eabca757553c2bc8d2932c54b",
     "web/src/components/VerifiedTrend.tsx": "a74bdc30fb44581d01275538db582518a630fd8df70a15f31a8380aafb7eac1e",
@@ -29,6 +30,7 @@
     "web/src/components/help/HelpPanel.tsx": "edff9592d261275ecd85ad1eac094fb6be9982496b58948412f9e60d9e96f69a",
     "web/src/components/verification.tsx": "7f1330063ca71a732a333a46581e0e8a940eacce11af90085e77c9e13b25de9b",
     "web/src/state/help.tsx": "44be0123ee06357a3241456107b4238bea48722f432a75bdf16cf03d826f518b",
+    "web/src/views/DesignView.tsx": "ffda8a940d5629b72ab5efcb2b357b0c632ec6ca8fdd9f7533236bb397a087eb",
     "web/src/views/LintView.tsx": "5b62203ecb356a46dc8600b5b3086807c2a90932fe55c9e707ffd9780f20fcbc",
     "web/src/views/ListView.tsx": "10cfa7ba3b6478ad0c5f749d619ffbb014e31ca33ca0953a753cb6809c9dd271",
     "web/src/views/TraceView.tsx": "2e8cebb2c805bf2cc9a1499f969e48cfbf3230bf49cfeec7684626d8c5ee249d",
@@ -353,6 +355,56 @@
       "line": 143,
       "symbol": "until",
       "text": "// reqforge: verifies REQ-0032#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0055",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/design.js",
+      "line": 40,
+      "symbol": "documentList",
+      "text": "// reqforge: verifies REQ-0055#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0055",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/design.js",
+      "line": 51,
+      "symbol": "markdown",
+      "text": "// reqforge: verifies REQ-0055#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0055",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/design.js",
+      "line": 64,
+      "symbol": "recordLinks",
+      "text": "// reqforge: verifies REQ-0055#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0055",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/design.js",
+      "line": 87,
+      "symbol": "drawerLinks",
+      "text": "// reqforge: verifies REQ-0055#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0055",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/design.js",
+      "line": 116,
+      "symbol": "phaseTwo",
+      "text": "// reqforge: verifies REQ-0055#AC1",
       "component": "web"
     },
     {
@@ -740,10 +792,19 @@
       "component": "web"
     },
     {
+      "req": "REQ-0055",
+      "kind": "implements",
+      "file": "web/src/components/RecordDrawer.tsx",
+      "line": 337,
+      "symbol": "DesignDocsSection",
+      "text": "// reqforge: implements REQ-0055",
+      "component": "web"
+    },
+    {
       "req": "REQ-0050",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 473,
+      "line": 510,
       "symbol": "TaskActions",
       "text": "// reqforge: implements REQ-0050",
       "component": "web"
@@ -752,7 +813,7 @@
       "req": "REQ-0051",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 474,
+      "line": 511,
       "symbol": "TaskActions",
       "text": "// reqforge: implements REQ-0051",
       "component": "web"
@@ -761,7 +822,7 @@
       "req": "REQ-0031",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 625,
+      "line": 662,
       "symbol": "RecordDrawer",
       "text": "// reqforge: implements REQ-0031",
       "component": "web"
@@ -770,7 +831,7 @@
       "req": "REQ-0045",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 626,
+      "line": 663,
       "symbol": "RecordDrawer",
       "text": "// reqforge: implements REQ-0045",
       "component": "web"
@@ -779,7 +840,7 @@
       "req": "REQ-0030",
       "kind": "implements",
       "file": "web/src/components/Sidebar.tsx",
-      "line": 383,
+      "line": 393,
       "symbol": "Sidebar",
       "text": "// reqforge: implements REQ-0030",
       "component": "web"
@@ -863,6 +924,15 @@
       "line": 25,
       "symbol": "HelpProvider",
       "text": "// reqforge: implements REQ-0048",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0055",
+      "kind": "implements",
+      "file": "web/src/views/DesignView.tsx",
+      "line": 21,
+      "symbol": "DesignView",
+      "text": "// reqforge: implements REQ-0055",
       "component": "web"
     },
     {
