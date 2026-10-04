@@ -5,19 +5,27 @@
   "type": "quality",
   "category": "security",
   "priority": "must",
-  "status": "implemented",
+  "status": "approved",
   "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
   "acceptance_criteria": [
     {
       "id": "AC1",
       "text": "0 write, apply, scan, evidence or shell/file-editing tools are available to the chat agent"
+    },
+    {
+      "id": "AC2",
+      "text": "Every MCP call from a chat session operates on the project the chat was opened in; a call naming another project is refused with an error and reads or proposes 0 records in it"
+    },
+    {
+      "id": "AC3",
+      "text": "The MCP server started for a chat session itself refuses every tool on the chat deny list, so 0 records change even if the client-side deny list is bypassed"
     }
   ],
   "tags": [],
   "standards": [],
   "stakeholders": [],
   "source": "reverse-engineered from code @ reqforge 0.2",
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T06:45:40+00:00"
 }

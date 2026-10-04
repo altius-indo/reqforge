@@ -3,7 +3,7 @@
   "title": "Close 3 security gaps found in the design review",
   "summary": "Adds REQ-0041 AC2 (chat agent pinned to its project) and AC3 (MCP server enforces the chat deny list itself), and REQ-0040 AC3 (validate client-supplied filesystem paths). Reopens STORY-0005 and STORY-0006 with one task and one security eval each.",
   "rationale": "The reverse-engineered design review found three gaps: (1) the chat agent can pass another project's key to MCP tools (workspace.rs:380-389 gives an explicit project priority); (2) only the Claude Code client-side deny list stops write tools, because the MCP server does not check its caller; (3) POST /api/projects/import, POST /api/code/scan and GET /api/impact accept unvalidated filesystem paths. The existing requirements are extended rather than duplicated.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T06:45:25+00:00",
   "valid": true,
   "ops": [
@@ -659,5 +659,11 @@
         "STORY-0006"
       ]
     }
+  },
+  "applied_at": "2026-10-04T06:45:40+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "t1": "TASK-0036",
+    "t2": "TASK-0037"
   }
 }

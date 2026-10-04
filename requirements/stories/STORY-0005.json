@@ -35,11 +35,21 @@
       "covers": [
         "REQ-0041#AC1"
       ]
+    },
+    {
+      "id": "E3",
+      "name": "chat project pinning and server-side tool policy",
+      "kind": "security",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- chat_project_pinned mcp_chat_role_refuses_writes",
+      "covers": [
+        "REQ-0041#AC2",
+        "REQ-0041#AC3"
+      ]
     }
   ],
-  "status": "done",
+  "status": "in-progress",
   "tags": [],
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T06:45:40+00:00"
 }

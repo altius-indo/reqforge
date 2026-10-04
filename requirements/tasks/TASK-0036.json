@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0036",
+  "title": "Pin chat MCP calls to the chat's project and enforce the deny list in the MCP server",
+  "story": "STORY-0005",
+  "kind": "code",
+  "depends_on": [],
+  "description": "Start the chat's MCP server with the chat's project and a chat role; refuse a project argument naming another project, and refuse deny-listed tools server-side. Code: server/src/chat.rs:256-260, server/src/mcp.rs:19-29, server/src/workspace.rs:380-389. Tag tests REQ-0041#AC2 and REQ-0041#AC3.",
+  "done_when": "STORY-0005/E3 passes and REQ-0041 reports verified.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T06:45:40+00:00",
+  "updated": "2026-10-04T06:45:40+00:00"
+}

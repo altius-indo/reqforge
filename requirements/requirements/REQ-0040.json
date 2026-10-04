@@ -5,7 +5,7 @@
   "type": "quality",
   "category": "security",
   "priority": "must",
-  "status": "implemented",
+  "status": "approved",
   "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
   "acceptance_criteria": [
     {
@@ -15,6 +15,10 @@
     {
       "id": "AC2",
       "text": "With REQFORGE_TOKEN set, every route including chat returns 401 without the token"
+    },
+    {
+      "id": "AC3",
+      "text": "A client-supplied filesystem path is accepted only if, after resolving symlinks, it is a configured component path (code scan root, impact root) or an absolute directory containing reqforge.json (project import); any other path returns 400 and 0 files are read"
     }
   ],
   "tags": [],
@@ -24,7 +28,7 @@
   ],
   "stakeholders": [],
   "source": "reverse-engineered from code @ reqforge 0.2",
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T06:45:40+00:00"
 }

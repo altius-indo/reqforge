@@ -50,11 +50,20 @@
         "REQ-0040#AC1",
         "REQ-0040#AC2"
       ]
+    },
+    {
+      "id": "E4",
+      "name": "filesystem path validation",
+      "kind": "security",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- client_paths_validated",
+      "covers": [
+        "REQ-0040#AC3"
+      ]
     }
   ],
-  "status": "done",
+  "status": "in-progress",
   "tags": [],
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T06:45:40+00:00"
 }
