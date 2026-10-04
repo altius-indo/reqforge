@@ -1,8 +1,8 @@
 {
   "component": "web",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "1d8682f7aafd50831e8ca2a5949ad644cc4a5b19",
-  "scanned_at": "2026-10-04T01:37:28+00:00",
+  "commit": "e0b373ca053dc35ddd2f179620dd706db790409d",
+  "scanned_at": "2026-10-04T01:40:48+00:00",
   "files_scanned": 58,
   "files": {
     "web/e2e/suites/code.js": "2da5e170317d3c5b666e477107641b6dac899c9875c079473c6684dddf929aba",

@@ -1,8 +1,8 @@
 {
   "component": "server",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "1d8682f7aafd50831e8ca2a5949ad644cc4a5b19",
-  "scanned_at": "2026-10-04T01:37:28+00:00",
+  "commit": "e0b373ca053dc35ddd2f179620dd706db790409d",
+  "scanned_at": "2026-10-04T01:40:48+00:00",
   "files_scanned": 26,
   "files": {
     "server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
@@ -22,9 +22,9 @@
     "server/src/query.rs": "29fdf2c1f01324be684e275c632b4b1f5ee9538eff54285e666642cbbc4c544a",
     "server/src/store.rs": "47f5b89ced3c8be9d7fe3142d29620739615a8e5c377d77e9e29dfbe91ad7ac4",
     "server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
-    "server/src/verify.rs": "c133410e2cff0b270dc4068364955c8492461a0e71b763b77c3bee9caa9610c2",
+    "server/src/verify.rs": "fa147e48a34db72b8b660bdaffc21bbdeb1dd00cc668780bfec10b127c1ab902",
     "server/src/workspace.rs": "53bdc5132044397de7eabf4b2e18b1709572ab42aed9cdbac69398d3c4653ca5",
-    "server/tests/codetrace.rs": "00a4ecabb18bffb3f08c17a52a8e1aa63aa3e1ddf365f462b663034454541efd",
+    "server/tests/codetrace.rs": "f7401f57ef1d968d9e19a224ac35e49fbee9eb1587ef8a3b01cd8e4fad872d91",
     "server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9",
     "server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952",
     "server/tests/projects.rs": "a9a7cea85e49e89a9b51696fd47a43c0a0f59b1a40c2a15d40c26f73952c426d"
@@ -610,6 +610,16 @@
       "file": "server/tests/codetrace.rs",
       "line": 403,
       "symbol": "evidence_from_sources_that_stop_claiming_is_ignored",
+      "text": "// reqforge: verifies REQ-0022#AC1",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0022",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "server/tests/codetrace.rs",
+      "line": 427,
+      "symbol": "a_fresh_pass_supersedes_stale_evidence",
       "text": "// reqforge: verifies REQ-0022#AC1",
       "component": "server"
     },
