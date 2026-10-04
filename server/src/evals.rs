@@ -50,9 +50,22 @@ fn brief(ev: &Value) -> Value {
 }
 
 fn run_one(command: &str, workdir: &Path, story: &str, eval_id: &str, timeout: Duration) -> (bool, String) {
-    let out_path = std::env::temp_dir().join(format!("reqforge-eval-{}-{}.log", std::process::id(), eval_id.replace('/', "_")));
+    run_one_with(command, workdir, story, eval_id, timeout, false)
+}
+
+/// Run one eval command; `clean_env` strips reqforge's repository variables (sandboxed runs).
+pub fn run_one_with(command: &str, workdir: &Path, story: &str, eval_id: &str, timeout: Duration, clean_env: bool) -> (bool, String) {
+    static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let seq = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let out_path = std::env::temp_dir().join(format!("reqforge-eval-{}-{seq}-{}.log", std::process::id(), eval_id.replace('/', "_")));
     let Ok(log) = fs::File::create(&out_path) else { return (false, "cannot create log".into()) };
-    let child = Command::new("sh")
+    let mut cmd = Command::new("sh");
+    if clean_env {
+        for k in ["REQFORGE_REPO", "REQFORGE_PROJECT", "REQFORGE_WORKSPACE", "REQFORGE_TASK", "REQFORGE_MCP_ROLE", "REQFORGE_MCP_PROJECT"] {
+            cmd.env_remove(k);
+        }
+    }
+    let child = cmd
         .arg("-c")
         .arg(command)
         .current_dir(workdir)

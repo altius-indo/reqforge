@@ -140,6 +140,7 @@ pub fn plan(store: &Store, task_id: &str) -> Res<Value> {
     let rd = crate::taskflow::readiness(store, task_id)?;
     let mut v = json!({"task": task_id, "ready": rd["can_start_agent"], "reasons": rd["agent_reasons"], "component": rd["component"],
                        "branch": branch_for(task_id), "unfinished": rd["unfinished"]});
+    v["parallel"] = json!(crate::complete::parallel_branches(store, task_id));
     if let Ok(p) = resolve(store, task_id) {
         v["component_path"] = json!(p.component_root.display().to_string());
         v["worktree"] = json!(p.worktree.display().to_string());
@@ -257,11 +258,15 @@ pub fn runs(store: &Store, task_id: &str) -> Vec<Value> {
         .into_iter()
         .flatten()
         .flatten()
-        .filter(|e| e.file_name().to_string_lossy().starts_with(&format!("RUN-{task_id}-")))
+        .filter(|e| {
+            let n = e.file_name().to_string_lossy().to_string();
+            n.starts_with(&format!("RUN-{task_id}-")) || n.starts_with(&format!("COMPLETE-{task_id}-"))
+        })
         .filter_map(|e| serde_json::from_str::<Value>(&std::fs::read_to_string(e.path()).ok()?).ok())
         .map(|mut v| {
             if let Some(o) = v.as_object_mut() {
                 o.remove("events");
+                o.entry("kind").or_insert(json!("agent"));
             }
             v
         })

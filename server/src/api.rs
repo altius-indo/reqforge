@@ -34,6 +34,7 @@
 //! GET    /api/tasks/{id}/agent (plan + brief) | POST /api/tasks/{id}/agent (SSE run) | POST …/agent/cancel
 //! GET    /api/tasks/{id}/runs  agent run logs | GET /api/tasks/{id}/agent/live?since=n  live progress
 //! GET    /api/agent-queue | POST /api/agent-queue {enabled, limit, confirm}  per-project agent queue
+//! GET    /api/tasks/{id}/branch (review) | POST /api/tasks/{id}/complete {_version}  complete from the agent branch
 //! Auth: REQFORGE_TOKEN set => /api/* needs `Authorization: Bearer <token>`.
 
 use std::collections::HashMap;
@@ -305,6 +306,23 @@ async fn dispatch(State(st): State<Arc<AppState>>, method: Method, uri: Uri, hea
         return match res {
             Ok(v) => json_resp(200, &v),
             Err(e) => err_resp(&e),
+        };
+    }
+    if rest.len() == 3 && rest[0] == "tasks" && (rest[2] == "branch" || rest[2] == "complete") {
+        let (store2, agents2, task, m) = (store.clone(), agents.clone(), rest[1].clone(), method.clone());
+        let ver = jbody.get("_version").and_then(Value::as_i64);
+        let user = std::env::var("USER").unwrap_or_else(|_| "local".into());
+        let what = rest[2].clone();
+        let res = tokio::task::spawn_blocking(move || match (what.as_str(), m) {
+            ("branch", Method::GET) => crate::complete::branch_review(&store2, &agents2, &task),
+            ("complete", Method::POST) => crate::complete::complete(&store2, &agents2, &task, ver, &user),
+            _ => Err(StoreError::new("no such route", 404)),
+        })
+        .await;
+        return match res {
+            Ok(Ok(v)) => json_resp(200, &v),
+            Ok(Err(e)) => err_resp(&e),
+            Err(e) => json_resp(500, &json!({"error": e.to_string()})),
         };
     }
     if rest.len() == 4 && rest[0] == "tasks" && rest[2] == "agent" && rest[3] == "live" && method == Method::GET {

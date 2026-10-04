@@ -180,7 +180,23 @@ When `parallel` is not empty, the confirmation dialog shows a warning before the
 
 The warning is advisory and doesn't change `ready`. The agent queue, which has no confirmation, is not affected.
 
+### Sandboxed eval run (REQ-0052#AC5, CS-0018)
+
+The evals in step 3 execute agent-written code. Each eval is therefore bracketed like an agent run.
+
+Before the eval, record:
+- `agent::snapshot` of the checkout and the requirements repo;
+- every ref in the checkout (`git for-each-ref`);
+- the task branch head.
+
+After it, recheck all three. Complete is refused with `{step: "sandbox", violations}`, and the attempt is logged, when any of these happened:
+- a file changed outside the worktree (checkout or requirements repo);
+- a ref other than the target moved (a commit, branch or push);
+- the target moved with anything other than reqforge's own requirements-folder commits;
+- the task branch moved (the eval committed).
+
+The eval's environment carries no `REQFORGE_*` repository variables.
+
 ### Not covered here
 
-- The eval run in step 3 executes agent-written code with the server's privileges. Like the agent run, it could be bracketed with `agent::snapshot`/`violations` to detect writes outside the worktree. CS-0017 proposed this as REQ-0052#AC5 and moving AC7 to REQ-0051, but it is stale and not applied. This design follows REQ-0056 as it stands.
 - Complete does not push. The target stays local, as the agent branch did.

@@ -5,6 +5,7 @@ pub mod api;
 pub mod changes;
 pub mod chat;
 pub mod cicd;
+pub mod complete;
 pub mod codetrace;
 pub mod cli;
 pub mod console;
