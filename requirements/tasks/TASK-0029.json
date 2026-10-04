@@ -5,9 +5,9 @@
   "kind": "code",
   "description": "Confirmation dialog with brief preview, disabled state with reason, live progress and cancel in the task drawer, run result summary.",
   "done_when": "agent-start e2e suite passes.",
-  "status": "todo",
+  "status": "done",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:12:08+00:00"
+  "updated": "2026-10-04T05:32:30+00:00"
 }
