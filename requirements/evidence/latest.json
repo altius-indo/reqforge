@@ -1,4 +1,17 @@
 {
+  "REQ-0001#AC1|eval:STORY-0001/E1": {
+    "target": "REQ-0001#AC1",
+    "source": "eval:STORY-0001/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "plugin:skills/elicit/SKILL.md": "357f1e884d220acc94cd5b4a84d4974fe1a836f9d8b482a21fa166c516763a9c",
+      "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
+    }
+  },
   "REQ-0001#AC1|test:server:server/tests/plugin.rs::elicit_skill_orchestrates_research_questions_and_review": {
     "target": "REQ-0001#AC1",
     "source": "test:server:server/tests/plugin.rs::elicit_skill_orchestrates_research_questions_and_review",
@@ -11,6 +24,19 @@
       "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
     }
   },
+  "REQ-0001#AC2|eval:STORY-0001/E1": {
+    "target": "REQ-0001#AC2",
+    "source": "eval:STORY-0001/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "plugin:skills/elicit/SKILL.md": "357f1e884d220acc94cd5b4a84d4974fe1a836f9d8b482a21fa166c516763a9c",
+      "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
+    }
+  },
   "REQ-0001#AC2|test:server:server/tests/plugin.rs::elicit_skill_orchestrates_research_questions_and_review": {
     "target": "REQ-0001#AC2",
     "source": "test:server:server/tests/plugin.rs::elicit_skill_orchestrates_research_questions_and_review",
@@ -20,6 +46,26 @@
     "at": "2026-10-04T01:05:12+00:00",
     "component": "server",
     "hashes": {
+      "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
+    }
+  },
+  "REQ-0002#AC1|eval:STORY-0001/E1": {
+    "target": "REQ-0002#AC1",
+    "source": "eval:STORY-0001/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "plugin:agents/cicd-engineer.md": "484e6d0d27f50debca06e1517e4b60a5544084157039d971513bacf20b89966f",
+      "plugin:agents/delivery-planner.md": "f4f6897d919634ba7a2e4d08fb6b62e673f092f33ffcd4cc9b14f8294433dced",
+      "plugin:agents/eval-designer.md": "cc3995ced9f8fad43eac057105f5f6be031bb900cf0df5d111ec884ee3be7743",
+      "plugin:agents/mece-reviewer.md": "0eac654292c2d4af25ff76d61f0fe06f716c42ef219ec240a90a500df9466eac",
+      "plugin:agents/requirements-analyst.md": "7329d5d479a81c7c7e4661c744c2c197b865b5a77b3d32fa914b0e4202f13400",
+      "plugin:agents/requirements-classifier.md": "2282038e59d925227c3ba96450f7adf5864c301065e8a9f7eb9a09ea4e9cf251",
+      "plugin:agents/standards-researcher.md": "854b9dd87598c6db7e93c4caea58ce7d7c6e707bea4a49a1f1f0cedea263b059",
+      "plugin:agents/traceability-evaluator.md": "ca177f994582eaf3e647043d30be90cc9e8ecdc9b8971d490e6617d66d53487c",
       "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
     }
   },
@@ -154,6 +200,19 @@
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
     }
   },
+  "REQ-0009#AC1|eval:STORY-0003/E1": {
+    "target": "REQ-0009#AC1",
+    "source": "eval:STORY-0003/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/src/lint.rs": "bbf653b62a48605be90d9ba6474ae8e44e8160395bb62dd58c91e7c029e2ac38",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
   "REQ-0009#AC1|test:server:server/tests/integration.rs::lint_flags_overlap_vagueness_and_gaps": {
     "target": "REQ-0009#AC1",
     "source": "test:server:server/tests/integration.rs::lint_flags_overlap_vagueness_and_gaps",
@@ -162,6 +221,19 @@
     "run": "local cargo test 2026-10-03",
     "at": "2026-10-04T01:05:12+00:00",
     "component": "server",
+    "hashes": {
+      "server:server/src/lint.rs": "bbf653b62a48605be90d9ba6474ae8e44e8160395bb62dd58c91e7c029e2ac38",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
+  "REQ-0009#AC2|eval:STORY-0003/E1": {
+    "target": "REQ-0009#AC2",
+    "source": "eval:STORY-0003/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
     "hashes": {
       "server:server/src/lint.rs": "bbf653b62a48605be90d9ba6474ae8e44e8160395bb62dd58c91e7c029e2ac38",
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
@@ -180,6 +252,19 @@
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
     }
   },
+  "REQ-0010#AC1|eval:STORY-0003/E1": {
+    "target": "REQ-0010#AC1",
+    "source": "eval:STORY-0003/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
   "REQ-0010#AC1|test:server:server/tests/integration.rs::trace_passes_for_complete_plan": {
     "target": "REQ-0010#AC1",
     "source": "test:server:server/tests/integration.rs::trace_passes_for_complete_plan",
@@ -188,6 +273,19 @@
     "run": "local cargo test 2026-10-03",
     "at": "2026-10-04T01:05:12+00:00",
     "component": "server",
+    "hashes": {
+      "server:server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
+  "REQ-0010#AC2|eval:STORY-0003/E1": {
+    "target": "REQ-0010#AC2",
+    "source": "eval:STORY-0003/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
     "hashes": {
       "server:server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
@@ -323,6 +421,19 @@
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
     }
   },
+  "REQ-0016#AC1|eval:STORY-0007/E1": {
+    "target": "REQ-0016#AC1",
+    "source": "eval:STORY-0007/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/src/query.rs": "29fdf2c1f01324be684e275c632b4b1f5ee9538eff54285e666642cbbc4c544a",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
   "REQ-0016#AC1|test:server:server/tests/integration.rs::page_sort_and_annotations": {
     "target": "REQ-0016#AC1",
     "source": "test:server:server/tests/integration.rs::page_sort_and_annotations",
@@ -331,6 +442,19 @@
     "run": "local cargo test 2026-10-03",
     "at": "2026-10-04T01:05:12+00:00",
     "component": "server",
+    "hashes": {
+      "server:server/src/query.rs": "29fdf2c1f01324be684e275c632b4b1f5ee9538eff54285e666642cbbc4c544a",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
+  "REQ-0017#AC1|eval:STORY-0007/E1": {
+    "target": "REQ-0017#AC1",
+    "source": "eval:STORY-0007/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
     "hashes": {
       "server:server/src/query.rs": "29fdf2c1f01324be684e275c632b4b1f5ee9538eff54285e666642cbbc4c544a",
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
@@ -702,6 +826,19 @@
       "server:server/tests/codetrace.rs": "22160bc2931cbf52b3b88ec20ea1c139454c953f37a0f57e82f845d24d07edff"
     }
   },
+  "REQ-0036#AC1|eval:STORY-0001/E1": {
+    "target": "REQ-0036#AC1",
+    "source": "eval:STORY-0001/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "plugin:bin/reqforge": "ce4d1f4a34dfb34dd0f67ab19f3645c89d7c2154ae3f2795445bf3e549871e73",
+      "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
+    }
+  },
   "REQ-0036#AC1|test:server:server/tests/plugin.rs::manifest_and_mcp_wiring": {
     "target": "REQ-0036#AC1",
     "source": "test:server:server/tests/plugin.rs::manifest_and_mcp_wiring",
@@ -711,6 +848,19 @@
     "at": "2026-10-04T01:05:12+00:00",
     "component": "server",
     "hashes": {
+      "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
+    }
+  },
+  "REQ-0036#AC2|eval:STORY-0001/E1": {
+    "target": "REQ-0036#AC2",
+    "source": "eval:STORY-0001/E1",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "plugin:bin/reqforge": "ce4d1f4a34dfb34dd0f67ab19f3645c89d7c2154ae3f2795445bf3e549871e73",
       "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
     }
   },
@@ -752,6 +902,19 @@
       "server:server/tests/codetrace.rs": "22160bc2931cbf52b3b88ec20ea1c139454c953f37a0f57e82f845d24d07edff"
     }
   },
+  "REQ-0039#AC1|eval:STORY-0009/E2": {
+    "target": "REQ-0039#AC1",
+    "source": "eval:STORY-0009/E2",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/src/store.rs": "47f5b89ced3c8be9d7fe3142d29620739615a8e5c377d77e9e29dfbe91ad7ac4",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
   "REQ-0039#AC1|test:server:server/tests/integration.rs::thousands_of_requirements": {
     "target": "REQ-0039#AC1",
     "source": "test:server:server/tests/integration.rs::thousands_of_requirements",
@@ -762,6 +925,19 @@
     "component": "server",
     "hashes": {
       "server:server/src/store.rs": "47f5b89ced3c8be9d7fe3142d29620739615a8e5c377d77e9e29dfbe91ad7ac4",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
+  "REQ-0040#AC1|eval:STORY-0006/E3": {
+    "target": "REQ-0040#AC1",
+    "source": "eval:STORY-0006/E3",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
     }
   },
@@ -778,6 +954,19 @@
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
     }
   },
+  "REQ-0040#AC2|eval:STORY-0006/E3": {
+    "target": "REQ-0040#AC2",
+    "source": "eval:STORY-0006/E3",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
   "REQ-0040#AC2|test:server:server/tests/integration.rs::token_protects_api_including_chat": {
     "target": "REQ-0040#AC2",
     "source": "test:server:server/tests/integration.rs::token_protects_api_including_chat",
@@ -788,6 +977,20 @@
     "component": "server",
     "hashes": {
       "server:server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
+  "REQ-0041#AC1|eval:STORY-0005/E2": {
+    "target": "REQ-0041#AC1",
+    "source": "eval:STORY-0005/E2",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/src/chat.rs": "bef971dfcc914457c230da2bcf80c170bcf9553288fcbcdc03486fb6f6eb2da4",
+      "server:server/tests/codetrace.rs": "22160bc2931cbf52b3b88ec20ea1c139454c953f37a0f57e82f845d24d07edff",
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
     }
   },
@@ -830,6 +1033,28 @@
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
     }
   },
+  "REQ-0043#AC1|eval:STORY-0004/E2": {
+    "target": "REQ-0043#AC1",
+    "source": "eval:STORY-0004/E2",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {}
+  },
+  "REQ-0043#AC2|eval:STORY-0004/E4": {
+    "target": "REQ-0043#AC2",
+    "source": "eval:STORY-0004/E4",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952"
+    }
+  },
   "REQ-0043#AC2|test:server:server/tests/plugin.rs::ci_workflow_runs_clippy_and_tests": {
     "target": "REQ-0043#AC2",
     "source": "test:server:server/tests/plugin.rs::ci_workflow_runs_clippy_and_tests",
@@ -865,6 +1090,19 @@
     "component": "server",
     "hashes": {
       "server:server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
+      "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
+    }
+  },
+  "REQ-0047#AC1|eval:STORY-0001/E3": {
+    "target": "REQ-0047#AC1",
+    "source": "eval:STORY-0001/E3",
+    "status": "passed",
+    "commit": "c7e5b66d515273a03e4cdc5480ce8f60cefb3c29",
+    "run": null,
+    "at": "2026-10-04T01:05:29+00:00",
+    "component": null,
+    "hashes": {
+      "server:server/src/chat.rs": "bef971dfcc914457c230da2bcf80c170bcf9553288fcbcdc03486fb6f6eb2da4",
       "server:server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9"
     }
   },
