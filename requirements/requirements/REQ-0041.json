@@ -5,7 +5,7 @@
   "type": "quality",
   "category": "security",
   "priority": "must",
-  "status": "approved",
+  "status": "implemented",
   "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
   "acceptance_criteria": [
     {
@@ -25,7 +25,7 @@
   "standards": [],
   "stakeholders": [],
   "source": "reverse-engineered from code @ reqforge 0.2",
-  "version": 7,
+  "version": 8,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T06:45:40+00:00"
+  "updated": "2026-10-04T19:08:02+00:00"
 }
