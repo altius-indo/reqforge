@@ -5,7 +5,7 @@
   "type": "interface",
   "category": "user-interface",
   "priority": "should",
-  "status": "approved",
+  "status": "implemented",
   "rationale": "Product owners and new users need guidance on reqforge workflows without leaving the UI.",
   "acceptance_criteria": [
     {
@@ -40,7 +40,7 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T01:56:31+00:00",
-  "updated": "2026-10-04T01:59:47+00:00"
+  "updated": "2026-10-04T05:32:30+00:00"
 }
