@@ -276,6 +276,16 @@ function SidebarBody() {
         </p>
       </>
     )
+  if (view.tab === "design")
+    return (
+      <>
+        <SectionLabel>Design</SectionLabel>
+        <p className="px-1.5 text-[12.5px] text-muted-foreground">
+          How the system is built: design documents from the repository's design/ directory, each listing the
+          requirements it realises. Click any record id to open it.
+        </p>
+      </>
+    )
   if (!listKind || !F) return <p className="px-1.5 py-2 text-[12.5px] text-muted-foreground">Loading…</p>
 
   const counts = (f: string) => (F[f] as FacetCounts | undefined) || {}

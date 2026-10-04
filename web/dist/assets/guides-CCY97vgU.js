@@ -284,4 +284,34 @@ has a short key such as \`SHOP\` that appears in links (\`#/p/SHOP\`) and on the
 4. Click **Back to** followed by the project key to return to the project you were working in.
 
 In single-repository mode (the server was started with \`--repo\`), the projects page is read-only.
+`,"../../../help/08-design.md":`---
+id: design
+title: Design documents
+tabs: design
+keywords: design, spec, specification, architecture, how it is built, realises, markdown, design directory, slug
+---
+The **Design** tab shows how the system is built: design documents kept in the requirements repository, each linked
+to the requirements it realises. Read them here instead of reading the code.
+
+### Read a design document
+
+1. Open the **Design** tab in the header.
+2. Pick a document from the list on the left; documents are listed by title, in file-name order.
+3. Read the document on the right. Under its title, **Realises** lists the requirements it builds.
+4. Click any record id, in the **Realises** list or in the text, to open that record in the drawer.
+
+### Find the design behind a requirement
+
+1. Open the requirement in the drawer and choose the **Links & impact** tab.
+2. Under **Design documents**, click a document's title to open it on the **Design** tab.
+
+### Add a design document
+
+1. In the requirements repository, create a Markdown file \`design/<slug>.md\`. The slug is lower-case letters, digits
+   and \`-\`, starting with a letter or digit, for example \`api\`.
+2. Start the file with front matter between \`---\` lines: \`title:\` and \`realises:\`, the list of requirement ids the
+   document realises (written as \`REQ-…\`).
+3. Write the body in GitHub-flavoured Markdown: headings, lists, tables and code blocks all render.
+4. Commit the file (or click **Sync**), then open the **Design** tab. **Lint** reports any \`realises\` id that is not
+   an existing requirement.
 `});function t(e,t){let n=t.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/),r={};for(let e of(n?.[1]??``).split(/\r?\n/)){let t=e.indexOf(`:`);t>0&&(r[e.slice(0,t).trim()]=e.slice(t+1).trim())}let i=(n?.[2]??t).trim(),a=e.split(`/`).pop()??e,o=r.id||a.replace(/^\d+-/,``).replace(/\.md$/,``),s=r.title||o,c=r.keywords||``;return{id:o,title:s,tabs:(r.tabs||``).split(`,`).map(e=>e.trim()).filter(Boolean),keywords:c,body:i,haystack:`${s}\n${c}\n${i}`.toLowerCase(),file:a}}var n=Object.entries(e).sort(([e],[t])=>e.localeCompare(t)).map(([e,n])=>t(e,n));function r(e){return(n.find(t=>t.tabs.includes(e))??n[0])?.id??``}function i(e){let t=e.toLowerCase().split(/\s+/).filter(Boolean);return t.length?n.filter(e=>t.every(t=>e.haystack.includes(t))):n}export{n as GUIDES,i as searchGuides,r as sectionFor};

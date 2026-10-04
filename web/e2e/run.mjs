@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|design|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "design"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,7 +36,7 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|design|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
@@ -157,7 +157,7 @@ function makeCtx(bin, tmp) {
     bin, tmp, env,
     seedLarge: (dir) => { seed("seed_large.py", dir, "3000"); return dir },
     seedDemo: (dir, ...flags) => { seed("seed_demo.py", dir, ...flags); return dir },
-    importProject: (ws, dir) => run(bin, ["--workspace", ws, "project", "import", dir], { env }),
+    importProject: (ws, dir, key) => run(bin, ["--workspace", ws, "project", "import", dir, ...(key ? ["--key", key] : [])], { env }),
     /** `reqforge --repo <dir> <args…>` (add/edit records before serving) */
     cli: (dir, ...args) => run(bin, ["--repo", dir, ...args], { env }),
     git: (dir, ...args) => run("git", ["-C", dir, ...args], { env }),
@@ -179,6 +179,28 @@ function seedTasks(ctx, dir, { deps = {}, edits = {}, extra = true } = {}) {
   }
   return dir;
 }
+
+// Design documents (design/<slug>.md, REQ-0054) for the SHOP demo. Slug order differs from title order; checkout-flow
+// has a table, a code block and story/task ids in its body.
+// reqforge:off (fixture ids from the seeded demo data)
+function writeDesignDocs(repo) {
+  const d = path.join(repo, "design");
+  fs.mkdirSync(d, { recursive: true });
+  fs.writeFileSync(path.join(d, "checkout-flow.md"), [
+    "---", "title: Checkout flow", "realises: [REQ-0001, REQ-0003]", "---",
+    "## Placing an order", "",
+    "STORY-0001 delivers the guest flow; TASK-0001 builds it. Card data stays out of scope (see REQ-0002).", "",
+    "- the cart is validated", "- the PSP authorises the card", "",
+    "| step | budget |", "| --- | --- |", "| validate | 50 ms |", "| authorise | 600 ms |", "",
+    "```python", "order = place_order(cart)  # REQ-0001 in code is not a link", "```", ""].join("\n"));
+  fs.writeFileSync(path.join(d, "card-security.md"), [
+    "---", "title: Card data security", "realises: [REQ-0002]", "---",
+    "Card numbers only ever enter the PSP-hosted fields.", ""].join("\n"));
+  fs.writeFileSync(path.join(d, "a-overview.md"), [
+    "---", "title: Zeta overview", "realises: [REQ-0001]", "---",
+    "How the shop fits together.", ""].join("\n"));
+}
+// reqforge:on
 
 // Each suite: build its data under `dir`, return how to serve it and where the result session lands.
 const SUITES = {
@@ -264,6 +286,21 @@ const SUITES = {
         edits: { "REQ-0004": ["status=approved"], ...Object.fromEntries(["TASK-0001", "TASK-0003", "TASK-0004"].map((t) => [t, ["description=QWAIT: queued agent run"]])) } });
       return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
         env: { REQFORGE_WORKTREES: path.join(dir, "worktrees"), REQFORGE_QUEUE_TICK_MS: "500" } };
+    },
+  },
+  // Design tab (REQ-0055): SHOP demo with three design documents, BARE (same demo data) with none
+  design: {
+    timeout: 180,
+    setup(ctx, dir) {
+      const ws = path.join(dir, "ws");
+      fs.mkdirSync(ws);
+      const shop = ctx.seedDemo(path.join(ws, "shop"), "--no-code");
+      writeDesignDocs(shop);
+      ctx.seedDemo(path.join(ws, "bare"), "--no-code");
+      ctx.importProject(ws, shop);
+      ctx.importProject(ws, path.join(ws, "bare"), "BARE");
+      return { serve: ["--workspace", ws], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/p/SHOP/sessions", route: "/#/p/SHOP",
+        workspaceName: "ws" };
     },
   },
   // help panel, its keyboard behaviour, and colour schemes: same BIG repository as core

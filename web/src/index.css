@@ -189,4 +189,10 @@
   .help-md ol { padding-left: 22px; }
   .help-md li { margin: 2px 0; }
   .help-md li::marker { color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+  /* Design tab documents (design/<slug>.md) */
+  .design-md { font-size: 13.5px; line-height: 1.6; }
+  .design-md h1 { font-size: 17px; margin: 18px 0 6px; }
+  .design-md h2 { font-size: 15.5px; margin: 18px 0 6px; }
+  .design-md h3 { font-size: 14px; margin: 14px 0 4px; }
+  .design-md p, .design-md ul, .design-md ol, .design-md pre, .design-md table { margin-bottom: 10px; }
 }

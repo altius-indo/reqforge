@@ -24,6 +24,7 @@ const TAB_LABELS: [Tab, string][] = [
   ["verification", "Verification"],
   ["lint", "Lint"],
   ["changes", "Changes"],
+  ["design", "Design"],
 ]
 
 /** API token input, shown after a 401. */
@@ -122,7 +123,7 @@ export function Header() {
     <TopBar
       helpContext={view.tab}
       leading={
-        listKind || view.tab === "trace" || view.tab === "verification" || view.tab === "changes" ? (
+        listKind || view.tab === "trace" || view.tab === "verification" || view.tab === "changes" || view.tab === "design" ? (
           <Button
             variant="ghost"
             size="icon-sm"
