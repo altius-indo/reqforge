@@ -5,9 +5,9 @@
   "kind": "code",
   "description": "Author web/help/*.md guides with numbered steps, bundled by the web build.",
   "done_when": "6 guide files exist and render in the panel.",
-  "status": "todo",
+  "status": "done",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T01:56:31+00:00",
-  "updated": "2026-10-04T01:56:31+00:00"
+  "updated": "2026-10-04T04:55:24+00:00"
 }
