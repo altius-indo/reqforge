@@ -1,0 +1,17 @@
+{
+  "id": "EPIC-0007",
+  "title": "Web UI at scale",
+  "requirements": [
+    "REQ-0016",
+    "REQ-0017",
+    "REQ-0030",
+    "REQ-0031",
+    "REQ-0032",
+    "REQ-0045"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

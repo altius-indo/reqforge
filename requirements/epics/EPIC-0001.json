@@ -1,0 +1,15 @@
+{
+  "id": "EPIC-0001",
+  "title": "Agentic elicitation plugin",
+  "requirements": [
+    "REQ-0001",
+    "REQ-0002",
+    "REQ-0036",
+    "REQ-0047"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

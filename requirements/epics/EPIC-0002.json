@@ -1,0 +1,20 @@
+{
+  "id": "EPIC-0002",
+  "title": "Requirements store and GitHub persistence",
+  "requirements": [
+    "REQ-0003",
+    "REQ-0004",
+    "REQ-0005",
+    "REQ-0006",
+    "REQ-0007",
+    "REQ-0008",
+    "REQ-0035",
+    "REQ-0037",
+    "REQ-0042"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

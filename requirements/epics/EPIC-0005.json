@@ -1,0 +1,15 @@
+{
+  "id": "EPIC-0005",
+  "title": "Chat and changesets",
+  "requirements": [
+    "REQ-0013",
+    "REQ-0014",
+    "REQ-0015",
+    "REQ-0041"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

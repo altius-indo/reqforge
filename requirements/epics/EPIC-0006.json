@@ -1,0 +1,17 @@
+{
+  "id": "EPIC-0006",
+  "title": "Interfaces: REST, MCP, CLI, console",
+  "requirements": [
+    "REQ-0026",
+    "REQ-0027",
+    "REQ-0028",
+    "REQ-0029",
+    "REQ-0040",
+    "REQ-0046"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

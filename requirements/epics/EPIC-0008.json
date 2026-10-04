@@ -1,0 +1,15 @@
+{
+  "id": "EPIC-0008",
+  "title": "Projects",
+  "requirements": [
+    "REQ-0018",
+    "REQ-0019",
+    "REQ-0020",
+    "REQ-0033"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "EPIC-0003",
+  "title": "Quality gates: MECE lint and traceability",
+  "requirements": [
+    "REQ-0009",
+    "REQ-0010"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

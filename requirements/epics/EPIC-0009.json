@@ -1,0 +1,19 @@
+{
+  "id": "EPIC-0009",
+  "title": "Code traceability",
+  "requirements": [
+    "REQ-0021",
+    "REQ-0022",
+    "REQ-0023",
+    "REQ-0024",
+    "REQ-0025",
+    "REQ-0034",
+    "REQ-0038",
+    "REQ-0039"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "EPIC-0004",
+  "title": "Evals and CI/CD",
+  "requirements": [
+    "REQ-0011",
+    "REQ-0012",
+    "REQ-0043",
+    "REQ-0044"
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}
