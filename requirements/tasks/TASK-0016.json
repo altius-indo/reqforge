@@ -1,0 +1,12 @@
+{
+  "id": "TASK-0016",
+  "title": "Workspace registry, project routes, projects UI",
+  "story": "STORY-0008",
+  "kind": "code",
+  "done_when": "merged with its evals green",
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

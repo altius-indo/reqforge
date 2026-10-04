@@ -1,0 +1,12 @@
+{
+  "id": "TASK-0010",
+  "title": "Changeset format and apply semantics",
+  "story": "STORY-0005",
+  "kind": "design",
+  "done_when": "merged with its evals green",
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

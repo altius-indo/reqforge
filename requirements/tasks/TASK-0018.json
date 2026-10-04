@@ -1,0 +1,12 @@
+{
+  "id": "TASK-0018",
+  "title": "Scanner, evidence, verify, impact, UI",
+  "story": "STORY-0009",
+  "kind": "code",
+  "done_when": "merged with its evals green",
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}
