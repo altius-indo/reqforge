@@ -37,7 +37,7 @@
       "id": "E3",
       "name": "chat runs the claude CLI",
       "kind": "unit",
-      "command": "cargo test --manifest-path server/Cargo.toml --test integration sse_chat_bridge",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- sse_chat_bridge",
       "covers": [
         "REQ-0047#AC1"
       ]
@@ -45,7 +45,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:02:15+00:00"
+  "updated": "2026-10-04T01:04:50+00:00"
 }

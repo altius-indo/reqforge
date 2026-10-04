@@ -19,7 +19,7 @@
       "id": "E1",
       "name": "query tests",
       "kind": "unit",
-      "command": "cargo test --manifest-path server/Cargo.toml --test integration page_sort facets_and_tree",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- page_sort facets_and_tree",
       "covers": [
         "REQ-0016#AC1",
         "REQ-0017#AC1"
@@ -51,7 +51,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:02:15+00:00"
+  "updated": "2026-10-04T01:04:50+00:00"
 }

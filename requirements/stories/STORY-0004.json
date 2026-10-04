@@ -17,7 +17,7 @@
       "id": "E1",
       "name": "evals and cicd tests",
       "kind": "integration",
-      "command": "cargo test --manifest-path server/Cargo.toml --test integration eval_runner cicd_generation",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
       "covers": [
         "REQ-0011#AC1",
         "REQ-0012#AC1",
@@ -38,14 +38,14 @@
       "id": "E3",
       "name": "verification pipeline jobs",
       "kind": "integration",
-      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace cicd_includes",
+      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
       "covers": []
     },
     {
       "id": "E4",
       "name": "repo CI workflow contract",
       "kind": "unit",
-      "command": "cargo test --manifest-path server/Cargo.toml --test plugin ci_workflow",
+      "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
       "covers": [
         "REQ-0043#AC2"
       ]
@@ -53,7 +53,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:02:15+00:00"
+  "updated": "2026-10-04T01:04:50+00:00"
 }

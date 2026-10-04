@@ -39,7 +39,7 @@
       "id": "E2",
       "name": "scale test",
       "kind": "performance",
-      "command": "cargo test --manifest-path server/Cargo.toml --release --test integration thousands_of_requirements",
+      "command": "cargo test --manifest-path server/Cargo.toml --release --test integration -- thousands_of_requirements",
       "covers": [
         "REQ-0039#AC1"
       ]
@@ -59,7 +59,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:02:15+00:00"
+  "updated": "2026-10-04T01:04:50+00:00"
 }

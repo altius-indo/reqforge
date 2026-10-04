@@ -41,7 +41,7 @@
       "id": "E2",
       "name": "scoped commits",
       "kind": "integration",
-      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace commits_are_scoped",
+      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- commits_are_scoped",
       "covers": [
         "REQ-0035#AC1",
         "REQ-0035#AC2"
@@ -50,7 +50,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:02:15+00:00"
+  "updated": "2026-10-04T01:04:50+00:00"
 }

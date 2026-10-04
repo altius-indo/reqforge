@@ -15,7 +15,7 @@
       "id": "E1",
       "name": "lint and trace tests",
       "kind": "unit",
-      "command": "cargo test --manifest-path server/Cargo.toml --test integration lint trace waivers",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- lint trace waivers",
       "covers": [
         "REQ-0009#AC1",
         "REQ-0009#AC2",
@@ -26,7 +26,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:02:15+00:00"
+  "updated": "2026-10-04T01:04:50+00:00"
 }

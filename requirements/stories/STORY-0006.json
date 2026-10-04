@@ -19,7 +19,7 @@
       "id": "E1",
       "name": "interface tests",
       "kind": "integration",
-      "command": "cargo test --manifest-path server/Cargo.toml --test integration rest_api mcp_protocol cli console security_guard token_protects",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- rest_api mcp_protocol cli console security_guard token_protects",
       "covers": [
         "REQ-0026#AC1",
         "REQ-0026#AC2",
@@ -38,14 +38,14 @@
       "id": "E2",
       "name": "code-trace interfaces",
       "kind": "integration",
-      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace http_routes cli_scan",
+      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- http_routes cli_scan",
       "covers": []
     },
     {
       "id": "E3",
       "name": "security headers and origin checks",
       "kind": "security",
-      "command": "cargo test --manifest-path server/Cargo.toml --test integration security_guard token_protects",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- security_guard token_protects",
       "covers": [
         "REQ-0040#AC1",
         "REQ-0040#AC2"
@@ -54,7 +54,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:02:15+00:00"
+  "updated": "2026-10-04T01:04:50+00:00"
 }
