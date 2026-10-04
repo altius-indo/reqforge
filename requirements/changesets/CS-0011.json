@@ -1,0 +1,210 @@
+{
+  "id": "CS-0011",
+  "title": "Cover the start endpoint with server tests",
+  "summary": "STORY-0012 gains an integration eval running the task_start tests that verify REQ-0050 AC2-AC5 at the API level.",
+  "rationale": "",
+  "status": "pending",
+  "created": "2026-10-04T04:55:24+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "STORY-0012",
+      "patch": {
+        "evals": [
+          {
+            "id": "E1",
+            "name": "UI e2e: start task",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-start.xml --suite task-start",
+            "covers": [
+              "REQ-0050#AC1",
+              "REQ-0050#AC2",
+              "REQ-0050#AC3",
+              "REQ-0050#AC4",
+              "REQ-0050#AC5"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "start endpoint (server)",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test integration -- task_start",
+            "covers": [
+              "REQ-0050#AC2",
+              "REQ-0050#AC3",
+              "REQ-0050#AC4",
+              "REQ-0050#AC5"
+            ]
+          }
+        ]
+      },
+      "reason": "server tests exist for the start route"
+    }
+  ],
+  "impact_notes": {},
+  "base_versions": {
+    "STORY-0012": 1
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0012",
+        "title": "Start a task in one click",
+        "reason": "server tests exist for the start route",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "UI e2e: start task",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-start.xml --suite task-start",
+                "covers": [
+                  "REQ-0050#AC1",
+                  "REQ-0050#AC2",
+                  "REQ-0050#AC3",
+                  "REQ-0050#AC4",
+                  "REQ-0050#AC5"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "UI e2e: start task",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-start.xml --suite task-start",
+                "covers": [
+                  "REQ-0050#AC1",
+                  "REQ-0050#AC2",
+                  "REQ-0050#AC3",
+                  "REQ-0050#AC4",
+                  "REQ-0050#AC5"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "start endpoint (server)",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- task_start",
+                "covers": [
+                  "REQ-0050#AC2",
+                  "REQ-0050#AC3",
+                  "REQ-0050#AC4",
+                  "REQ-0050#AC5"
+                ]
+              }
+            ]
+          ]
+        },
+        "base_version": 1
+      }
+    ],
+    "refmap": {},
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 53,
+        "active": 53,
+        "epics": 10,
+        "stories": 14,
+        "tasks": 32,
+        "evals": 33,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 53,
+        "active": 53,
+        "epics": 10,
+        "stories": 14,
+        "tasks": 32,
+        "evals": 34,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0012",
+          "title": "Start a task in one click",
+          "status": "todo",
+          "component": "web",
+          "via": []
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0026",
+          "title": "Start endpoint with story/epic cascade, dependency block and Start button",
+          "kind": "code",
+          "status": "in-progress",
+          "story": "STORY-0012"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0012",
+          "id": "E1",
+          "name": "UI e2e: start task",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-start.xml --suite task-start",
+          "covers": [
+            "REQ-0050#AC1",
+            "REQ-0050#AC2",
+            "REQ-0050#AC3",
+            "REQ-0050#AC4",
+            "REQ-0050#AC5"
+          ]
+        },
+        {
+          "story": "STORY-0012",
+          "id": "E2",
+          "name": "start endpoint (server)",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- task_start",
+          "covers": [
+            "REQ-0050#AC2",
+            "REQ-0050#AC3",
+            "REQ-0050#AC4",
+            "REQ-0050#AC5"
+          ]
+        }
+      ],
+      "components": [
+        "web"
+      ],
+      "in_progress_work": [
+        "TASK-0026"
+      ]
+    }
+  }
+}
