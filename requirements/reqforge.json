@@ -7,7 +7,17 @@
     "min_criteria_coverage": 0.8,
     "require_evals_for_code": true
   },
-  "coverage_waivers": {},
+  "coverage_waivers": {
+    "constraint/regulatory": "Developer tool; processes no regulated personal or payment data.",
+    "constraint/business": "Open-source internal tool; no contractual or budget constraints recorded.",
+    "constraint/environment": "Runs wherever Rust, git and a browser run; no special operating environment.",
+    "interface/hardware": "No device or hardware I/O.",
+    "data/quality": "Data quality rules are the schema validation and lint (REQ-0004, REQ-0009).",
+    "data/migration": "No legacy data to migrate; on-disk format unchanged since 0.1.",
+    "quality/functional-suitability": "Covered by the acceptance criteria of the functional requirements.",
+    "quality/compatibility": "Single implementation; format compatibility covered by REQ-0037.",
+    "quality/safety": "No physical or safety hazards."
+  },
   "components": {},
   "cicd": {
     "requirements_repo": "",
