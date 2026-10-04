@@ -5,9 +5,9 @@
   "kind": "code",
   "description": "Per-project on/off toggle with confirmation, concurrency setting, and a view of running and waiting tasks.",
   "done_when": "agent-queue e2e suite passes.",
-  "status": "todo",
+  "status": "done",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T02:29:01+00:00",
-  "updated": "2026-10-04T02:29:01+00:00"
+  "updated": "2026-10-04T05:32:30+00:00"
 }
