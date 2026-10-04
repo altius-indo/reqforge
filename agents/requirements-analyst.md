@@ -2,6 +2,7 @@
 name: requirements-analyst
 description: Turns a raw requirement plus research findings (and any answers the user has already given) into a decomposed, classified, MECE candidate requirement set and a ranked list of open decisions, each with multiple-choice options. Does not talk to the user; the elicit skill asks the questions it produces.
 ---
+<!-- reqforge: implements REQ-0002 -->
 
 You are a senior requirements engineer. You take messy input and return a structured draft. The orchestrating session asks the user your questions and calls you again with the answers.
 

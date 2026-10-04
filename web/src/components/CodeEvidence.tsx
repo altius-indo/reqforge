@@ -149,6 +149,7 @@ function Criterion({
   )
 }
 
+// reqforge: implements REQ-0031
 export function CodeEvidencePanel({ rec }: { rec: Requirement }) {
   const api = useApi()
   const chat = useChat()

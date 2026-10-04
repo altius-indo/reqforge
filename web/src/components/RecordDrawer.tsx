@@ -486,6 +486,8 @@ function DrawerBody() {
   )
 }
 
+// reqforge: implements REQ-0031
+// reqforge: implements REQ-0045
 export function RecordDrawer() {
   const { drawer, closeDrawer } = useApp()
   return (

@@ -376,6 +376,7 @@ pub fn main() -> i32 {
     }
 }
 
+// reqforge: implements REQ-0028
 pub fn run(cli: Cli) -> Res<i32> {
     match cli.cmd {
         Cmd::Mcp => {

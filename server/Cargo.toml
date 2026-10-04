@@ -1,6 +1,6 @@
 [package]
 name = "reqforge"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Requirements -> epics/stories/tasks -> evals -> CI/CD, stored in git/GitHub: CLI, console, REST API + embedded web UI, MCP server."
 license = "MIT"

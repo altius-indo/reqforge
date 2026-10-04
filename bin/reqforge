@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# reqforge: implements REQ-0036
 # Plugin entry point: runs the Rust reqforge binary, building it on first use (or when sources
 # are newer than the binary). Build output goes to stderr so stdout stays clean for MCP.
 set -euo pipefail

@@ -4,6 +4,7 @@ use serde_json::{json, Value};
 
 use crate::model::{field, is_system, schema, FType, Kind, Rec};
 
+// reqforge: implements REQ-0008
 pub fn export(records: &[std::sync::Arc<Rec>], kind: Kind) -> String {
     let mut cols: Vec<&str> = vec!["id"];
     cols.extend(schema(kind).iter().map(|f| f.name));
@@ -30,6 +31,7 @@ pub fn export(records: &[std::sync::Arc<Rec>], kind: Kind) -> String {
     String::from_utf8(w.into_inner().unwrap_or_default()).unwrap_or_default()
 }
 
+// reqforge: implements REQ-0008
 pub fn parse(text: &str, kind: Kind) -> Result<Vec<Rec>, String> {
     let mut rdr = csv::ReaderBuilder::new().flexible(true).from_reader(text.as_bytes());
     let headers = rdr.headers().map_err(|e| e.to_string())?.clone();

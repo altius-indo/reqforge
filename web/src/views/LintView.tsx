@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 
 const LIMIT = 100
 
+// reqforge: implements REQ-0030
 export function LintView() {
   const { view, setLint } = useApp()
   const chat = useChat()

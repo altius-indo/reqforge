@@ -3,6 +3,7 @@ name: elicit
 description: Turn a simple requirement into a researched, MECE, classified requirement set — parallel standards research, multiple-choice clarifying questions to the user, adversarial MECE review — and store it in the GitHub-backed reqforge repository. Use when the user states a new need, feature, product idea or raw requirement.
 argument-hint: "<the requirement in plain words>"
 ---
+<!-- reqforge: implements REQ-0001 -->
 
 # /reqforge:elicit: research-backed requirement elicitation
 

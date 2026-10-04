@@ -307,6 +307,7 @@ function Th({ col, children, className }: { col?: string; children: ReactNode; c
   )
 }
 
+// reqforge: implements REQ-0030
 export function ListView({ kind }: { kind: Kind }) {
   const app = useApp()
   const { view, sel, selAll, selectPage, toggleSel, setQuery, openDrawer, refreshAll } = app

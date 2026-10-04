@@ -1,12 +1,17 @@
 //! Code traceability: trace tags in source and tests, scanned into a per-component index.
 //!
+//! reqforge:off  (the grammar below is documentation, not tags)
 //! Tag grammar (language-neutral, lives in the code so it moves with refactors and is reviewed in PRs):
 //!   `reqforge: implements REQ-0042`            on implementation entry points
 //!   `reqforge: verifies REQ-0042#AC1, REQ-0043` anywhere (explicit)
 //!   In test files, any requirement id is a "verifies" tag, so framework-native markers work as-is:
 //!     pytest  @pytest.mark.req("REQ-0042#AC1")     Jest/Vitest  test("[REQ-0042#AC1] declined card", …)
 //!     JUnit   @Tag("REQ-0042")                     Go/Rust      // REQ-0042#AC1
+//! reqforge:on
 //! A tag without `#AC…` applies to every acceptance criterion of the requirement.
+//! Suppression: lines between `reqforge:off` and `reqforge:on` are skipped, and a file whose first
+//! 10 lines contain `reqforge:ignore-file` is skipped entirely (fixtures, docs, examples that
+//! mention ids as data). A component with `tag_mode: explicit` only honours explicit comments.
 //!
 //! `scan` walks a component's files (respecting .gitignore), attaches each tag to the nearest
 //! symbol (function/test/class; heuristic, language-agnostic), hashes every tagged file, and writes
@@ -57,7 +62,9 @@ static SYMBOLS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
     .collect()
 });
 const KEYWORDS: &[&str] = &["if", "for", "while", "switch", "return", "catch", "new", "else", "match", "await"];
-const EXCLUDE_DIRS: &[&str] = &["node_modules", "target", "dist", "build", ".git", "vendor", ".venv", "venv", "__pycache__", ".next", "coverage"];
+const EXCLUDE_DIRS: &[&str] = &[
+    "node_modules", "target", "dist", "build", ".git", "vendor", ".venv", "venv", "__pycache__", ".next", "coverage", ".reqforge",
+];
 const MAX_FILE: u64 = 2 * 1024 * 1024;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -136,13 +143,34 @@ fn attach_symbol(lines: &[&str], idx: usize) -> Option<String> {
     (idx.saturating_sub(80)..idx).rev().find_map(|i| symbol_of(lines[i]))
 }
 
-/// Extract the tags in one file's text.
+/// Extract the tags in one file's text (auto mode).
 pub fn tags_in(rel: &str, text: &str, component: &str) -> Vec<Tag> {
-    let test_file = is_test_file(rel);
+    tags_in_mode(rel, text, component, false)
+}
+
+static OFF: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"reqforge:off\b").unwrap());
+static ON: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"reqforge:on\b").unwrap());
+
+// reqforge: implements REQ-0021
+/// Extract the tags in one file's text; `explicit_only` ignores bare ids in test files.
+pub fn tags_in_mode(rel: &str, text: &str, component: &str, explicit_only: bool) -> Vec<Tag> {
+    let test_file = is_test_file(rel) && !explicit_only;
     let lines: Vec<&str> = text.lines().collect();
+    if lines.iter().take(10).any(|l| l.contains("reqforge:ignore-file")) {
+        return vec![];
+    }
     let mut out = vec![];
+    let mut off = false;
     for (i, line) in lines.iter().enumerate() {
-        if !line.contains("REQ-") {
+        if OFF.is_match(line) {
+            off = true;
+            continue;
+        }
+        if ON.is_match(line) {
+            off = false;
+            continue;
+        }
+        if off || !line.contains("REQ-") {
             continue;
         }
         let mut seen: Vec<(String, Option<String>)> = vec![];
@@ -188,9 +216,13 @@ pub fn scan_dir(root: &Path, component: &str, globs: &[String]) -> Res<Index> {
     scan_dir_excluding(root, component, globs, None)
 }
 
+pub fn scan_dir_excluding(root: &Path, component: &str, globs: &[String], exclude: Option<&Path>) -> Res<Index> {
+    scan_dir_mode(root, component, globs, exclude, false)
+}
+
 /// Like `scan_dir`, skipping everything under `exclude` (the requirements repo when it sits
 /// inside the component tree: its JSON and index files mention requirement ids by design).
-pub fn scan_dir_excluding(root: &Path, component: &str, globs: &[String], exclude: Option<&Path>) -> Res<Index> {
+pub fn scan_dir_mode(root: &Path, component: &str, globs: &[String], exclude: Option<&Path>, explicit_only: bool) -> Res<Index> {
     if !root.is_dir() {
         return Err(StoreError::bad(format!("component {component}: {} is not a directory", root.display())));
     }
@@ -208,7 +240,7 @@ pub fn scan_dir_excluding(root: &Path, component: &str, globs: &[String], exclud
         ..Default::default()
     };
     let walker = ignore::WalkBuilder::new(root)
-        .hidden(true)
+        .hidden(false) // dot-directories such as .github are real sources; noise dirs are excluded below
         .git_ignore(true)
         .require_git(false)
         .filter_entry(|e| !EXCLUDE_DIRS.contains(&e.file_name().to_string_lossy().as_ref()))
@@ -232,7 +264,7 @@ pub fn scan_dir_excluding(root: &Path, component: &str, globs: &[String], exclud
         let Ok(bytes) = fs::read(path) else { continue };
         let Ok(text) = std::str::from_utf8(&bytes) else { continue };
         idx.files_scanned += 1;
-        let tags = tags_in(&rel, text, component);
+        let tags = tags_in_mode(&rel, text, component, explicit_only);
         if !tags.is_empty() {
             idx.files.insert(rel.clone(), sha256(&bytes));
             idx.tags.extend(tags);
@@ -278,6 +310,7 @@ pub fn load_all(root: &Path) -> Vec<Index> {
     out
 }
 
+// reqforge: implements REQ-0021
 /// Scan components and store their indexes. `root_override` scans one component at a given
 /// checkout (CI: `--root .`); it needs `only` to name the component unless exactly one exists.
 pub fn scan(store: &Store, only: &[String], root_override: Option<&Path>, write: bool) -> Res<Value> {
@@ -307,7 +340,7 @@ pub fn scan(store: &Store, only: &[String], root_override: Option<&Path>, write:
             }
         };
         let globs: Vec<String> = strs(c, "globs").into_iter().map(String::from).collect();
-        let idx = scan_dir_excluding(&fs::canonicalize(&root).unwrap_or(root), &key, &globs, Some(&store.root))?;
+        let idx = scan_dir_mode(&fs::canonicalize(&root).unwrap_or(root), &key, &globs, Some(&store.root), s(c, "tag_mode") == "explicit")?;
         let implements = idx.tags.iter().filter(|t| t.kind == "implements").count();
         results.push(json!({"component": key, "root": idx.root, "commit": idx.commit, "files_scanned": idx.files_scanned,
                             "tagged_files": idx.files.len(), "tags": idx.tags.len(), "implements": implements,

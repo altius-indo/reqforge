@@ -320,6 +320,8 @@ impl Store {
         format!("{}-{:04}", kind.prefix(), max + 1)
     }
 
+    // reqforge: implements REQ-0037
+    // reqforge: implements REQ-0042
     pub fn write_unlocked(&self, kind: Kind, rec: &Rec) -> Res<()> {
         let mut ordered = Map::new();
         if let Some(id) = rec.get("id") {
@@ -349,6 +351,7 @@ impl Store {
         }
     }
 
+    // reqforge: implements REQ-0004
     fn check(&self, kind: Kind, rec: &Rec) -> Res<()> {
         let exists = |k: Kind, id: &str| self.exists(k, id);
         let mut errors = validate(kind, rec, Some(&exists));
@@ -368,6 +371,7 @@ impl Store {
     }
 
     // ------------------------------------------------------------ reads
+    // reqforge: implements REQ-0039
     /// Refresh the per-file cache: only files whose mtime/size changed are re-read, so reads
     /// stay cheap with thousands of records and still see external edits (git pull).
     pub fn entries(&self, kind: Kind) -> Vec<Arc<Entry>> {
@@ -460,6 +464,7 @@ impl Store {
             .ok_or_else(|| StoreError::new(format!("{id} not found"), 404))
     }
 
+    // reqforge: implements REQ-0006
     /// Free-text search. Tokens like field:value (or field:a|b) filter exactly;
     /// other tokens must each appear (case-insensitive) somewhere in the record.
     pub fn search(&self, kind: Kind, q: &str, where_: &Map<String, Value>) -> Vec<Arc<Rec>> {
@@ -475,6 +480,7 @@ impl Store {
         Ok(rec)
     }
 
+    // reqforge: implements REQ-0003
     pub fn create_unlocked(&self, kind: Kind, data: &Rec) -> Res<Rec> {
         let mut body = defaults(kind);
         for (k, v) in data {
@@ -507,6 +513,7 @@ impl Store {
         Ok(rec)
     }
 
+    // reqforge: implements REQ-0005
     pub fn apply_unlocked(
         &self,
         kind: Kind,
@@ -552,6 +559,7 @@ impl Store {
         Ok(rec)
     }
 
+    // reqforge: implements REQ-0007
     /// Mass update. Validates every record first; writes all or nothing.
     #[allow(clippy::too_many_arguments)]
     pub fn bulk_update(
@@ -748,22 +756,26 @@ pub mod git {
         }
     }
 
+    // reqforge: implements REQ-0035
+    /// Commit everything under `root`, and only that: a requirements folder can live inside a
+    /// code repository without sweeping up unrelated work in progress.
     pub fn commit_all(root: &Path, message: &str) -> bool {
         if !is_repo(root) {
             return false;
         }
-        run(root, &["add", "-A"]);
-        let clean = run(root, &["diff", "--cached", "--quiet"]).map(|o| o.status.success()).unwrap_or(true);
+        run(root, &["add", "-A", "--", "."]);
+        let clean = run(root, &["diff", "--cached", "--quiet", "--", "."]).map(|o| o.status.success()).unwrap_or(true);
         if clean {
             return false;
         }
-        run(root, &["commit", "-q", "-m", message]).map(|o| o.status.success()).unwrap_or(false)
+        run(root, &["commit", "-q", "-m", message, "--", "."]).map(|o| o.status.success()).unwrap_or(false)
     }
 
     pub fn has_remote(root: &Path) -> bool {
         run(root, &["remote"]).map(|o| !String::from_utf8_lossy(&o.stdout).trim().is_empty()).unwrap_or(false)
     }
 
+    // reqforge: implements REQ-0035
     pub fn sync(root: &Path, message: &str) -> Value {
         if !is_repo(root) {
             return json!({"ok": false, "error": "not a git repository"});
@@ -775,7 +787,7 @@ pub mod git {
         let branch = run(root, &["rev-parse", "--abbrev-ref", "HEAD"])
             .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
             .unwrap_or_else(|| "main".into());
-        if let Some(pull) = run(root, &["pull", "--rebase", "origin", &branch]) {
+        if let Some(pull) = run(root, &["pull", "--rebase", "--autostash", "origin", &branch]) {
             let err = String::from_utf8_lossy(&pull.stderr).to_string();
             if !pull.status.success() && !err.contains("couldn't find remote ref") {
                 run(root, &["rebase", "--abort"]);

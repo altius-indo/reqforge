@@ -37,6 +37,7 @@ pub fn report(store: &Store) -> Arc<Value> {
     store.memo("verification", || compute(store, &load_all(&store.root), &load_latest(&store.root)))
 }
 
+// reqforge: implements REQ-0022
 pub fn compute(src: &dyn Source, indexes: &[Index], latest: &BTreeMap<String, Evidence>) -> Value {
     let cfg = src.config();
     let gates = cfg.get("gates").cloned().unwrap_or(json!({}));
@@ -91,7 +92,23 @@ pub fn compute(src: &dyn Source, indexes: &[Index], latest: &BTreeMap<String, Ev
                 .map(|t| tag_ref(t))
                 .collect();
             let evals = eval_cov.get(target).cloned().unwrap_or_default();
-            let evs: Vec<&&Evidence> = ev_by_target.get(target.as_str()).map(|v| v.iter().collect()).unwrap_or_default();
+            // only evidence from sources that still claim this criterion counts: an eval whose
+            // covers no longer list it, or a test whose tag was removed, stops vouching for it
+            let claimed = |e: &Evidence| -> bool {
+                if let Some(ev) = e.source.strip_prefix("eval:") {
+                    return evals.iter().any(|x| x == ev);
+                }
+                match e.source.strip_prefix("test:").and_then(|x| x.split_once("::")).map(|(cf, _)| cf) {
+                    Some(cf) if cf.contains(':') => {
+                        let (comp, file) = cf.split_once(':').unwrap();
+                        // id in the test name (no tag needed) or a tag in that file
+                        e.source.contains(rid)
+                            || ver_tags.get(rid).into_iter().flatten().any(|t| (comp.is_empty() || t.component == comp) && t.file == file && (ac.is_none() || t.ac.is_none() || t.ac == *ac))
+                    }
+                    _ => true,
+                }
+            };
+            let evs: Vec<&&Evidence> = ev_by_target.get(target.as_str()).map(|v| v.iter().filter(|e| claimed(e)).collect()).unwrap_or_default();
             let changed: Vec<String> = evs
                 .iter()
                 .filter(|e| e.status == "passed")
@@ -99,10 +116,14 @@ pub fn compute(src: &dyn Source, indexes: &[Index], latest: &BTreeMap<String, Ev
                 .collect::<BTreeSet<_>>()
                 .into_iter()
                 .collect();
+            // verified as long as at least one passing result vouches for the current files;
+            // suspect only when every passing result predates a change
+            let fresh_pass = evs.iter().any(|e| e.status == "passed" && e.hashes.iter().all(|(f, h)| current.get(f) == Some(h)));
+            let changed: Vec<String> = if fresh_pass { vec![] } else { changed };
             let status = if evs.iter().any(|e| e.status == "failed") {
                 "failing"
             } else if evs.iter().any(|e| e.status == "passed") {
-                if changed.is_empty() { "verified" } else { "suspect" }
+                if fresh_pass { "verified" } else { "suspect" }
             } else if !tests.is_empty() || !evals.is_empty() {
                 "pending"
             } else {

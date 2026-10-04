@@ -369,6 +369,7 @@ function ImpactPanel({ components }: { components: string[] }) {
 }
 
 // ------------------------------------------------------------------ dashboard
+// reqforge: implements REQ-0034
 export function VerificationView() {
   const { goto, setTab, refreshAll } = useApp()
   const api = useApi()

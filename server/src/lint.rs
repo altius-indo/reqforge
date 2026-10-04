@@ -58,6 +58,7 @@ fn pct(x: f64) -> String {
     format!("{:.0}%", x * 100.0)
 }
 
+// reqforge: implements REQ-0009
 pub fn lint(src: &dyn Source) -> Value {
     let reqs: Vec<std::sync::Arc<Rec>> =
         src.records(Kind::Requirements).into_iter().filter(|r| s(r, "status") != "deprecated").collect();

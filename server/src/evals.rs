@@ -83,6 +83,7 @@ fn run_one(command: &str, workdir: &Path, story: &str, eval_id: &str, timeout: D
     (ok, tail)
 }
 
+// reqforge: implements REQ-0011
 pub fn run(src: &dyn Source, stage: &str, workdir: &Path, component: Option<&str>, report_dir: Option<&Path>) -> Result<Value, String> {
     if !STAGES.contains(&stage) {
         return Err(format!("unknown stage '{stage}' (expected one of {})", crate::model::pylist(STAGES)));

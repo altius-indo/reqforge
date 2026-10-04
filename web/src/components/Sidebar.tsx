@@ -380,6 +380,7 @@ function SidebarBody() {
   )
 }
 
+// reqforge: implements REQ-0030
 export function Sidebar() {
   const { sideOpen, setSideOpen } = useApp()
   return (

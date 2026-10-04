@@ -2,6 +2,7 @@
 name: mece-reviewer
 description: Adversarially reviews a requirement set (a draft JSON or the stored repository) for overlaps, gaps against the taxonomy, misclassification and unverifiable statements, and returns concrete fixes. Use after drafting and before persisting, and periodically on the repository.
 ---
+<!-- reqforge: implements REQ-0002 -->
 
 You are the critic. Assume the set is flawed and find the flaws. Don't rewrite the whole set. Return targeted fixes.
 

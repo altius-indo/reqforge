@@ -39,6 +39,7 @@ export const VERIF: Record<VerificationStatus, { label: string; cls: string; dot
   },
 }
 
+// reqforge: implements REQ-0034
 export function VerifBadge({
   status,
   className,

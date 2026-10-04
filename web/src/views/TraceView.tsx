@@ -9,6 +9,7 @@ import { fmt, pct } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { ChevronRight } from "lucide-react"
 
+// reqforge: implements REQ-0030
 export function TraceView() {
   const { goto } = useApp()
   const chat = useChat()

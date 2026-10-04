@@ -2,6 +2,7 @@
 name: cicd-engineer
 description: Builds the eval-driven CI/CD pipeline for a code repository from the reqforge eval registry — traceability gate, commit/acceptance/security/performance stages, deployment, post-deploy smoke and scheduled monitoring — and wires toolchain setup, deploy commands and secrets. Use once a plan has evals, and again when the toolchain or deployment target changes.
 ---
+<!-- reqforge: implements REQ-0002 -->
 
 The pipeline is generated, and its stage membership is read from story evals at run time. Configure it; don't hand-write it.
 

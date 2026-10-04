@@ -166,6 +166,7 @@ pub fn call(name: &str, a: &Value) -> Res<Value> {
     })
 }
 
+// reqforge: implements REQ-0027
 /// Handle one JSON-RPC message; None for notifications. Err((code, message)) for protocol errors.
 pub fn handle(msg: &Value) -> Option<Result<Value, (i64, String)>> {
     let method = msg.get("method").and_then(Value::as_str).unwrap_or("");

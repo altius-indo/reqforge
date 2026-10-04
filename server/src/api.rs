@@ -108,6 +108,7 @@ fn err_resp(e: &StoreError) -> Response {
 
 // ---------------------------------------------------------------- guard
 
+// reqforge: implements REQ-0040
 /// CSRF / DNS-rebinding guard for a localhost server that can start Claude runs and write
 /// records: Host must be a loopback name (unless a token is set), a browser Origin must match
 /// Host, and writes must use a non-"simple" content type so cross-site pages need a CORS
@@ -138,6 +139,7 @@ fn same_origin(headers: &HeaderMap, method: &Method, body_len: usize, token: &st
     true
 }
 
+// reqforge: implements REQ-0040
 fn authorized(headers: &HeaderMap, token: &str) -> bool {
     if token.is_empty() {
         return true;
@@ -155,6 +157,7 @@ fn authorized(headers: &HeaderMap, token: &str) -> bool {
 #[folder = "../web/dist"]
 struct Assets;
 
+// reqforge: implements REQ-0046
 fn static_file(path: &str) -> Response {
     let path = path.trim_start_matches('/');
     let path = if path.is_empty() { "index.html" } else { path };
@@ -276,6 +279,7 @@ fn num(qs: &HashMap<String, String>, k: &str, d: usize) -> usize {
     qs.get(k).and_then(|v| v.parse().ok()).unwrap_or(d)
 }
 
+// reqforge: implements REQ-0020
 fn projects_route(st: &AppState, method: &Method, p: &[String], qs: &HashMap<String, String>, b: &Value) -> Res<(u16, Value)> {
     let ws = &st.ws;
     let bs = |k: &str| b.get(k).and_then(Value::as_str).map(String::from).or_else(|| qs.get(k).cloned());
@@ -315,6 +319,7 @@ fn projects_route(st: &AppState, method: &Method, p: &[String], qs: &HashMap<Str
     }
 }
 
+// reqforge: implements REQ-0026
 #[allow(clippy::too_many_arguments)]
 fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: HashMap<String, String>, b: Value, csv: Option<String>, if_match: Option<String>) -> Res<Out> {
     let ps: Vec<&str> = p.iter().map(String::as_str).collect();

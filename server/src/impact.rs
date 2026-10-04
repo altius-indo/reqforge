@@ -8,7 +8,7 @@ use std::process::Command;
 use globset::{Glob, GlobSetBuilder};
 use serde_json::{json, Value};
 
-use crate::codetrace::{component_root, load_index, scan_dir_excluding, Tag};
+use crate::codetrace::{component_root, load_index, scan_dir_mode, Tag};
 use crate::evidence::load_latest;
 use crate::model::{objs, s, strs, Kind};
 use crate::store::{Res, Source, Store, StoreError};
@@ -28,6 +28,7 @@ pub fn changed_files(root: &Path, base: &str) -> Res<Vec<String>> {
     Ok(files.into_iter().filter(|f| !f.is_empty()).collect())
 }
 
+// reqforge: implements REQ-0023
 /// Analyse one component checkout. `base` defaults to origin/main, falling back to main.
 pub fn impact(store: &Store, component: Option<&str>, root_override: Option<&Path>, base: Option<&str>) -> Res<Value> {
     let comps = store.records(Kind::Components);
@@ -56,7 +57,7 @@ pub fn impact(store: &Store, component: Option<&str>, root_override: Option<&Pat
     let changed: Vec<String> = changed_files(&root, &base)?.into_iter().filter(|f| set.is_match(f)).collect();
 
     // tags as they are now (fresh scan) plus tags of files that no longer exist (stored index)
-    let now_idx = scan_dir_excluding(&root, &key, &globs, Some(&store.root))?;
+    let now_idx = scan_dir_mode(&root, &key, &globs, Some(&store.root), s(&comp, "tag_mode") == "explicit")?;
     let old_idx = load_index(&store.root, &key).unwrap_or_default();
     let in_changed = |t: &&Tag| changed.contains(&t.file);
     let mut touched: Vec<&Tag> = now_idx.tags.iter().filter(in_changed).collect();

@@ -1,7 +1,8 @@
 //! Evidence: CI results tied to commits, mapped to requirement acceptance criteria.
 //!
 //! Inputs: JUnit XML (any framework that emits it: pytest, Jest/Vitest, JUnit, go-junit-report,
-//! cargo-nextest, …) and reqforge eval reports (`reqforge-reports/evals-<stage>.json`).
+//! cargo-nextest, …), Rust libtest text output (`cargo test 2>&1 | tee test.log`), and reqforge eval
+//! reports (`reqforge-reports/evals-<stage>.json`).
 //! A JUnit test case maps to criteria through (a) requirement ids in its name, or (b) the trace
 //! tags attached to the same test symbol in the same file (from the code index). Each evidence
 //! record stores the hashes of the files it vouches for (the test file and the requirement's
@@ -119,6 +120,28 @@ pub fn parse_junit(xml: &str) -> Result<Vec<TestCase>, String> {
     Ok(out)
 }
 
+static LIBTEST: std::sync::LazyLock<regex::Regex> =
+    std::sync::LazyLock::new(|| regex::Regex::new(r"(?m)^test (\S+) \.\.\. (ok|FAILED|ignored)").unwrap());
+
+// reqforge: implements REQ-0022
+/// Rust libtest text output (`cargo test`): `test name ... ok|FAILED|ignored`.
+pub fn parse_libtest(text: &str) -> Vec<TestCase> {
+    LIBTEST
+        .captures_iter(text)
+        .map(|c| TestCase {
+            name: c[1].rsplit("::").next().unwrap_or(&c[1]).to_string(),
+            classname: String::new(),
+            file: String::new(),
+            status: match &c[2] {
+                "ok" => "passed",
+                "FAILED" => "failed",
+                _ => "skipped",
+            }
+            .into(),
+        })
+        .collect()
+}
+
 fn stem(file: &str) -> &str {
     file.rsplit_once('.').map(|(a, _)| a).unwrap_or(file)
 }
@@ -186,6 +209,8 @@ pub struct IngestOpts<'a> {
     pub run: Option<&'a str>,
 }
 
+// reqforge: implements REQ-0022
+// reqforge: implements REQ-0038
 /// Ingest result files (JUnit XML or reqforge eval report JSON). Writes evidence/latest.json
 /// (newest result per target+source) and appends evidence/history.jsonl.
 pub fn ingest(store: &Store, files: &[(String, String)], o: &IngestOpts) -> Res<Value> {
@@ -197,8 +222,11 @@ pub fn ingest(store: &Store, files: &[(String, String)], o: &IngestOpts) -> Res<
     let mut unmatched: Vec<String> = vec![];
     for (name, content) in files {
         let t = content.trim_start();
-        if t.starts_with('<') {
-            for tc in parse_junit(content).map_err(|e| StoreError::bad(format!("{name}: {e}")))? {
+        let is_xml = t.starts_with('<');
+        let is_libtest = !is_xml && !t.starts_with('{') && LIBTEST.is_match(content);
+        if is_xml || is_libtest {
+            let cases_in = if is_xml { parse_junit(content).map_err(|e| StoreError::bad(format!("{name}: {e}")))? } else { parse_libtest(content) };
+            for tc in cases_in {
                 cases += 1;
                 if tc.status == "skipped" {
                     skipped += 1;
@@ -246,7 +274,7 @@ pub fn ingest(store: &Store, files: &[(String, String)], o: &IngestOpts) -> Res<
                 }
             }
         } else {
-            let rep: Value = serde_json::from_str(content).map_err(|e| StoreError::bad(format!("{name}: not JUnit XML or a reqforge eval report: {e}")))?;
+            let rep: Value = serde_json::from_str(content).map_err(|e| StoreError::bad(format!("{name}: not JUnit XML, cargo test output or a reqforge eval report: {e}")))?;
             let results = rep.get("results").and_then(Value::as_array).ok_or_else(|| StoreError::bad(format!("{name}: no 'results' array (expected a reqforge eval report)")))?;
             for r in results {
                 cases += 1;

@@ -1,3 +1,4 @@
+# reqforge: implements REQ-0043
 name: test
 on: [push, pull_request]
 jobs:
@@ -13,7 +14,13 @@ jobs:
           workspaces: server
       - run: git config --global user.email ci@example.com && git config --global user.name ci
       - run: cargo clippy --manifest-path server/Cargo.toml --all-targets -- -D warnings
-      - run: cargo test --manifest-path server/Cargo.toml
+      - run: cargo test --manifest-path server/Cargo.toml 2>&1 | tee cargo-test.log
+      - name: reqforge self-verification (requirements -> tests -> evidence -> code)
+        run: |
+          cargo build --release --manifest-path server/Cargo.toml
+          bin/reqforge --repo requirements scan
+          bin/reqforge --repo requirements evidence ingest cargo-test.log -c server --commit "$GITHUB_SHA" --run "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          bin/reqforge --repo requirements verify --md --gate >> "$GITHUB_STEP_SUMMARY"
   web:
     runs-on: ubuntu-latest
     defaults:

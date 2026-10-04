@@ -14,6 +14,7 @@ fn round3(x: f64) -> f64 {
     (x * 1000.0).round() / 1000.0
 }
 
+// reqforge: implements REQ-0010
 pub fn evaluate(src: &dyn Source) -> Value {
     let reqs = src.records(Kind::Requirements);
     let epics = src.records(Kind::Epics);

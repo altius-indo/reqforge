@@ -13,6 +13,7 @@ import { fmt } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 /** Header dropdown: current project, every project with its requirement count, and project actions. */
+// reqforge: implements REQ-0033
 export function ProjectSwitcher() {
   const { projects, activeProject, active, single, open, openCreate, showProjects, refresh, list } = useProjects()
   if (!list) return null

@@ -219,6 +219,27 @@ changesets/CS-0001.json    proposed/applied/rejected change batches with their a
 reports/                   traceability reviews
 ```
 
+## reqforge manages itself
+
+This repository is a reqforge project. Its own requirements live in `requirements/` (project **REQFORGE**, registered in the default workspace `~/.reqforge`; `.reqforge-repo` points the CLI at it from the repo root). It contains 47 requirements across the MECE taxonomy, 9 epics with stories, evals and tasks, and three components (`server`, `web`, `plugin`) scanned in explicit tag mode. The code and tests carry trace tags, and evidence comes from the real test runs.
+
+Day to day:
+
+```bash
+bin/reqforge serve                     # UI for REQFORGE (default workspace); chat with Claude about changes
+bin/reqforge list req -q type:quality  # CLI targets REQFORGE from anywhere in the repo
+scripts/self-verify.sh [--fast]        # scan, run tests + evals (+ UI e2e), ingest evidence, print verification
+```
+
+To change behaviour:
+1. Change the requirement, in the UI chat or via the CLI.
+2. Implement it, tagging the code `// reqforge: implements REQ-…` and the tests `// reqforge: verifies REQ-…#AC…`.
+3. Run `scripts/self-verify.sh`.
+
+CI runs the same scan, ingest and verification gate on every push.
+
+Inside reqforge's own sources, mentions of tag syntax used as data are fenced with `reqforge:off` / `reqforge:on`.
+
 ## Develop
 
 ```

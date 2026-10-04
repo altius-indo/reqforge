@@ -298,13 +298,18 @@ static TASKS: [Field; 8] = [
 /// A code component: a module/service/package whose source carries trace tags.
 /// `key` is what stories reference in `component`; `path` is the local checkout (relative to the
 /// requirements repo or absolute); `globs` select the files within it.
-static COMPONENTS: [Field; 9] = [
+pub const TAG_MODES: &[&str] = &["auto", "explicit"];
+
+static COMPONENTS: [Field; 10] = [
     req(f("title", FType::Str)),
     req(f("key", FType::Str)),
     f("path", FType::Str),
     f("repo_url", FType::Str),
     f("globs", FType::List),
     f("language", FType::Str),
+    // auto: requirement ids in test files count as "verifies" tags; explicit: only
+    // `reqforge: implements|verifies` comments count (for code that mentions ids as data)
+    en("tag_mode", TAG_MODES, Some("auto")),
     f("owners", FType::List),
     f("description", FType::Text),
     f("tags", FType::List),
@@ -393,6 +398,7 @@ pub fn is_empty(v: Option<&Value>) -> bool {
     }
 }
 
+// reqforge: implements REQ-0004
 /// Return a list of hard errors. `exists(kind, id)` checks referential integrity.
 pub fn validate(kind: Kind, rec: &Rec, exists: Option<Exists>) -> Vec<String> {
     let mut errors = Vec::new();
@@ -552,6 +558,7 @@ pub fn objs<'a>(rec: &'a Rec, k: &str) -> Vec<&'a Map<String, Value>> {
     rec.get(k).and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_object).collect()).unwrap_or_default()
 }
 
+// reqforge: implements REQ-0024
 /// Component keys are unique within a project.
 pub fn component_key_clash(rec: &Rec, all: &[std::sync::Arc<Rec>]) -> Vec<String> {
     let (id, key) = (s(rec, "id"), s(rec, "key"));

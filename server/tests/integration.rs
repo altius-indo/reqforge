@@ -78,6 +78,8 @@ impl Fx {
 
 // ============================================================================ store
 
+// reqforge: verifies REQ-0003#AC1
+// reqforge: verifies REQ-0037#AC1
 #[test]
 fn create_assigns_ids_and_commits() {
     let f = fx();
@@ -89,6 +91,8 @@ fn create_assigns_ids_and_commits() {
     assert!(text.starts_with("{\n  \"id\": \"REQ-0001\",\n  \"title\""));
 }
 
+// reqforge: verifies REQ-0004#AC1
+// reqforge: verifies REQ-0004#AC2
 #[test]
 fn validation_rejects_bad_category_and_refs() {
     let f = fx();
@@ -97,6 +101,7 @@ fn validation_rejects_bad_category_and_refs() {
     assert!(f.store.create(Kind::Stories, &rec(json!({"title": "x", "epic": "EPIC-0099"})), None).is_err());
 }
 
+// reqforge: verifies REQ-0005#AC1
 #[test]
 fn optimistic_concurrency() {
     let f = fx();
@@ -106,6 +111,8 @@ fn optimistic_concurrency() {
     assert_eq!(e.status, 409);
 }
 
+// reqforge: verifies REQ-0006#AC1
+// reqforge: verifies REQ-0007#AC1
 #[test]
 fn search_and_bulk() {
     let f = fx();
@@ -121,6 +128,7 @@ fn search_and_bulk() {
     assert!(f.store.all(Kind::Requirements).iter().all(|r| r["tags"] == json!(["v1"])));
 }
 
+// reqforge: verifies REQ-0007#AC2
 #[test]
 fn bulk_is_all_or_nothing() {
     let f = fx();
@@ -131,6 +139,7 @@ fn bulk_is_all_or_nothing() {
     assert_eq!(f.store.get(Kind::Requirements, "REQ-0001").unwrap()["category"], json!("authentication"));
 }
 
+// reqforge: verifies REQ-0003#AC2
 #[test]
 fn delete_refuses_when_referenced() {
     let f = fx();
@@ -138,6 +147,7 @@ fn delete_refuses_when_referenced() {
     assert_eq!(f.store.delete(Kind::Epics, &ep, false).unwrap_err().status, 409);
 }
 
+// reqforge: verifies REQ-0008#AC1
 #[test]
 fn csv_roundtrip() {
     let f = fx();
@@ -151,6 +161,7 @@ fn csv_roundtrip() {
 
 // ============================================================================ analysis
 
+// reqforge: verifies REQ-0009#AC1
 #[test]
 fn lint_flags_overlap_vagueness_and_gaps() {
     let f = fx();
@@ -165,6 +176,7 @@ fn lint_flags_overlap_vagueness_and_gaps() {
     assert_eq!(rep["ok"], json!(false));
 }
 
+// reqforge: verifies REQ-0009#AC2
 #[test]
 fn waivers_close_coverage_gaps() {
     let f = fx();
@@ -173,6 +185,7 @@ fn waivers_close_coverage_gaps() {
     assert_eq!(lint::lint(&f.store)["coverage"]["gaps"], json!([]));
 }
 
+// reqforge: verifies REQ-0010#AC1
 #[test]
 fn trace_passes_for_complete_plan() {
     let f = fx();
@@ -182,6 +195,7 @@ fn trace_passes_for_complete_plan() {
     assert_eq!(rep["metrics"]["criteria_coverage"], json!(1.0));
 }
 
+// reqforge: verifies REQ-0010#AC2
 #[test]
 fn trace_fails_without_evals() {
     let f = fx();
@@ -194,6 +208,7 @@ fn trace_fails_without_evals() {
     }
 }
 
+// reqforge: verifies REQ-0011#AC1
 #[test]
 fn eval_runner_maps_failures_to_requirements() {
     let f = fx();
@@ -207,6 +222,8 @@ fn eval_runner_maps_failures_to_requirements() {
     assert!(wd.path().join("reqforge-reports/evals-commit.json").exists());
 }
 
+// reqforge: verifies REQ-0012#AC1
+// reqforge: verifies REQ-0044#AC1
 #[test]
 fn cicd_generation() {
     let f = fx();
@@ -221,6 +238,9 @@ fn cicd_generation() {
         assert!(wf.contains(job), "{job}");
     }
     assert!(wf.contains("repository: acme/reqs"));
+    for stage in ["commit", "acceptance", "security", "performance", "post-deploy", "monitor"] {
+        assert!(wf.contains(&format!("reqforge evals run --stage {stage}")), "{stage} job must read evals at run time");
+    }
     assert!(wf.contains("cargo install --locked --no-default-features --path .reqforge/server reqforge"));
     assert!(code.path().join(".reqforge/server/src/main.rs").exists());
     assert!(!code.path().join(".reqforge/server/target").exists());
@@ -228,6 +248,7 @@ fn cicd_generation() {
 
 // ============================================================================ query
 
+// reqforge: verifies REQ-0016#AC1
 #[test]
 fn page_sort_and_annotations() {
     let f = fx();
@@ -244,6 +265,7 @@ fn page_sort_and_annotations() {
     assert_eq!((first["id"].as_str().unwrap(), first["_stories"].as_u64().unwrap()), (r1.as_str(), 1));
 }
 
+// reqforge: verifies REQ-0017#AC1
 #[test]
 fn facets_and_tree() {
     let f = fx();
@@ -259,6 +281,7 @@ fn facets_and_tree() {
 
 // ============================================================================ changesets
 
+// reqforge: verifies REQ-0013#AC1
 #[test]
 fn simulate_create_with_refs_and_remap() {
     let f = fx();
@@ -278,6 +301,7 @@ fn simulate_create_with_refs_and_remap() {
     assert!(!f.store.exists(Kind::Requirements, "REQ-0003"));
 }
 
+// reqforge: verifies REQ-0013#AC2
 #[test]
 fn delete_without_remap_is_rejected() {
     let f = fx();
@@ -293,6 +317,7 @@ fn delete_without_remap_is_rejected() {
     assert_eq!(ok["valid"], json!(true), "{}", ok["errors"]);
 }
 
+// reqforge: verifies REQ-0013#AC3
 #[test]
 fn mece_delta_flags_new_overlap() {
     let f = fx();
@@ -303,6 +328,8 @@ fn mece_delta_flags_new_overlap() {
     assert!(sim["lint"]["new"].as_array().unwrap().iter().any(|f| f["rule"] == json!("overlap")));
 }
 
+// reqforge: verifies REQ-0014#AC1
+// reqforge: verifies REQ-0014#AC2
 #[test]
 fn propose_apply_and_stale() {
     let f = fx();
@@ -359,6 +386,8 @@ fn raw_http(port: u16, req: &str) -> u16 {
     buf.split_whitespace().nth(1).unwrap_or("0").parse().unwrap_or(0)
 }
 
+// reqforge: verifies REQ-0026#AC1
+// reqforge: verifies REQ-0046#AC1
 #[test]
 fn rest_api() {
     let f = fx();
@@ -383,6 +412,7 @@ fn rest_api() {
     assert_eq!(http(port, "GET", "/api/nope", None).0, 404);
 }
 
+// reqforge: verifies REQ-0040#AC1
 #[test]
 fn security_guard() {
     let f = fx();
@@ -402,6 +432,7 @@ fn security_guard() {
     assert_eq!(raw_http(port, &post("application/json", &format!("Origin: http://127.0.0.1:{port}\r\n"))), 201);
 }
 
+// reqforge: verifies REQ-0040#AC2
 #[test]
 fn token_protects_api_including_chat() {
     let f = fx();
@@ -428,6 +459,7 @@ fn mcp_session(repo: &Path, msgs: &[Value]) -> Vec<Value> {
     String::from_utf8(out.stdout).unwrap().lines().map(|l| serde_json::from_str(l).unwrap()).collect()
 }
 
+// reqforge: verifies REQ-0027#AC1
 #[test]
 fn mcp_protocol() {
     let f = fx();
@@ -456,6 +488,7 @@ fn mcp_protocol() {
     assert_eq!(out[6]["error"]["code"], json!(-32601));
 }
 
+// reqforge: verifies REQ-0028#AC1
 #[test]
 fn cli() {
     let f = fx();
@@ -471,6 +504,7 @@ fn cli() {
     assert!(String::from_utf8_lossy(&run(&["taxonomy"]).stdout).contains("4. quality"));
 }
 
+// reqforge: verifies REQ-0029#AC1
 #[test]
 fn console() {
     let f = fx();
@@ -498,6 +532,8 @@ printf '{"type":"assistant","message":{"content":[{"type":"text","text":"echo:%s
 echo '{"type":"result","subtype":"success","session_id":"sess-1","total_cost_usd":0.01,"num_turns":2,"is_error":false}'
 "#;
 
+// reqforge: verifies REQ-0015#AC1
+// reqforge: verifies REQ-0047#AC1
 #[test]
 fn sse_chat_bridge() {
     let f = fx();
@@ -518,6 +554,7 @@ fn sse_chat_bridge() {
     assert!(events[1]["text"].as_str().unwrap().contains("propose changeset"));
 }
 
+// reqforge: verifies REQ-0041#AC1
 #[test]
 fn chat_tool_policy_excludes_writes() {
     let allowed = reqforge::chat::allowed();
@@ -531,6 +568,7 @@ fn chat_tool_policy_excludes_writes() {
 
 // ============================================================================ scale
 
+// reqforge: verifies REQ-0039#AC1
 #[test]
 fn thousands_of_requirements() {
     let f = fx();
@@ -558,6 +596,18 @@ fn thousands_of_requirements() {
     let warm = t0.elapsed();
     assert_eq!(pg["items"].as_array().unwrap().len(), 100);
     assert_eq!(fc["_tree"].as_array().unwrap().iter().map(|n| n["count"].as_u64().unwrap()).sum::<u64>(), 3000);
-    assert!(warm.as_secs_f64() < 5.0, "page+facets {warm:?} (cold {cold:?}, load {load:?})");
+    assert!(warm.as_secs_f64() < 2.0, "page+facets {warm:?} (cold {cold:?}, load {load:?})");
     assert_eq!(s.records(Kind::Requirements).len(), 3000);
+}
+
+// reqforge: verifies REQ-0042#AC1
+#[test]
+fn crash_before_rename_keeps_previous_version() {
+    let f = fx();
+    f.store.create(Kind::Requirements, &rec(req_login()), None).unwrap();
+    // simulate a crash mid-write: the temp file exists, the rename never happened
+    std::fs::write(f.dir.path().join("requirements/REQ-0001.json.tmp"), "{\"id\": \"REQ-0001\", \"title\": \"half writ").unwrap();
+    let s = Store::open(f.dir.path()).unwrap();
+    assert_eq!(s.get(Kind::Requirements, "REQ-0001").unwrap()["version"], json!(1));
+    assert_eq!(s.all(Kind::Requirements).len(), 1);
 }

@@ -18,6 +18,7 @@ fn req(title: &str) -> serde_json::Map<String, Value> {
     .clone()
 }
 
+// reqforge: verifies REQ-0018#AC1
 #[test]
 fn create_list_rename_default() {
     let d = TempDir::new().unwrap();
@@ -44,6 +45,7 @@ fn create_list_rename_default() {
     assert_eq!(ws2.entry("PAY").unwrap().name, "Payments platform");
 }
 
+// reqforge: verifies REQ-0019#AC1
 #[test]
 fn delete_removes_everything_and_needs_confirmation() {
     let d = TempDir::new().unwrap();
@@ -73,6 +75,7 @@ fn delete_removes_everything_and_needs_confirmation() {
     assert_eq!(ws.store("SHOP").unwrap().all(Kind::Requirements).len(), 0);
 }
 
+// reqforge: verifies REQ-0019#AC2
 #[test]
 fn delete_refuses_unsafe_paths() {
     let d = TempDir::new().unwrap();
@@ -96,6 +99,7 @@ fn delete_refuses_unsafe_paths() {
     assert!(inner.join(WORKSPACE_FILE).exists());
 }
 
+// reqforge: verifies REQ-0018#AC2
 #[test]
 fn import_existing_repository() {
     let d = TempDir::new().unwrap();
@@ -122,6 +126,7 @@ fn http(port: u16, method: &str, path: &str, body: Option<Value>) -> (u16, Value
     }
 }
 
+// reqforge: verifies REQ-0020#AC1
 #[test]
 fn http_projects_are_isolated_and_deletable() {
     let d = TempDir::new().unwrap();
@@ -155,6 +160,7 @@ fn http_projects_are_isolated_and_deletable() {
     assert_eq!(http(port, "GET", "/api/projects", None).1["default"], json!("SHOP"));
 }
 
+// reqforge: verifies REQ-0020#AC2
 #[test]
 fn single_project_mode_cannot_manage_projects() {
     let d = TempDir::new().unwrap();
@@ -171,6 +177,7 @@ fn single_project_mode_cannot_manage_projects() {
 
 // ------------------------------------------------------------------ CLI + MCP
 
+// reqforge: verifies REQ-0028#AC2
 #[test]
 fn cli_projects() {
     let d = TempDir::new().unwrap();
@@ -193,6 +200,7 @@ fn cli_projects() {
     assert_eq!(run(&["-P", "PAY", "list", "req"]).status.code(), Some(2));
 }
 
+// reqforge: verifies REQ-0027#AC2
 #[test]
 fn mcp_projects() {
     let d = TempDir::new().unwrap();

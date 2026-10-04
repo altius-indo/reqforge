@@ -33,6 +33,7 @@ function FieldHint({ error, children, testId }: { error?: boolean; children: Rea
 
 // ------------------------------------------------------------------ create / import
 
+// reqforge: implements REQ-0033
 export function CreateProjectDialog() {
   const { createMode, closeCreate, openCreate, projects, refresh, open } = useProjects()
   const [key, setKey] = useState("")
@@ -360,6 +361,7 @@ function RenameBody({ project, onClose }: { project: Project; onClose: () => voi
 
 // ------------------------------------------------------------------ delete
 
+// reqforge: implements REQ-0033
 export function DeleteProjectDialog({
   project,
   onClose,

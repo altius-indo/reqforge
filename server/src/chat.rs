@@ -20,13 +20,14 @@ pub const SYSTEM_PROMPT: &str = include_str!("chat_prompt.md");
 pub const MCP: &str = "mcp__plugin_reqforge_reqforge__";
 pub const READ_TOOLS: &[&str] = &[
     "taxonomy", "search", "get", "context", "lint", "trace", "eval_registry", "simulate_changeset", "propose_changeset",
-    "get_changeset", "list_changesets", "save_session", "verification", "impact",
+    "get_changeset", "list_changesets", "save_session", "verification", "impact", "list_projects",
 ];
 pub const WRITE_TOOLS: &[&str] = &[
     "create", "update", "delete", "bulk_update", "upsert_many", "apply_changeset", "reject_changeset", "config", "sync", "init_repo",
     "scan_code", "ingest_evidence", "create_project",
 ];
 
+// reqforge: implements REQ-0041
 pub fn allowed() -> Vec<String> {
     READ_TOOLS
         .iter()
@@ -242,6 +243,8 @@ impl ChatRunner {
         }
     }
 
+    // reqforge: implements REQ-0015
+    // reqforge: implements REQ-0047
     /// Run one turn, sending UI events to `tx`. Returns when the process exits, is cancelled,
     /// or the receiver goes away (client disconnected).
     pub async fn stream(&self, chat_id: String, message: String, session_id: Option<String>, context: Value, tx: mpsc::Sender<Value>) {

@@ -228,6 +228,7 @@ impl Workspace {
                "projects": reg.projects.iter().map(|e| self.describe(e)).collect::<Vec<_>>()})
     }
 
+    // reqforge: implements REQ-0018
     pub fn create(&self, key: &str, name: &str, github: Option<&str>, private: bool) -> Res<Value> {
         self.guard_multi()?;
         let key = key.trim().to_uppercase();
@@ -257,6 +258,7 @@ impl Workspace {
         Ok(self.describe(&entry))
     }
 
+    // reqforge: implements REQ-0018
     /// Register an existing reqforge repository (anywhere on disk) as a project.
     pub fn import(&self, path: &Path, key: Option<&str>) -> Res<Value> {
         self.guard_multi()?;
@@ -318,6 +320,7 @@ impl Workspace {
         Ok(self.list())
     }
 
+    // reqforge: implements REQ-0019
     /// Delete a project and everything it holds. `confirm` must equal the key. When
     /// `delete_remote` is set and the project has a GitHub remote, `gh repo delete` is run too.
     pub fn delete(&self, key: &str, confirm: &str, delete_remote: bool) -> Res<Value> {

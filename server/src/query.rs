@@ -40,6 +40,7 @@ fn annotate(kind: Kind, rec: &Rec, lk: &Value) -> Value {
     Value::Object(r)
 }
 
+// reqforge: implements REQ-0025
 /// Pseudo-field `verification:verified|pending|untested|suspect|failing` — from the verification report.
 fn verification_filter(kind: Kind, w: &mut Map<String, Value>, statuses: &Value) -> impl Fn(&Rec) -> bool {
     let want: Option<Vec<String>> = w.remove("verification").and_then(|v| v.as_str().map(|x| x.split('|').map(str::to_lowercase).collect()));
@@ -67,6 +68,7 @@ fn sort_key(v: Option<&Value>) -> (u8, f64, String) {
     }
 }
 
+// reqforge: implements REQ-0016
 #[allow(clippy::too_many_arguments)]
 pub fn page(store: &Store, kind: Kind, q: &str, where_: &Map<String, Value>, sort: &str, order: &str, offset: usize, limit: usize) -> Value {
     let lk = links(store);
@@ -104,6 +106,7 @@ pub fn page(store: &Store, kind: Kind, q: &str, where_: &Map<String, Value>, sor
     json!({"total": total, "offset": offset, "limit": limit, "items": items})
 }
 
+// reqforge: implements REQ-0017
 /// Counts per facet value. Each facet ignores its own filter (standard faceting).
 pub fn facets(store: &Store, kind: Kind, q: &str, where_: &Map<String, Value>) -> Value {
     let lk = links(store);
@@ -172,6 +175,7 @@ pub fn facets(store: &Store, kind: Kind, q: &str, where_: &Map<String, Value>) -
     Value::Object(out)
 }
 
+// reqforge: implements REQ-0017
 pub fn tree(store: &Store, reqs: &[&Rec]) -> Value {
     let lk = links(store);
     let lr = lint_memo(store);

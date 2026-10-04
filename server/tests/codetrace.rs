@@ -20,6 +20,7 @@ fn git(dir: &Path, args: &[&str]) {
     assert!(o.status.success(), "git {args:?}: {}", String::from_utf8_lossy(&o.stderr));
 }
 
+// reqforge:off  (fixtures: sample code that carries tags as data)
 const CHECKOUT_PY: &str = "\
 import stripe
 
@@ -53,6 +54,7 @@ const LIB_RS: &str = "\
 fn helper() {}
 ";
 const NOTES_MD: &str = "We discussed REQ-0001 in planning; this mention is not a tag.\n";
+// reqforge:on
 
 struct Fx {
     _d: TempDir,
@@ -99,6 +101,7 @@ fn status(store: &Store, target: &str) -> String {
 
 // ------------------------------------------------------------------ tags
 
+// reqforge: verifies REQ-0021#AC1
 #[test]
 fn tag_grammar_and_symbols() {
     assert!(is_test_file("tests/test_checkout.py") && is_test_file("web/cart.test.ts") && is_test_file("src/FooTest.java"));
@@ -121,6 +124,7 @@ fn tag_grammar_and_symbols() {
     assert_eq!(ids_in("[REQ-0002#AC1] and REQ-0003"), vec![("REQ-0002".into(), Some("AC1".into())), ("REQ-0003".into(), None)]);
 }
 
+// reqforge: verifies REQ-0021#AC2
 #[test]
 fn scan_writes_index_and_skips_vendor_dirs() {
     let f = fx();
@@ -133,12 +137,15 @@ fn scan_writes_index_and_skips_vendor_dirs() {
     assert!(!idx.to_string().contains("node_modules"));
 }
 
+// reqforge: verifies REQ-0021#AC3
 #[test]
 fn requirements_repo_inside_component_is_not_scanned() {
     let d = TempDir::new().unwrap();
     let store = Store::init(d.path().join("reqs"), "X", "X", None, true).unwrap();
     store.create(Kind::Requirements, &rec(json!({"title": "a", "type": "functional", "category": "c", "statement": "The system shall a.", "acceptance_criteria": [{"id": "AC1", "text": "x"}]})), None).unwrap();
+    // reqforge:off
     fs::write(d.path().join("app.py"), "# reqforge: implements REQ-0001\ndef a(): pass\n").unwrap();
+    // reqforge:on
     store.create(Kind::Components, &rec(json!({"title": "Mono", "key": "mono", "path": ".."})), None).unwrap();
     scan(&store, &[], None, true).unwrap();
     let again = scan(&store, &[], None, true).unwrap(); // the stored index mentions tags; it must not be rescanned
@@ -155,6 +162,8 @@ const PYTEST_XML: &str = r#"<?xml version="1.0"?><testsuites><testsuite name="py
 </testsuite></testsuites>"#;
 const JEST_XML: &str = r#"<testsuites><testsuite name="cart"><testcase classname="cart" name="cart [REQ-0002#AC1] shows the total" file="web/cart.test.ts"></testcase></testsuite></testsuites>"#;
 
+// reqforge: verifies REQ-0022#AC1
+// reqforge: verifies REQ-0038#AC1
 #[test]
 fn statuses_from_tags_evidence_and_changes() {
     let f = fx();
@@ -193,13 +202,17 @@ fn statuses_from_tags_evidence_and_changes() {
     assert!(susp["failures"][0].as_str().unwrap().contains("shop:shop/checkout.py"));
     assert_eq!(status(&f.store, "REQ-0002#AC1"), "verified", "unrelated criteria stay verified");
 
-    // eval reports count as evidence too
+    // eval reports count as evidence too (for criteria the eval's story still covers)
+    f.store.create(Kind::Epics, &rec(json!({"title": "E"})), None).unwrap();
+    f.store.create(Kind::Stories, &rec(json!({"title": "S", "epic": "EPIC-0001", "requirements": ["REQ-0003"],
+        "evals": [{"id": "E1", "name": "receipts", "kind": "unit", "command": "true", "covers": ["REQ-0003#AC1"]}]})), None).unwrap();
     let eval_rep = json!({"stage": "commit", "results": [{"story": "STORY-0001", "id": "E1", "status": "passed", "covers": ["REQ-0003#AC1"]}]});
     ingest(&f.store, &[("evals-commit.json".into(), eval_rep.to_string())], &o).unwrap();
     assert_eq!(status(&f.store, "REQ-0003#AC1"), "verified");
     assert!(f.store.root.join("evidence/history.jsonl").exists());
 }
 
+// reqforge: verifies REQ-0023#AC1
 #[test]
 fn impact_of_a_change() {
     let f = fx();
@@ -220,6 +233,7 @@ fn impact_of_a_change() {
 
 // ------------------------------------------------------------------ components, queries, API, CI
 
+// reqforge: verifies REQ-0024#AC1
 #[test]
 fn component_keys_validated_and_unique() {
     let f = fx();
@@ -234,6 +248,7 @@ fn component_keys_validated_and_unique() {
     assert_eq!(c["failures"], json!(["STORY-0001 references unknown component 'nope'"]));
 }
 
+// reqforge: verifies REQ-0025#AC1
 #[test]
 fn list_annotations_filters_and_facets() {
     let f = fx();
@@ -250,6 +265,7 @@ fn list_annotations_filters_and_facets() {
     assert_eq!(ctx["code"]["acs"]["AC1"]["tests"][0]["file"], json!("web/cart.test.ts"));
 }
 
+// reqforge: verifies REQ-0026#AC2
 #[test]
 fn http_routes() {
     let f = fx();
@@ -271,6 +287,7 @@ fn http_routes() {
     assert_eq!(get("/impact?component=shop&base=main")["requirements"][0]["id"], json!("REQ-0002"));
 }
 
+// reqforge: verifies REQ-0028#AC3
 #[test]
 fn cli_scan_verify_impact() {
     let f = fx();
@@ -291,6 +308,7 @@ fn cli_scan_verify_impact() {
     assert_eq!(String::from_utf8_lossy(&sel.stdout).trim(), "tests/test_checkout.py");
 }
 
+// reqforge: verifies REQ-0012#AC2
 #[test]
 fn cicd_includes_impact_and_verification() {
     let f = fx();
@@ -312,6 +330,7 @@ fn cicd_includes_impact_and_verification() {
     assert!(cicd::generate_for(&f.store, code.path(), "", false, Some("nope")).is_err());
 }
 
+// reqforge: verifies REQ-0041#AC1
 #[test]
 fn chat_can_read_verification_but_not_write_evidence() {
     let allowed = reqforge::chat::allowed();
@@ -321,4 +340,120 @@ fn chat_can_read_verification_but_not_write_evidence() {
     for t in ["verification", "impact", "scan_code", "ingest_evidence"] {
         assert!(names.contains(&t.to_string()), "{t}");
     }
+}
+
+// reqforge: verifies REQ-0021#AC4
+#[test]
+fn explicit_mode_regions_and_ignore_file() {
+    use reqforge::codetrace::tags_in_mode;
+    // reqforge:off
+    let test_src = "fn fixture() { let id = \"REQ-0001\"; }\n// reqforge: verifies REQ-0002#AC1\nfn real_test() {}\n";
+    // reqforge:on
+    assert_eq!(tags_in_mode("tests/a.rs", test_src, "c", false).len(), 2); // auto: bare id counts in test files
+    let explicit = tags_in_mode("tests/a.rs", test_src, "c", true);
+    assert_eq!(explicit.len(), 1);
+    assert_eq!((explicit[0].req.as_str(), explicit[0].symbol.as_deref()), ("REQ-0002", Some("real_test")));
+    // reqforge:off
+    let region = "// reqforge:off\nconst X: &str = \"# reqforge: implements REQ-0009\";\n// reqforge:on\n// reqforge: implements REQ-0003\nfn f() {}\n";
+    // reqforge:on
+    let t = tags_in_mode("src/x.rs", region, "c", true);
+    assert_eq!(t.iter().map(|t| t.req.as_str()).collect::<Vec<_>>(), vec!["REQ-0003"]);
+    // reqforge:off
+    assert!(tags_in_mode("src/y.rs", "// reqforge:ignore-file\n// reqforge: implements REQ-0004\n", "c", false).is_empty());
+    // reqforge:on
+}
+
+// reqforge: verifies REQ-0022#AC2
+#[test]
+fn cargo_test_output_is_evidence() {
+    let f = fx();
+    // reqforge:off
+    fs::write(f.code.join("tests/it.rs"), "// reqforge: verifies REQ-0003#AC1\n#[test]\nfn exports_receipts() {}\n").unwrap();
+    // reqforge:on
+    scan(&f.store, &[], None, true).unwrap();
+    let log = "running 2 tests\ntest exports_receipts ... ok\ntest unrelated::thing ... FAILED\n\ntest result: FAILED. 1 passed; 1 failed\n";
+    let r = ingest(&f.store, &[("cargo-test.log".into(), log.into())], &IngestOpts { component: Some("shop"), commit: None, run: None }).unwrap();
+    assert_eq!((r["cases"].clone(), r["matched"].clone()), (json!(2), json!(1)));
+    assert_eq!(status(&f.store, "REQ-0003#AC1"), "verified");
+}
+
+// reqforge: verifies REQ-0035#AC1
+#[test]
+fn commits_are_scoped_to_the_requirements_folder() {
+    let d = TempDir::new().unwrap();
+    let code = d.path();
+    git(code, &["init", "-q", "-b", "main"]);
+    fs::write(code.join("app.rs"), "fn main() {}\n").unwrap();
+    git(code, &["-c", "user.email=t@t", "-c", "user.name=t", "add", "-A"]);
+    git(code, &["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "app"]);
+    fs::write(code.join("app.rs"), "fn main() { work_in_progress(); }\n").unwrap(); // unrelated WIP
+    fs::write(code.join("staged.rs"), "// staged but not ours\n").unwrap();
+    git(code, &["add", "staged.rs"]);
+    let store = Store::init(code.join("requirements"), "SELF", "Self", None, true).unwrap();
+    store.create(Kind::Requirements, &rec(json!({"title": "x", "type": "functional", "category": "c", "statement": "The system shall x."})), None).unwrap();
+    let show = Command::new("git").arg("-C").arg(code).args(["show", "--name-only", "--format=%s", "HEAD"]).output().unwrap();
+    let out = String::from_utf8_lossy(&show.stdout);
+    assert!(out.contains("REQ-0001: create") && out.contains("requirements/requirements/REQ-0001.json"), "{out}");
+    assert!(!out.contains("app.rs") && !out.contains("staged.rs"), "unrelated files were committed: {out}");
+    let status = Command::new("git").arg("-C").arg(code).args(["status", "--porcelain"]).output().unwrap();
+    let st = String::from_utf8_lossy(&status.stdout);
+    assert!(st.contains(" M app.rs") && st.contains("A  staged.rs"), "{st}");
+}
+
+// reqforge: verifies REQ-0022#AC1
+#[test]
+fn evidence_from_sources_that_stop_claiming_is_ignored() {
+    let f = fx();
+    scan(&f.store, &[], None, true).unwrap();
+    let o = IngestOpts { component: Some("shop"), commit: None, run: None };
+    // an eval claims REQ-0003#AC1 and passes
+    f.store.create(Kind::Epics, &rec(json!({"title": "E"})), None).unwrap();
+    f.store.create(Kind::Stories, &rec(json!({"title": "S", "epic": "EPIC-0001", "requirements": ["REQ-0003"],
+        "evals": [{"id": "E1", "name": "receipts", "kind": "unit", "command": "true", "covers": ["REQ-0003#AC1"]}]})), None).unwrap();
+    let rep = json!({"stage": "commit", "results": [{"story": "STORY-0001", "id": "E1", "status": "passed", "covers": ["REQ-0003#AC1"]}]});
+    ingest(&f.store, &[("evals.json".into(), rep.to_string())], &o).unwrap();
+    assert_eq!(status(&f.store, "REQ-0003#AC1"), "verified");
+    // the eval no longer covers it: its old evidence stops counting
+    f.store.update(Kind::Stories, "STORY-0001", &rec(json!({"evals": [{"id": "E1", "name": "receipts", "kind": "unit", "command": "true", "covers": []}]})), None, None).unwrap();
+    assert_eq!(status(&f.store, "REQ-0003#AC1"), "untested");
+    // same for a test whose tag is removed
+    ingest(&f.store, &[("pytest.xml".into(), PYTEST_XML.into())], &o).unwrap();
+    assert_eq!(status(&f.store, "REQ-0001#AC1"), "verified");
+    fs::write(f.code.join("tests/test_checkout.py"), TEST_CHECKOUT_PY.replace("@pytest.mark.req(\"REQ-0001#AC1\")\n", "")).unwrap();
+    scan(&f.store, &[], None, true).unwrap();
+    assert_ne!(status(&f.store, "REQ-0001#AC1"), "verified");
+}
+
+// reqforge: verifies REQ-0022#AC1
+#[test]
+fn a_fresh_pass_supersedes_stale_evidence() {
+    let f = fx();
+    scan(&f.store, &[], None, true).unwrap();
+    let o = IngestOpts { component: Some("shop"), commit: None, run: None };
+    let jest = |sfx: &str| JEST_XML.replace("cart [REQ-0002#AC1] shows the total", &format!("cart [REQ-0002#AC1] shows the total{sfx}"));
+    ingest(&f.store, &[("a.xml".into(), jest(""))], &o).unwrap();
+    fs::write(f.code.join("web/cart.test.ts"), CART_TEST_TS.replace("10", "12")).unwrap();
+    scan(&f.store, &[], None, true).unwrap();
+    assert_eq!(status(&f.store, "REQ-0002#AC1"), "suspect");
+    // a re-run from a differently named source passes against the current file
+    ingest(&f.store, &[("b.xml".into(), jest(" (rerun)"))], &o).unwrap();
+    assert_eq!(status(&f.store, "REQ-0002#AC1"), "verified");
+}
+
+// reqforge: verifies REQ-0021#AC2
+#[test]
+fn hidden_directories_are_scanned_but_vendored_copies_are_not() {
+    let f = fx();
+    for (rel, text) in [(".github/workflows/ci.yml", "# reqforge: implements REQ-0003\n"), (".reqforge/server/src/x.rs", "// reqforge: implements REQ-0003\n")] {
+        let p = f.code.join(rel);
+        fs::create_dir_all(p.parent().unwrap()).unwrap();
+        // reqforge:off
+        fs::write(p, text).unwrap();
+        // reqforge:on
+    }
+    scan(&f.store, &[], None, true).unwrap();
+    let idx: Value = serde_json::from_str(&fs::read_to_string(f.store.root.join("code/shop.json")).unwrap()).unwrap();
+    let files: Vec<&str> = idx["files"].as_object().unwrap().keys().map(String::as_str).collect();
+    assert!(files.contains(&".github/workflows/ci.yml"), "{files:?}");
+    assert!(!files.iter().any(|f| f.starts_with(".reqforge/")), "{files:?}");
 }

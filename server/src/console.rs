@@ -46,6 +46,7 @@ impl<'a, W: Write> Console<'a, W> {
         let _ = writeln!(self.out, "  ({})", recs.len());
     }
 
+    // reqforge: implements REQ-0029
     /// Execute one line. Returns false when the console should exit.
     pub fn onecmd(&mut self, line: &str) -> bool {
         match self.exec(line) {

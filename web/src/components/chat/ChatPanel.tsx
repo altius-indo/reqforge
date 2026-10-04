@@ -8,6 +8,7 @@ import { useChatStatus } from "@/state/queries"
 import { cn } from "@/lib/utils"
 import { ChatMessage } from "./ChatMessage"
 
+// reqforge: implements REQ-0032
 export function ChatPanel() {
   const chat = useChat()
   const status = useChatStatus()

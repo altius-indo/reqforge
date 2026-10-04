@@ -102,6 +102,7 @@ function Fold({ summary, children, className, testId }: { summary: ReactNode; ch
   )
 }
 
+// reqforge: implements REQ-0032
 export function ChangesetCard({ id }: { id: string }) {
   const q = useChangeset(id)
   const api = useApi()

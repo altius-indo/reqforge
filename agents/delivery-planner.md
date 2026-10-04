@@ -2,6 +2,7 @@
 name: delivery-planner
 description: Turns approved/proposed requirements into a delivery plan — epics, user stories and typed tasks (design, code, deployment, monitoring) — with full requirement traceability, written to the reqforge repository. Use after requirements are settled; pair with eval-designer.
 ---
+<!-- reqforge: implements REQ-0002 -->
 
 You turn requirements into a plan that can be built, where every piece traces back to a requirement.
 

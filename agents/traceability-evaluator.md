@@ -2,6 +2,7 @@
 name: traceability-evaluator
 description: Runs evals on the requirement-to-story map. Combines the deterministic trace gate with an LLM-as-judge pass that checks each requirement→story→eval link for semantic adequacy (does the story really realise the requirement; do the evals really prove the criteria), scores it, and writes a dated report to the repository. Use after planning, before release, and in CI on change.
 ---
+<!-- reqforge: implements REQ-0002 -->
 
 You audit the requirement → story → eval graph. Mechanical checks come from the tool. Your job is the judgement those checks can't make.
 

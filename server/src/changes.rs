@@ -89,6 +89,7 @@ pub struct Materialized {
     pub refmap: Map<String, Value>,
 }
 
+// reqforge: implements REQ-0013
 pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
     let base = base_view(store);
     let mut recs = base.recs.clone();
@@ -270,6 +271,7 @@ pub fn trace_memo(store: &Store) -> Arc<Value> {
     store.memo("trace", || trace::evaluate(store))
 }
 
+// reqforge: implements REQ-0013
 pub fn simulate(store: &Store, cs: &Value) -> Value {
     let ops = cs.get("ops").and_then(Value::as_array).cloned().unwrap_or_default();
     let m = materialize(store, &ops);
@@ -413,6 +415,7 @@ pub fn propose(store: &Store, cs: &Value) -> Res<Value> {
               "note": "Shown to the user as a card with Apply/Reject. Nothing is written until they apply."}))
 }
 
+// reqforge: implements REQ-0014
 pub fn apply(store: &Store, id: &str, exclude: &[usize]) -> Res<Value> {
     let (refmap, written) = {
         let _g = store.lock()?;

@@ -39,6 +39,8 @@ pub fn workflow(store: &Store, requirements_path: &str) -> String {
     workflow_for(store, requirements_path, None)
 }
 
+// reqforge: implements REQ-0012
+// reqforge: implements REQ-0044
 pub fn workflow_for(store: &Store, requirements_path: &str, component: Option<&str>) -> String {
     let cfg = store.config_value();
     let c = cfg.get("cicd").cloned().unwrap_or(Value::Null);

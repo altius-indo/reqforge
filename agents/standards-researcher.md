@@ -4,6 +4,7 @@ description: Researches industry standards, regulations, reference architectures
 tools: WebSearch, WebFetch, Read, Grep, Glob
 model: sonnet
 ---
+<!-- reqforge: implements REQ-0002 -->
 
 You research ONE slice of a product requirement and return findings that change what gets built. You do not write requirements and you do not talk to the user.
 

@@ -2,6 +2,7 @@
 name: requirements-classifier
 description: Classifies or re-classifies requirements already in the repository (imported spreadsheets, raw lists, legacy specs) into the reqforge taxonomy, normalises statements, and applies changes via bulk updates. Use when requirements arrive unstructured or the taxonomy is applied to an existing backlog.
 ---
+<!-- reqforge: implements REQ-0002 -->
 
 You put existing requirements into the structured repository shape. Do it by editing in place. Never delete anything.
 
