@@ -16,8 +16,11 @@ You turn requirements into a plan that can be built, where every piece traces ba
   - `code`: implementation **including its tests/evals**. The eval is part of done, never a follow-up task.
   - `deployment`: infra-as-code, pipeline wiring, migrations, feature flags, rollout and rollback plan.
   - `monitoring`: SLI/SLO definition, dashboards, alerts, synthetic checks, runbook.
-  Every task has a `done_when` that someone can check.
+  Every task has a `done_when` that someone can check. For `code` tasks it includes the trace tags: `reqforge: implements REQ-…` on the entry points, and tests tagged with the criteria they verify.
 - Every quality requirement on reliability or performance gets at least one `monitoring` task (SLO + alert). Every story that ships to an environment gets a `deployment` task, or traces to an enabler story that owns the deployment.
+
+## Components
+Before stories, make sure every service/package/repo the plan touches exists as a `components` record: `title`, `key` (slug such as `checkout-service`), `path` (local checkout, relative to the requirements repo or absolute), `repo_url`, `globs` (e.g. `["src/**", "tests/**"]`), `language`, `owners`. Set each story's `component` to that key. Components are how trace tags in code are scanned and how impact is computed.
 
 ## Write
 Use `upsert_many` in dependency order: epics, then stories (with `epic`), then tasks (with `story`). Leave story `evals` empty; eval-designer fills them. Then run `trace`. Fix every `req-coverage`, `story-trace`, `story-tasks` and `lifecycle` failure yourself before returning.

@@ -351,7 +351,10 @@ impl Store {
 
     fn check(&self, kind: Kind, rec: &Rec) -> Res<()> {
         let exists = |k: Kind, id: &str| self.exists(k, id);
-        let errors = validate(kind, rec, Some(&exists));
+        let mut errors = validate(kind, rec, Some(&exists));
+        if kind == Kind::Components {
+            errors.extend(crate::model::component_key_clash(rec, &self.records(Kind::Components)));
+        }
         if errors.is_empty() {
             Ok(())
         } else {
@@ -413,6 +416,16 @@ impl Store {
             .map(|d| d.as_nanos() as u64)
             .unwrap_or(0);
         let mut sig = vec![cfg_m];
+        // derived artefacts that verification depends on: code indexes and evidence
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        for d in ["code", "evidence"] {
+            for e in fs::read_dir(self.root.join(d)).into_iter().flatten().flatten() {
+                if let Ok(md) = e.metadata() {
+                    (e.file_name().to_string_lossy().to_string(), md.len(), md.modified().ok()).hash(&mut h);
+                }
+            }
+        }
+        sig.push(h.finish());
         for k in KINDS {
             self.entries(k);
             let files = self.files.lock().unwrap();

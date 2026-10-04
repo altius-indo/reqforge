@@ -192,6 +192,11 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
             for e in validate(kind, rec, Some(&ex)) {
                 errors.push(format!("{id}: {e}"));
             }
+            if kind == Kind::Components {
+                for e in crate::model::component_key_clash(rec, &view.records(Kind::Components)) {
+                    errors.push(format!("{id}: {e}"));
+                }
+            }
         }
     }
     let before = dangling(&base);
@@ -538,6 +543,7 @@ pub fn context(store: &Store, id: &str) -> Res<Value> {
         out["children"] = json!(kids);
         out["impact"] = blast_radius(&[&base_view(store)], &HashSet::from([id.to_string()]));
         let lr = lint_memo(store);
+        out["code"] = crate::verify::report(store)["requirements"][id].clone();
         out["lint"] = json!(lr["findings"].as_array().into_iter().flatten().filter(|f| f["ids"].as_array().map(|a| a.contains(&json!(id))).unwrap_or(false)).cloned().collect::<Vec<_>>());
     }
     Ok(out)

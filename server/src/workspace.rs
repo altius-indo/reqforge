@@ -80,6 +80,8 @@ pub fn artifacts(path: &Path) -> Value {
     out.insert("changesets".into(), json!(count(&path.join("changesets"), ".json")));
     out.insert("sessions".into(), json!(count(&path.join("sessions"), ".md")));
     out.insert("reports".into(), json!(count(&path.join("reports"), ".md")));
+    out.insert("code_indexes".into(), json!(count(&path.join("code"), ".json")));
+    out.insert("evidence".into(), json!(crate::evidence::load_latest(path).len()));
     Value::Object(out)
 }
 

@@ -27,6 +27,7 @@
     --color-ok: var(--ok);
     --color-warn: var(--warn);
     --color-err: var(--err);
+    --color-info: var(--info);
     --color-sel: var(--sel);
     --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --color-input: var(--input);
@@ -77,6 +78,7 @@
     --ok: oklch(0.527 0.137 150.07);
     --warn: oklch(0.6 0.15 65);
     --err: oklch(0.577 0.215 27.325);
+    --info: oklch(0.52 0.15 250);
     --sel: oklch(0.97 0.025 260);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
@@ -116,6 +118,7 @@
     --ok: oklch(0.765 0.15 155);
     --warn: oklch(0.8 0.14 75);
     --err: oklch(0.72 0.17 25);
+    --info: oklch(0.74 0.12 245);
     --sel: oklch(0.3 0.06 260);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);

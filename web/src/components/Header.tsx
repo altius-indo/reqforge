@@ -18,7 +18,9 @@ const TAB_LABELS: [Tab, string][] = [
   ["epics", "Epics"],
   ["stories", "Stories"],
   ["tasks", "Tasks"],
+  ["components", "Components"],
   ["trace", "Traceability"],
+  ["verification", "Verification"],
   ["lint", "Lint"],
   ["changes", "Changes"],
 ]
@@ -114,7 +116,7 @@ export function Header() {
   return (
     <TopBar
       leading={
-        listKind || view.tab === "trace" || view.tab === "changes" ? (
+        listKind || view.tab === "trace" || view.tab === "verification" || view.tab === "changes" ? (
           <Button
             variant="ghost"
             size="icon-sm"

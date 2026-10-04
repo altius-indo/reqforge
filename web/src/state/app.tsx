@@ -32,7 +32,7 @@ export interface DrawerState {
   nonce: number
 }
 
-const TABS: Tab[] = [...KINDS, "trace", "lint", "changes"]
+const TABS: Tab[] = [...KINDS, "trace", "verification", "lint", "changes"]
 const PAGE_SIZES = [50, 100, 250, 500]
 
 function initialView(project: string): ViewState {

@@ -25,6 +25,10 @@
 //! GET    /api/sessions | GET /api/sessions/{id} | POST /api/sessions {title, markdown}
 //! POST   /api/sync | PATCH /api/config
 //! GET    /api/chat/status | POST /api/chat (SSE) | POST /api/chat/cancel {chat_id}
+//! GET    /api/verification[?req=ID|full=1]  per-criterion status: verified/pending/untested/suspect/failing
+//! GET    /api/code | /api/code/{component} | POST /api/code/scan {components?, root?}
+//! GET    /api/evidence?target= | POST /api/evidence {files:[{name, content}], component?, commit?, run?}
+//! GET    /api/impact?component=&base=&root=  requirements/tests/evals touched by a code change
 //! Auth: REQFORGE_TOKEN set => /api/* needs `Authorization: Bearer <token>`.
 
 use std::collections::HashMap;
@@ -43,6 +47,7 @@ use tokio_stream::StreamExt;
 use crate::changes;
 use crate::chat::ChatRunner;
 use crate::model::{enums_json, schemas_json, taxonomy_json, Kind, Rec, KINDS};
+use crate::store::Source;
 use crate::store::{Res, Store, StoreError};
 use crate::workspace::Workspace;
 use crate::{csvio, evals, query};
@@ -343,6 +348,46 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
             return Ok(Out::Json(200, json!({"cancelled": chat.cancel(id)})));
         }
         ["context", id] => return Ok(Out::Json(200, changes::context(store, id)?)),
+        ["verification"] if get => {
+            let full = crate::verify::report(store);
+            return Ok(Out::Json(200, match qs.get("req") {
+                Some(r) => full["requirements"].get(r.as_str()).cloned().ok_or_else(|| StoreError::new(format!("{r} not found"), 404))?,
+                None if qs.get("full").map(String::as_str) == Some("1") => (*full).clone(),
+                None => {
+                    let mut v = crate::verify::summary(&full);
+                    v["statuses"] = full["statuses"].clone();
+                    v
+                }
+            }));
+        }
+        ["code"] if get => {
+            let comps: Vec<Value> = store.records(Kind::Components).iter().map(|c| Value::Object((**c).clone())).collect();
+            return Ok(Out::Json(200, json!({"components": comps, "indexes": crate::verify::report(store)["summary"]["components"]})));
+        }
+        ["code", "scan"] if post => {
+            let only: Vec<String> = b.get("components").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str).map(String::from).collect();
+            let root = b.get("root").and_then(Value::as_str).map(std::path::PathBuf::from);
+            return Ok(Out::Json(200, crate::codetrace::scan(store, &only, root.as_deref(), true)?));
+        }
+        ["code", key] if get => {
+            return Ok(Out::Json(200, serde_json::to_value(crate::codetrace::load_index(&store.root, key).ok_or_else(|| StoreError::new(format!("component {key} has not been scanned"), 404))?).unwrap()));
+        }
+        ["evidence"] if get => {
+            let latest = crate::evidence::load_latest(&store.root);
+            let t = qs.get("target").cloned().unwrap_or_default();
+            let rows: Vec<Value> = latest.values().filter(|e| t.is_empty() || e.target == t || e.target.starts_with(&format!("{t}#"))).map(|e| serde_json::to_value(e).unwrap()).collect();
+            return Ok(Out::Json(200, json!(rows)));
+        }
+        ["evidence"] if post => {
+            let files: Vec<(String, String)> = b.get("files").and_then(Value::as_array).ok_or_else(|| StoreError::bad("files: [{name, content}] required"))?
+                .iter().map(|f| (f["name"].as_str().unwrap_or("upload").to_string(), f["content"].as_str().unwrap_or("").to_string())).collect();
+            let o = crate::evidence::IngestOpts { component: b.get("component").and_then(Value::as_str), commit: b.get("commit").and_then(Value::as_str), run: b.get("run").and_then(Value::as_str) };
+            return Ok(Out::Json(200, crate::evidence::ingest(store, &files, &o)?));
+        }
+        ["impact"] if get => {
+            let root = qs.get("root").map(std::path::PathBuf::from);
+            return Ok(Out::Json(200, crate::impact::impact(store, qs.get("component").map(String::as_str), root.as_deref(), qs.get("base").map(String::as_str))?));
+        }
         ["changesets"] if get => return Ok(Out::Json(200, json!(changes::list(store, qs.get("status").map(String::as_str))))),
         ["changesets"] if post => return Ok(Out::Json(201, changes::propose(store, &b)?)),
         ["changesets", "simulate"] if post => return Ok(Out::Json(200, changes::simulate(store, &b))),

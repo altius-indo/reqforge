@@ -14,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Cards, Chip, ErrorText, H3, IdLink, IdList, StatCard } from "@/components/common"
 import { useApp } from "@/state/app"
 import { useChat } from "@/state/chat"
-import { useRecord, useRecordContext } from "@/state/queries"
+import { useCode, useRecord, useRecordContext } from "@/state/queries"
+import { CodeEvidencePanel } from "@/components/CodeEvidence"
 import { severityClass, singular } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -103,6 +104,8 @@ function Field({
         </datalist>
       </>
     )
+  } else if (kind === "stories" && name === "component") {
+    input = <ComponentKeyInput id={id} value={value} onChange={onChange} />
   } else if (s.type === "text")
     input = <Textarea id={id} data-testid={id} className="min-h-16 text-[13px]" value={value} onChange={(e) => onChange(e.target.value)} />
   else if (s.type === "objlist")
@@ -135,6 +138,38 @@ function Field({
       </Label>
       {input}
     </div>
+  )
+}
+
+/** Story `component`: free text with the project's component keys offered (datalist). */
+function ComponentKeyInput({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const code = useCode()
+  const comps = code.data?.components ?? []
+  const known = !value || comps.some((c) => c.key === value)
+  return (
+    <>
+      <Input
+        id={id}
+        data-testid={id}
+        className="h-8 text-[13px]"
+        list="complist"
+        placeholder={comps.length ? "component key" : "no components defined yet"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <datalist id="complist" data-testid="component-options">
+        {comps.map((c) => (
+          <option key={c.key} value={c.key}>
+            {c.title}
+          </option>
+        ))}
+      </datalist>
+      {!known && code.data && (
+        <p data-testid="component-unknown" className="mt-0.5 text-[12px] text-warn">
+          “{value}” is not a defined component ({comps.map((c) => c.key).join(", ") || "none yet"}).
+        </p>
+      )}
+    </>
   )
 }
 
@@ -425,6 +460,11 @@ function DrawerBody() {
                   Links &amp; impact
                 </TabsTrigger>
               )}
+              {rec && kind === "requirements" && (
+                <TabsTrigger value="code" data-testid="drawer-tab-code" className="text-[13px]">
+                  Code &amp; evidence
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
           <TabsContent value="details" className="flex min-h-0 flex-1 flex-col">
@@ -433,6 +473,11 @@ function DrawerBody() {
           {rec && (
             <TabsContent value="links" className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
               <LinksTab kind={kind} id={rec.id} meta={meta} />
+            </TabsContent>
+          )}
+          {rec && kind === "requirements" && (
+            <TabsContent value="code" className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+              <CodeEvidencePanel rec={rec as Requirement} />
             </TabsContent>
           )}
         </Tabs>
@@ -449,7 +494,7 @@ export function RecordDrawer() {
         side="right"
         showCloseButton={false}
         data-testid="drawer"
-        className={cn("w-[min(600px,100vw)] gap-0 p-0 sm:max-w-[600px]")}
+        className={cn("gap-0 p-0 data-[side=right]:w-[min(600px,100vw)] data-[side=right]:sm:max-w-[600px]")}
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DrawerBody key={`${drawer.kind}-${drawer.id}-${drawer.nonce}`} />

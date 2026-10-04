@@ -12,12 +12,15 @@ The pipeline is generated, and its stage membership is read from story evals at 
    - `setup_steps`: shell commands every stage job runs first, e.g. `npm ci`, `pip install -r requirements-dev.txt`, `go mod download`.
    - `deploy_command`: the real deploy (`./deploy.sh production`, `flyctl deploy`, `kubectl apply -k overlays/prod`, `terraform apply -auto-approve`). It must be idempotent, and it should come from a `deployment` task in the plan.
    - `monitor_cron`: synthetic-monitor cadence.
+   - `component`: the component key this code repo implements. It turns on the trace-tag scan, the PR `impact` comment and code evidence. Generate with `--component KEY`.
+   - `junit`: globs of JUnit XML files the test commands write (e.g. `reports/junit/*.xml`), so evidence includes every tagged test, not just evals.
+   - `publish_evidence`: `true` to push evidence back to the requirements repo from `main`. `REQFORGE_REPO_TOKEN` then needs write access.
    - `reqforge_git`: optional git URL of the reqforge repo for `cargo install --git` (otherwise sources are vendored).
 3. Generate: `${CLAUDE_PLUGIN_ROOT}/bin/reqforge cicd <code-repo-path>`. This writes `.github/workflows/reqforge-pipeline.yml` and vendors the reqforge server sources into `.reqforge/server`; each CI job builds the binary from them with `cargo install --no-default-features` (cached). Set `cicd.reqforge_git` to install from a git URL instead of vendoring. Pass `--requirements-path <dir>` when the requirements repo sits inside the code repo.
 4. Verify:
    - The YAML parses (`python3 -c "import yaml,sys;yaml.safe_load(open(sys.argv[1]))" <file>` if PyYAML exists; else `actionlint` if installed).
    - Locally, `reqforge evals run --stage commit --workdir <repo>` gives a result you can explain. Failing evals for unbuilt features are expected, so report them; don't hide them.
    - The `traceability` job's gate (`reqforge trace --gate`) reflects the current plan.
-5. List what a human must do in GitHub: secrets (`REQFORGE_REPO_TOKEN`, deploy credentials), a `production` environment with required reviewers, and branch protection that requires the `traceability`, `commit`, `acceptance` and `security` checks.
+5. List what a human must do in GitHub. Include required checks `traceability` and `verification`, plus `pull-requests: write` for the impact comment. Then cover: secrets (`REQFORGE_REPO_TOKEN`, deploy credentials), a `production` environment with required reviewers, and branch protection that requires the `traceability`, `commit`, `acceptance` and `security` checks.
 
 Never commit or push to the code repo unless the caller asked. Return the files written, the config set, the local stage results and the human checklist.

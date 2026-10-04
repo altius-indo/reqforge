@@ -1,9 +1,9 @@
 // Wire types for the reqforge JSON API. These mirror reqforge/api.py, query.py, changes.py and
 // chat.py exactly; the Rust backend serves the same shapes, so change both sides together.
 
-export type Kind = "requirements" | "epics" | "stories" | "tasks"
-export type Tab = Kind | "trace" | "lint" | "changes"
-export const KINDS: Kind[] = ["requirements", "epics", "stories", "tasks"]
+export type Kind = "requirements" | "epics" | "stories" | "tasks" | "components"
+export type Tab = Kind | "trace" | "verification" | "lint" | "changes"
+export const KINDS: Kind[] = ["requirements", "epics", "stories", "tasks", "components"]
 
 // ------------------------------------------------------------------ meta
 export type FieldType = "str" | "text" | "enum" | "ref" | "reflist" | "list" | "objlist" | "int"
@@ -112,6 +112,8 @@ export interface ListRow extends RecordBase {
   _tasks?: number
   /** stories: number of evals */
   _evals?: number
+  /** requirements: worst verification status of its acceptance criteria */
+  _verification?: VerificationStatus
 }
 
 export interface Page<T = ListRow> {
@@ -274,6 +276,8 @@ export interface RecordContext {
   children?: { id: string; title?: string }[]
   impact?: Impact
   lint?: LintFinding[]
+  /** requirements only: per-criterion verification detail (same as GET /verification?req=ID) */
+  code?: ReqVerification
 }
 
 // ------------------------------------------------------------------ changesets
@@ -516,4 +520,134 @@ export interface DeleteProjectResult {
   remote_deleted: unknown
   /** the workspace default after the delete */
   default: string | null
+}
+
+// ------------------------------------------------------------------ code traceability / verification
+/** Per criterion; a requirement takes its worst criterion (failing > suspect > untested > pending > verified). */
+export type VerificationStatus = "verified" | "pending" | "untested" | "suspect" | "failing"
+/** worst first */
+export const VERIFICATION_STATUSES: VerificationStatus[] = ["failing", "suspect", "untested", "pending", "verified"]
+
+export interface Component extends RecordBase {
+  key: string
+  path?: string
+  repo_url?: string
+  globs?: string[]
+  language?: string
+  owners?: string[]
+  description?: string
+}
+
+/** A trace tag found in code (`reqforge: implements REQ-1`, `REQ-1#AC1` on a test). */
+export interface CodeLocation {
+  component: string
+  file: string
+  line: number
+  symbol?: string | null
+  ac?: string | null
+}
+
+export interface EvidenceRow {
+  source: string
+  status: string
+  commit?: string | null
+  run?: string | null
+  at: string
+}
+
+export interface CriterionVerification {
+  target: string
+  status: VerificationStatus
+  tests: CodeLocation[]
+  /** "STORY-0001/E1" */
+  evals: string[]
+  evidence: EvidenceRow[]
+  /** "component:file" changed since the evidence (suspect) */
+  changed: string[]
+}
+
+export interface ReqVerification {
+  status: VerificationStatus
+  active: boolean
+  implemented: boolean
+  implements: CodeLocation[]
+  acs: Record<string, CriterionVerification>
+}
+
+export interface ComponentIndexSummary {
+  component: string
+  commit: string | null
+  scanned_at: string
+  files_scanned: number
+  tagged_files: number
+  implements: number
+  verifies: number
+  requirements: number
+}
+
+export interface VerificationReport {
+  ok: boolean
+  summary: {
+    criteria: Record<VerificationStatus, number>
+    requirements: Record<VerificationStatus, number>
+    criteria_total: number
+    verified_ratio: number
+    implemented: number
+    evidence: number
+    components: ComponentIndexSummary[]
+    /** "type/category" -> counts */
+    by_category: Record<string, { requirements: number; verified: number }>
+  }
+  checks: TraceCheck[]
+  statuses: Record<string, VerificationStatus>
+}
+
+export interface CodeListing {
+  components: Component[]
+  indexes: ComponentIndexSummary[]
+}
+
+export interface ScanResult {
+  scanned: {
+    component: string
+    skipped?: string
+    root?: string
+    commit?: string | null
+    files_scanned?: number
+    tagged_files?: number
+    tags?: number
+    implements?: number
+    verifies?: number
+  }[]
+}
+
+export interface EvidenceRequest {
+  files: { name: string; content: string }[]
+  component?: string
+  commit?: string
+  run?: string
+}
+
+export interface IngestResult {
+  cases: number
+  matched: number
+  skipped: number
+  unmatched: string[]
+  evidence: number
+  passed: number
+  failed: number
+  targets: number
+  commit: string | null
+}
+
+export interface CodeImpact {
+  component: string
+  root?: string
+  base: string
+  changed_files: string[]
+  requirements: { id: string; title?: string; via: { kind: string; file: string; line: number; symbol?: string | null }[] }[]
+  tests: { file: string; symbols: string[] }[]
+  evals: { story: string; id: string; kind?: string; command?: string | null }[]
+  criteria_at_risk: string[]
+  untraced_changes: string[]
 }

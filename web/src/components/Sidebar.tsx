@@ -1,11 +1,12 @@
 import type { ReactNode } from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
-import type { FacetCounts, Kind, TreeNode } from "@/api/types"
+import { VERIFICATION_STATUSES, type FacetCounts, type Kind, type TreeNode } from "@/api/types"
 import { Progress } from "@/components/ui/progress"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { SectionLabel } from "@/components/common"
 import { useApp } from "@/state/app"
-import { facetParams, useFacets } from "@/state/queries"
+import { facetParams, useFacets, useVerification } from "@/state/queries"
+import { VERIF } from "@/components/verification"
 import { compact, fmt } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +15,7 @@ const SIDE_FACETS: Record<Kind, string[]> = {
   epics: ["status", "tags"],
   stories: ["status", "deliverable", "component", "tags"],
   tasks: ["kind", "status", "tags"],
+  components: ["language", "owners", "tags"],
 }
 
 function CovBar({ covered, count }: { covered: number; count: number }) {
@@ -134,8 +136,26 @@ function FacetChips({ facet, counts, active, onToggle }: { facet: string; counts
   )
 }
 
+/** "✓3" = verified requirements in the cell (from the verification summary) */
+function Verified({ n, of }: { n: number; of: number }) {
+  if (!n) return null
+  return (
+    <span data-testid="tree-verified" className="text-[11px] text-ok tabular-nums" title={`${n}/${of} requirements verified`}>
+      ✓{compact(n)}
+    </span>
+  )
+}
+
 function Tree({ tree }: { tree: TreeNode[] }) {
   const { view, setFilters, treeOpen, toggleTree } = useApp()
+  const byCat = useVerification().data?.summary.by_category
+  const verified = (type: string, cat?: string) => {
+    if (!byCat) return [0, 0]
+    if (cat) return [byCat[`${type}/${cat}`]?.verified ?? 0, byCat[`${type}/${cat}`]?.requirements ?? 0]
+    return Object.entries(byCat)
+      .filter(([k]) => k.startsWith(`${type}/`))
+      .reduce(([v, r], [, c]) => [v + c.verified, r + c.requirements], [0, 0])
+  }
   const f = view.filters
   const total = tree.reduce((a, n) => a + n.count, 0)
   const without = (...keys: string[]) => Object.fromEntries(Object.entries(f).filter(([k]) => !keys.includes(k)))
@@ -170,6 +190,7 @@ function Tree({ tree }: { tree: TreeNode[] }) {
               </button>
               <Name>{n.type}</Name>
               <Health errors={n.errors} warnings={0} />
+              <Verified n={verified(n.type)[0]} of={verified(n.type)[1]} />
               <CovBar covered={n.covered} count={n.count} />
               <Count n={n.count} />
             </Node>
@@ -194,6 +215,7 @@ function Tree({ tree }: { tree: TreeNode[] }) {
                       <span className="text-[11px] text-muted-foreground">waived</span>
                     ) : null}
                     <Health errors={c.errors} warnings={c.warnings} />
+                    <Verified n={verified(n.type, c.category)[0]} of={verified(n.type, c.category)[1]} />
                     {c.count ? <CovBar covered={c.covered} count={c.count} /> : null}
                     <Count n={c.count} />
                   </Node>
@@ -220,6 +242,28 @@ function SidebarBody() {
         <p className="px-1.5 text-[12.5px] text-muted-foreground">
           Requirement → story → task → eval gate, the same check CI runs.
         </p>
+      </>
+    )
+  if (view.tab === "verification")
+    return (
+      <>
+        <SectionLabel>Verification</SectionLabel>
+        <p className="px-1.5 text-[12.5px] text-muted-foreground">
+          Requirement → acceptance criterion → tagged test or eval → CI result → implementing code. A criterion is
+          verified when its latest result passed and the code it vouched for has not changed since.
+        </p>
+        <SectionLabel>Statuses</SectionLabel>
+        <ul className="space-y-1 px-1.5 text-[12.5px]">
+          {VERIFICATION_STATUSES.map((s) => (
+            <li key={s} className="flex gap-1.5">
+              <span aria-hidden className={cn("mt-1.5 size-1.5 flex-none rounded-full", VERIF[s].dot)} />
+              <span>
+                <b className="font-semibold">{VERIF[s].label}</b>{" "}
+                <span className="text-muted-foreground">{VERIF[s].help}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
       </>
     )
   if (view.tab === "changes")
@@ -266,6 +310,38 @@ function SidebarBody() {
               )
             })}
           </div>
+          {F._verification && (
+            <>
+              <SectionLabel>Verification</SectionLabel>
+              <div data-testid="verif-facets" className="flex flex-wrap gap-1 px-1.5">
+                {VERIFICATION_STATUSES.map((s) => {
+                  const n = (F._verification as FacetCounts)[s] ?? 0
+                  const on = (view.filters.verification || "").split("|").includes(s)
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      data-testid="verif-chip"
+                      data-value={s}
+                      data-count={n}
+                      aria-pressed={on}
+                      title={VERIF[s].help}
+                      disabled={!n && !on}
+                      onClick={() => toggleFacet("verification", s)}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full border bg-background px-2 py-px text-[12px] transition-colors hover:border-foreground/40 disabled:cursor-default disabled:opacity-45 disabled:hover:border-border",
+                        on && "border-primary bg-primary text-primary-foreground hover:border-primary",
+                      )}
+                    >
+                      <span aria-hidden className={cn("size-1.5 rounded-full", VERIF[s].dot, on && "ring-1 ring-primary-foreground")} />
+                      {VERIF[s].label}
+                      <span className="opacity-70 tabular-nums">{fmt(n)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
         </>
       )}
       {view.tab === "stories" && F.epic && (

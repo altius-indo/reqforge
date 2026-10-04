@@ -87,3 +87,24 @@ export function useChatStatus() {
   const api = useApi()
   return useQuery({ queryKey: ["p", api.key, "chat-status"], queryFn: api.chatStatus, staleTime: 5 * 60_000 })
 }
+
+export function useVerification(enabled = true) {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "verification"], queryFn: api.verification, enabled })
+}
+
+/** components with their scan summaries (GET /code) */
+export function useCode() {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "code"], queryFn: api.code, staleTime: 60_000 })
+}
+
+export function useCodeImpact(component: string, base: string, nonce: number) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ["p", api.key, "code-impact", component, base, nonce],
+    queryFn: () => api.codeImpact(component, base),
+    enabled: !!component && nonce > 0,
+    retry: false,
+  })
+}

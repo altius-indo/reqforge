@@ -63,7 +63,7 @@ fn delete_removes_everything_and_needs_confirmation() {
     assert!(d.path().join("shop").exists());
 
     let out = ws.delete("shop", "SHOP", false).unwrap();
-    assert_eq!(out["removed"], json!({"requirements": 1, "epics": 1, "stories": 1, "tasks": 0, "changesets": 1, "sessions": 1, "reports": 0}));
+    assert_eq!(out["removed"], json!({"requirements": 1, "epics": 1, "stories": 1, "tasks": 0, "components": 0, "changesets": 1, "sessions": 1, "reports": 0, "code_indexes": 0, "evidence": 0}));
     assert!(!d.path().join("shop").exists(), "directory must be gone");
     assert_eq!(ws.entry("SHOP").unwrap_err().status, 404);
     assert_eq!(out["default"], json!("PAY"));

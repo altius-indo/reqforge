@@ -15,9 +15,10 @@ pub enum Kind {
     Epics,
     Stories,
     Tasks,
+    Components,
 }
 
-pub const KINDS: [Kind; 4] = [Kind::Requirements, Kind::Epics, Kind::Stories, Kind::Tasks];
+pub const KINDS: [Kind; 5] = [Kind::Requirements, Kind::Epics, Kind::Stories, Kind::Tasks, Kind::Components];
 
 impl Kind {
     pub fn as_str(self) -> &'static str {
@@ -26,6 +27,7 @@ impl Kind {
             Kind::Epics => "epics",
             Kind::Stories => "stories",
             Kind::Tasks => "tasks",
+            Kind::Components => "components",
         }
     }
     pub fn prefix(self) -> &'static str {
@@ -34,6 +36,7 @@ impl Kind {
             Kind::Epics => "EPIC",
             Kind::Stories => "STORY",
             Kind::Tasks => "TASK",
+            Kind::Components => "COMP",
         }
     }
     pub fn dir(self) -> &'static str {
@@ -45,6 +48,7 @@ impl Kind {
             Kind::Epics => "epic",
             Kind::Stories => "story",
             Kind::Tasks => "task",
+            Kind::Components => "component",
         }
     }
     pub fn parse(s: &str) -> Result<Kind, String> {
@@ -53,7 +57,8 @@ impl Kind {
             "epics" | "epic" => Ok(Kind::Epics),
             "stories" | "story" => Ok(Kind::Stories),
             "tasks" | "task" => Ok(Kind::Tasks),
-            _ => Err(format!("unknown kind '{s}' (expected one of requirements, epics, stories, tasks)")),
+            "components" | "component" | "comp" => Ok(Kind::Components),
+            _ => Err(format!("unknown kind '{s}' (expected one of requirements, epics, stories, tasks, components)")),
         }
     }
     pub fn of_id(id: &str) -> Result<Kind, String> {
@@ -290,12 +295,30 @@ static TASKS: [Field; 8] = [
     f("tags", FType::List),
 ];
 
+/// A code component: a module/service/package whose source carries trace tags.
+/// `key` is what stories reference in `component`; `path` is the local checkout (relative to the
+/// requirements repo or absolute); `globs` select the files within it.
+static COMPONENTS: [Field; 9] = [
+    req(f("title", FType::Str)),
+    req(f("key", FType::Str)),
+    f("path", FType::Str),
+    f("repo_url", FType::Str),
+    f("globs", FType::List),
+    f("language", FType::Str),
+    f("owners", FType::List),
+    f("description", FType::Text),
+    f("tags", FType::List),
+];
+
+pub const COMPONENT_KEY_RE: &str = r"^[a-z0-9][a-z0-9._-]{0,63}$";
+
 pub fn schema(kind: Kind) -> &'static [Field] {
     match kind {
         Kind::Requirements => &REQUIREMENTS,
         Kind::Epics => &EPICS,
         Kind::Stories => &STORIES,
         Kind::Tasks => &TASKS,
+        Kind::Components => &COMPONENTS,
     }
 }
 
@@ -445,6 +468,12 @@ pub fn validate(kind: Kind, rec: &Rec, exists: Option<Exists>) -> Vec<String> {
             }
         }
     }
+    if kind == Kind::Components {
+        let k = rec.get("key").and_then(Value::as_str).unwrap_or("");
+        if !k.is_empty() && !regex::Regex::new(COMPONENT_KEY_RE).unwrap().is_match(k) {
+            errors.push(format!("key: '{k}' must be lowercase letters, digits, '.', '_' or '-' (e.g. checkout-service)"));
+        }
+    }
     if kind == Kind::Stories {
         for (i, ev) in rec.get("evals").and_then(Value::as_array).into_iter().flatten().enumerate() {
             if let Some(k) = ev.get("kind").and_then(Value::as_str) {
@@ -521,4 +550,13 @@ pub fn strs<'a>(rec: &'a Rec, k: &str) -> Vec<&'a str> {
 
 pub fn objs<'a>(rec: &'a Rec, k: &str) -> Vec<&'a Map<String, Value>> {
     rec.get(k).and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_object).collect()).unwrap_or_default()
+}
+
+/// Component keys are unique within a project.
+pub fn component_key_clash(rec: &Rec, all: &[std::sync::Arc<Rec>]) -> Vec<String> {
+    let (id, key) = (s(rec, "id"), s(rec, "key"));
+    all.iter()
+        .filter(|o| s(o, "key") == key && s(o, "id") != id && !key.is_empty())
+        .map(|o| format!("key: '{key}' is already used by {}", s(o, "id")))
+        .collect()
 }

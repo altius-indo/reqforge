@@ -7,6 +7,13 @@ import type {
   ChatEvent,
   ChatRequest,
   ChatStatus,
+  CodeImpact,
+  CodeListing,
+  EvidenceRequest,
+  IngestResult,
+  ReqVerification,
+  ScanResult,
+  VerificationReport,
   CreateProjectRequest,
   DeleteProjectResult,
   DeleteResult,
@@ -150,6 +157,14 @@ export function projectApi(key: string) {
     reject: (id: string, reason: string) => request<RejectResult>("POST", `${b}/changesets/${id}/reject`, { reason }),
     sync: () => request<SyncResult>("POST", `${b}/sync`, {}),
     chatStatus: () => request<ChatStatus>("GET", `${b}/chat/status`),
+    verification: () => request<VerificationReport>("GET", `${b}/verification`),
+    reqVerification: (id: string) => request<ReqVerification>("GET", `${b}/verification?${qs({ req: id })}`),
+    code: () => request<CodeListing>("GET", `${b}/code`),
+    scan: (components?: string[]) =>
+      request<ScanResult>("POST", `${b}/code/scan`, components?.length ? { components } : {}),
+    ingest: (body: EvidenceRequest) => request<IngestResult>("POST", `${b}/evidence`, body),
+    codeImpact: (component: string, base: string) =>
+      request<CodeImpact>("GET", `${b}/impact?${qs({ component, base })}`),
     chatCancel: (chatId: string) => request<{ cancelled: boolean }>("POST", `${b}/chat/cancel`, { chat_id: chatId }),
   }
 }

@@ -37,6 +37,7 @@ Work is organised into **projects** inside a **workspace** (default `~/.reqforge
 | `/reqforge:plan [query]` | epics, stories, typed tasks, evals on every story; trace-gated |
 | `/reqforge:evaluate [fix]` | deterministic trace gate + LLM-judge of each requirement→story→eval link |
 | `/reqforge:cicd [path]` | generate the eval-driven GitHub Actions pipeline in a code repo |
+| `/reqforge:verify [impact\|REQ-id\|results…]` | scan trace tags, ingest CI results, report requirement → test → evidence → code |
 | `/reqforge:ui [port\|console]` | start web UI + REST API, or the console |
 | `/reqforge:run <need>` | all of the above in sequence |
 
@@ -90,6 +91,62 @@ In the UI, the header has a project switcher (also deep-linkable as `#/p/KEY`) a
 4. **Apply** is deterministic and atomic. It rejects the changeset as *stale* if any touched record changed since it was proposed, writes one git commit, and feeds the result back to the agent, which verifies traceability and proposes follow-up remaps if needed.
 
 The chat agent's tool allowlist contains no direct write tools (`create`, `update`, `delete`, `bulk_update`, `upsert_many`, `apply_changeset`, `Bash`, `Write`, `Edit` are denied), so nothing changes without your click. Environment: `REQFORGE_CLAUDE_BIN` (path to `claude`), `REQFORGE_CHAT_MODEL`, `REQFORGE_PLUGIN_DIR`. Changesets are stored in `changesets/CS-NNNN.json` and listed in the **Changes** tab.
+
+## Code traceability: requirement → test → evidence → code
+
+The link between requirements and code lives in the code, so it is reviewed in PRs and moves with refactors.
+
+**Components** are records (kind `components`: `title`, `key`, `path`, `repo_url`, `globs`, `language`, `owners`). Stories reference them by `key`.
+
+**Trace tags** come in two forms:
+- `reqforge: implements REQ-0042` on implementation entry points.
+- In test files, any requirement id is a "verifies" tag, so framework-native markers work as-is:
+
+```python
+# reqforge: implements REQ-0001
+def place_order(cart, email, card_token): ...
+
+@pytest.mark.req("REQ-0001#AC2")          # pytest marker
+def test_declined_card_creates_no_order(): ...
+```
+```ts
+test("[REQ-0004#AC1] checkout pages have no serious axe violations", ...)   // Jest / Vitest title
+```
+
+A tag without `#AC…` covers every acceptance criterion of the requirement. `@Tag("REQ-0042")` (JUnit) and comments like `// reqforge: verifies REQ-0042#AC1` work too.
+
+```bash
+reqforge scan                                   # index tags per component -> code/<key>.json (file:line, symbol, file hashes)
+reqforge evidence ingest junit.xml reqforge-reports/evals-*.json -c web --commit $SHA --run $URL
+reqforge verify --md --gate                     # requirement -> criteria -> tests/evals -> evidence -> code
+reqforge impact -c web --base origin/main --md  # what a change touches; --select-tests prints the tests to run
+```
+
+**Verification status** is computed per acceptance criterion, never set by hand:
+
+| status | meaning |
+|---|---|
+| verified | its tagged tests or covering evals passed, and nothing they vouch for has changed since |
+| failing | the latest result from some tagged test or eval failed |
+| suspect | it passed, but the test or implementing code changed afterwards (file hash mismatch), so re-run |
+| pending | tagged tests or evals exist, with no result yet |
+| untested | no tagged test and no covering eval |
+
+A requirement takes its worst criterion. Gate checks also cover:
+- tags that point at unknown requirements or criteria;
+- tags on deprecated requirements;
+- implemented requirements with no tagged code;
+- eval `covers` that don't match the tags in the test files the eval runs;
+- stories that reference unknown components.
+
+`gates.require_test_tags` and `gates.fail_on_suspect` turn the matching warnings into errors.
+
+**CI** (`reqforge cicd <repo> --component web`, with `cicd.junit` globs and optional `cicd.publish_evidence`) adds:
+- a static tag check to the traceability job;
+- an `impact` job that comments on each PR with the requirements touched and the tests to re-run;
+- a `verification` job that scans the code, ingests every stage's eval reports and JUnit files for the exact commit, and gates the deploy. It can push the evidence back to the requirements repo from `main`.
+
+In the UI: the requirements list has a verification column and facet, every requirement has a **Code & evidence** tab, and a **Verification** dashboard has scan, ingest and impact. `python3 examples/seed_demo.py /tmp/demo` creates a demo with a tagged code repo showing every status.
 
 ## How MECE is enforced
 
@@ -168,6 +225,8 @@ reports/                   traceability reviews
 server/   Rust crate `reqforge`
   src/model.rs     kinds, MECE taxonomy, schemas, validation
   src/workspace.rs projects: registry, create/import/rename/default/delete, project resolution
+  src/codetrace.rs trace tags, scanner, per-component code index
+  src/evidence.rs  JUnit/eval-report ingestion   src/verify.rs  verification statuses + gate   src/impact.rs  PR impact
   src/store.rs     JSON-file store (mtime cache, write lock + flock), git/GitHub sync
   src/lint.rs      MECE + ISO 29148 quality lint (inverted-index overlap detection)
   src/trace.rs     traceability gate
@@ -181,7 +240,7 @@ web/      React + TypeScript + Tailwind + shadcn/ui (Vite) → web/dist, embedde
 ```
 
 ```bash
-cargo test --manifest-path server/Cargo.toml           # 36 integration tests
+cargo test --manifest-path server/Cargo.toml           # 47 integration tests
 cargo clippy --manifest-path server/Cargo.toml --all-targets -- -D warnings
 (cd web && npm ci && npm run dev)                      # UI dev server; proxies /api to :8787
 (cd web && npm run build)                              # rebuild web/dist (bin/reqforge then re-embeds it)

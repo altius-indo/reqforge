@@ -7,7 +7,7 @@ from pathlib import Path
 
 from _loader import Loader  # noqa: E402
 
-root = sys.argv[1] if len(sys.argv) > 1 else "reqforge-demo"
+root = next((a for a in sys.argv[1:] if not a.startswith("--")), "reqforge-demo")
 s = Loader(root, "SHOP", "Demo shop checkout")
 
 reqs = s.upsert_many("requirements", [
@@ -49,4 +49,7 @@ for kind, title in [("design", "Checkout API contract + PSP hosted-fields flow")
     s.create("tasks", {"title": title, "story": story, "kind": kind, "done_when": "reviewed and merged"})
 s.save_config({"coverage_waivers": {"interface/hardware": "web only", "data/migration": "greenfield"}})
 s.flush()
+if "--no-code" not in sys.argv:  # add a tagged code component with CI evidence (examples/seed_code.py)
+    import subprocess
+    subprocess.run([sys.executable, str(Path(__file__).with_name("seed_code.py")), s.root], check=True)
 print(f"demo repo at {s.root}; try: bin/reqforge --repo {s.root} serve")

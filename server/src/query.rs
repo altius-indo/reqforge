@@ -15,6 +15,7 @@ pub fn facet_fields(kind: Kind) -> &'static [&'static str] {
         Kind::Epics => &["status", "tags"],
         Kind::Stories => &["epic", "status", "deliverable", "component", "tags"],
         Kind::Tasks => &["kind", "status", "tags"],
+        Kind::Components => &["language", "owners", "tags"],
     }
 }
 
@@ -37,6 +38,14 @@ fn annotate(kind: Kind, rec: &Rec, lk: &Value) -> Value {
         _ => {}
     }
     Value::Object(r)
+}
+
+/// Pseudo-field `verification:verified|pending|untested|suspect|failing` — from the verification report.
+fn verification_filter(kind: Kind, w: &mut Map<String, Value>, statuses: &Value) -> impl Fn(&Rec) -> bool {
+    let want: Option<Vec<String>> = w.remove("verification").and_then(|v| v.as_str().map(|x| x.split('|').map(str::to_lowercase).collect()));
+    let active = kind == Kind::Requirements && want.is_some();
+    let statuses = statuses.clone();
+    move |r: &Rec| !active || want.as_ref().unwrap().iter().any(|x| statuses[s(r, "id")].as_str() == Some(x.as_str()))
 }
 
 /// Pseudo-field `covered:yes|no` — requirements with / without a story.
@@ -63,11 +72,21 @@ pub fn page(store: &Store, kind: Kind, q: &str, where_: &Map<String, Value>, sor
     let lk = links(store);
     let (words, mut w) = parse_query(q, where_);
     let cov = covered_filter(kind, &mut w, &lk);
+    let vr = if kind == Kind::Requirements { Some(crate::verify::report(store)) } else { None };
+    let null = Value::Null;
+    let statuses = vr.as_ref().map(|v| &v["statuses"]).unwrap_or(&null);
+    let ver = verification_filter(kind, &mut w, statuses);
     let mut rows: Vec<Value> = store
         .entries(kind)
         .into_iter()
-        .filter(|e| keep(&e.rec, &e.blob, &words, &w) && cov(&e.rec))
-        .map(|e| annotate(kind, &e.rec, &lk))
+        .filter(|e| keep(&e.rec, &e.blob, &words, &w) && cov(&e.rec) && ver(&e.rec))
+        .map(|e| {
+            let mut v = annotate(kind, &e.rec, &lk);
+            if kind == Kind::Requirements {
+                v["_verification"] = statuses[s(&e.rec, "id")].clone();
+            }
+            v
+        })
         .collect();
     if !sort.is_empty() && sort != "id" {
         // stable in both directions: ties keep id order (like Python's sort(reverse=True))
@@ -90,8 +109,13 @@ pub fn facets(store: &Store, kind: Kind, q: &str, where_: &Map<String, Value>) -
     let lk = links(store);
     let (words, mut w) = parse_query(q, where_);
     let cov = covered_filter(kind, &mut w, &lk);
+    let vr = if kind == Kind::Requirements { Some(crate::verify::report(store)) } else { None };
+    let null = Value::Null;
+    let statuses = vr.as_ref().map(|v| &v["statuses"]).unwrap_or(&null);
+    let ver = verification_filter(kind, &mut w, statuses);
     let entries = store.entries(kind);
-    let text_rows: Vec<_> = entries.iter().filter(|e| keep(&e.rec, &e.blob, &words, &Map::new()) && cov(&e.rec)).collect();
+    let base_rows: Vec<_> = entries.iter().filter(|e| keep(&e.rec, &e.blob, &words, &Map::new()) && cov(&e.rec)).collect();
+    let text_rows: Vec<_> = base_rows.iter().copied().filter(|e| ver(&e.rec)).collect();
     let mut out = Map::new();
     for f in facet_fields(kind) {
         let others: Map<String, Value> = w.iter().filter(|(k, _)| k.as_str() != *f).map(|(k, v)| (k.clone(), v.clone())).collect();
@@ -124,6 +148,14 @@ pub fn facets(store: &Store, kind: Kind, q: &str, where_: &Map<String, Value>) -
         out.insert(f.to_string(), Value::Object(m));
     }
     if kind == Kind::Requirements {
+        // verification facet ignores its own filter, like the others
+        let mut vc: Map<String, Value> = crate::verify::STATUSES.iter().map(|x| (x.to_string(), json!(0))).collect();
+        for e in base_rows.iter().filter(|e| keep(&e.rec, "", &[], &w)) {
+            if let Some(st) = statuses[s(&e.rec, "id")].as_str() {
+                vc[st] = json!(vc[st].as_u64().unwrap_or(0) + 1);
+            }
+        }
+        out.insert("_verification".into(), Value::Object(vc));
         let tree_where: Map<String, Value> = w.iter().filter(|(k, _)| !["type", "category"].contains(&k.as_str())).map(|(k, v)| (k.clone(), v.clone())).collect();
         let reqs: Vec<&Rec> = text_rows.iter().filter(|e| keep(&e.rec, "", &[], &tree_where)).map(|e| e.rec.as_ref()).collect();
         out.insert("_tree".into(), tree(store, &reqs));

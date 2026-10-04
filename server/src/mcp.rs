@@ -56,6 +56,10 @@ fn base_tools() -> Vec<Value> {
         tool("list_changesets", "List changesets, optionally by status (pending, applied, rejected, stale).", json!({"status": s}), &[]),
         tool("apply_changeset", "Apply a pending changeset atomically (only after the user explicitly confirmed it). exclude = op indexes to skip.", json!({"id": s, "exclude": {"type": "array", "items": {"type": "integer"}}}), &["id"]),
         tool("reject_changeset", "Reject a pending changeset.", json!({"id": s, "reason": s}), &["id"]),
+        tool("verification", "Verification report: per requirement and acceptance criterion, its status (verified / pending / untested / suspect / failing), tagged tests, implementing code locations, covering evals and evidence. Without `req`: summary, gate checks and a status per requirement.", json!({"req": s}), &[]),
+        tool("impact", "Impact of a code change in a component checkout: changed files, requirements touched (via trace tags), tests and evals to re-run, verified criteria put at risk, untraced changes.", json!({"component": s, "base": s, "root": s}), &[]),
+        tool("scan_code", "Scan component sources for trace tags and store the code index (writes code/<component>.json and commits).", json!({"components": strs, "root": s}), &[]),
+        tool("ingest_evidence", "Ingest CI result files (JUnit XML or reqforge eval report JSON, by path) as verification evidence.", json!({"paths": strs, "component": s, "commit": s, "run": s}), &["paths"]),
         tool("list_projects", "List the projects in the workspace (key, name, path, GitHub remote, artifact counts) and which one is the default.", json!({}), &[]),
         tool("create_project", "Create a new project (its own requirements repository) in the workspace, optionally with a GitHub repo owner/name.", json!({"key": s, "name": s, "github": s, "private": {"type": "boolean"}}), &["key", "name"]),
         tool("init_repo", "Initialise a requirements repository (optionally creating the GitHub repo owner/name).", json!({"path": s, "key": s, "name": s, "github": s, "private": {"type": "boolean"}}), &["path", "key", "name"]),
@@ -125,6 +129,30 @@ pub fn call(name: &str, a: &Value) -> Res<Value> {
         },
         "sync" => s.sync(a.get("message").and_then(Value::as_str).unwrap_or("reqforge: sync"))?,
         "context" => changes::context(s, arg(a, "id")?)?,
+        "verification" => {
+            let full = crate::verify::report(s);
+            match a.get("req").and_then(Value::as_str) {
+                Some(r) => full["requirements"].get(r).cloned().ok_or_else(|| StoreError::new(format!("{r} not found"), 404))?,
+                None => {
+                    let mut v = crate::verify::summary(&full);
+                    v["statuses"] = full["statuses"].clone();
+                    v
+                }
+            }
+        }
+        "impact" => crate::impact::impact(s, a.get("component").and_then(Value::as_str), a.get("root").and_then(Value::as_str).map(std::path::Path::new), a.get("base").and_then(Value::as_str))?,
+        "scan_code" => {
+            let only: Vec<String> = a.get("components").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str).map(String::from).collect();
+            crate::codetrace::scan(s, &only, a.get("root").and_then(Value::as_str).map(std::path::Path::new), true)?
+        }
+        "ingest_evidence" => {
+            let mut files = vec![];
+            for p in a.get("paths").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str) {
+                files.push((p.to_string(), std::fs::read_to_string(p).map_err(|e| StoreError::bad(format!("{p}: {e}")))?));
+            }
+            let o = crate::evidence::IngestOpts { component: a.get("component").and_then(Value::as_str), commit: a.get("commit").and_then(Value::as_str), run: a.get("run").and_then(Value::as_str) };
+            crate::evidence::ingest(s, &files, &o)?
+        }
         "simulate_changeset" => changes::simulate(s, a.get("changeset").unwrap_or(&Value::Null)),
         "propose_changeset" => changes::propose(s, a.get("changeset").unwrap_or(&Value::Null))?,
         "get_changeset" => changes::get(s, arg(a, "id")?)?,

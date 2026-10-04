@@ -17,6 +17,12 @@ Each eval: `{id: "E1", name, kind, command, covers: ["REQ-0007#AC1", ...], requi
 - **Commands:** make them deterministic, non-interactive, and exit non-zero on failure. Make them narrow, e.g. `pytest tests/auth/test_login.py -q` or `npm test -- login.spec.ts`, not just `npm test`. Name the test file the code task will create. Designing the file path is your job; writing the test belongs to the code task.
 - Design and documentation stories may have reviewable evals (`static`: e.g. `spectral lint openapi.yaml`, `adr-lint`). Set `required: false` if a human sign-off is the real gate.
 
+**Trace tags (the link to real code).** Every eval must point at tests that carry reqforge trace tags, so CI results map back to criteria:
+- Test files tag what they verify: pytest `@pytest.mark.req("REQ-0007#AC1")`, Jest/Vitest `test("[REQ-0007#AC1] …")`, JUnit `@Tag("REQ-0007")`, or a comment `// reqforge: verifies REQ-0007#AC1`.
+- Implementation entry points carry `reqforge: implements REQ-0007`.
+- The files named in an eval's `command` must contain tags for everything in its `covers`. The `verification` check `eval-tags` flags mismatches.
+- Put the tagging in the code task's `done_when`, for example "tests tagged REQ-0007#AC1–AC3; `reqforge scan` shows them".
+
 Then add any missing `code` task with `done_when` that names the eval ids, for example "E1–E3 green in CI". Write with `update` (pass `version`) or `upsert_many`.
 
 ## Finish

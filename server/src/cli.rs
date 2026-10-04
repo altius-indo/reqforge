@@ -147,6 +147,9 @@ pub enum Cmd {
         /// do not vendor the reqforge server sources into .reqforge/
         #[arg(long)]
         no_vendor: bool,
+        /// component key this code repo implements (enables scan, impact and code evidence)
+        #[arg(short, long)]
+        component: Option<String>,
     },
     /// read or patch project config: --set key=JSON
     Config {
@@ -167,6 +170,52 @@ pub enum Cmd {
         #[arg(long, default_value_t = 8787)]
         port: u16,
     },
+    /// scan component sources for trace tags (`reqforge: implements REQ-…`, test markers)
+    Scan {
+        /// component key(s) to scan (default: all with a path)
+        #[arg(short, long = "component")]
+        component: Vec<String>,
+        /// scan this checkout instead of the component's path (CI: --root .)
+        #[arg(long)]
+        root: Option<PathBuf>,
+        /// report without writing the index
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// ingest CI results (JUnit XML, reqforge eval reports) as verification evidence
+    Evidence {
+        #[command(subcommand)]
+        cmd: EvidenceCmd,
+    },
+    /// verification report: requirement -> criteria -> tests/evals -> evidence -> code
+    Verify {
+        #[arg(long)]
+        md: bool,
+        /// ignore evidence: only check code/test trace tags (PR gate before tests run)
+        #[arg(long = "static")]
+        static_only: bool,
+        /// exit 1 when an error-level check fails (CI)
+        #[arg(long)]
+        gate: bool,
+        /// detail for one requirement
+        #[arg(long)]
+        req: Option<String>,
+    },
+    /// requirements, tests and evals affected by a code change (PR impact)
+    Impact {
+        #[arg(short, long)]
+        component: Option<String>,
+        /// base ref (default origin/main, main, …)
+        #[arg(long)]
+        base: Option<String>,
+        #[arg(long)]
+        root: Option<PathBuf>,
+        #[arg(long)]
+        md: bool,
+        /// print only the test files to run, one per line
+        #[arg(long)]
+        select_tests: bool,
+    },
     /// manage the projects in a workspace
     Project {
         #[command(subcommand)]
@@ -176,6 +225,27 @@ pub enum Cmd {
     Console,
     /// run the MCP server on stdio
     Mcp,
+}
+
+#[derive(Subcommand)]
+pub enum EvidenceCmd {
+    /// ingest result files
+    Ingest {
+        files: Vec<PathBuf>,
+        #[arg(short, long)]
+        component: Option<String>,
+        /// commit the results belong to (default: the scanned commit)
+        #[arg(long)]
+        commit: Option<String>,
+        /// CI run URL
+        #[arg(long)]
+        run: Option<String>,
+    },
+    /// list latest evidence, optionally for one requirement or criterion
+    List {
+        #[arg(long)]
+        target: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -436,8 +506,8 @@ pub fn run(cli: Cli) -> Res<i32> {
                 return Ok(if rep["ok"] == json!(true) { 0 } else { 1 });
             }
         },
-        Cmd::Cicd { out, requirements_path, no_vendor } => {
-            for p in cicd::generate(s, &out, &requirements_path, !no_vendor).map_err(StoreError::bad)? {
+        Cmd::Cicd { out, requirements_path, no_vendor, component } => {
+            for p in cicd::generate_for(s, &out, &requirements_path, !no_vendor, component.as_deref()).map_err(StoreError::bad)? {
                 println!("wrote {p}");
             }
         }
@@ -452,6 +522,56 @@ pub fn run(cli: Cli) -> Res<i32> {
             let r = s.sync(&message)?;
             pretty(&r);
             return Ok(if r["ok"] == json!(true) { 0 } else { 1 });
+        }
+        Cmd::Scan { component, root, dry_run } => pretty(&crate::codetrace::scan(s, &component, root.as_deref(), !dry_run)?),
+        Cmd::Evidence { cmd } => match cmd {
+            EvidenceCmd::Ingest { files, component, commit, run } => {
+                let mut loaded = vec![];
+                for f in &files {
+                    let text = std::fs::read_to_string(f).map_err(|e| StoreError::bad(format!("{}: {e}", f.display())))?;
+                    loaded.push((f.display().to_string(), text));
+                }
+                let o = crate::evidence::IngestOpts { component: component.as_deref(), commit: commit.as_deref(), run: run.as_deref() };
+                pretty(&crate::evidence::ingest(s, &loaded, &o)?)
+            }
+            EvidenceCmd::List { target } => {
+                let t = target.unwrap_or_default();
+                let rows: Vec<Value> = crate::evidence::load_latest(&s.root)
+                    .values()
+                    .filter(|e| t.is_empty() || e.target == t || e.target.starts_with(&format!("{t}#")))
+                    .map(|e| serde_json::to_value(e).unwrap())
+                    .collect();
+                pretty(&json!(rows))
+            }
+        },
+        Cmd::Verify { md, gate, req, static_only } => {
+            let full = if static_only {
+                std::sync::Arc::new(crate::verify::compute(s, &crate::codetrace::load_all(&s.root), &Default::default()))
+            } else {
+                crate::verify::report(s)
+            };
+            if let Some(r) = req {
+                pretty(&full["requirements"].get(&r).cloned().ok_or_else(|| StoreError::new(format!("{r} not found"), 404))?);
+                return Ok(0);
+            }
+            if md {
+                println!("{}", crate::verify::to_markdown(&full));
+            } else {
+                pretty(&crate::verify::summary(&full));
+            }
+            return Ok(if gate && full["ok"] != json!(true) { 1 } else { 0 });
+        }
+        Cmd::Impact { component, base, root, md, select_tests } => {
+            let rep = crate::impact::impact(s, component.as_deref(), root.as_deref(), base.as_deref())?;
+            if select_tests {
+                for t in rep["tests"].as_array().into_iter().flatten() {
+                    println!("{}", t["file"].as_str().unwrap_or(""));
+                }
+            } else if md {
+                print!("{}", crate::impact::to_markdown(&rep));
+            } else {
+                pretty(&rep);
+            }
         }
         Cmd::Console => console::run(s),
         Cmd::Mcp | Cmd::Init { .. } | Cmd::Taxonomy | Cmd::Project { .. } | Cmd::Serve { .. } => unreachable!(),

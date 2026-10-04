@@ -6,12 +6,12 @@ const compactFmt = new Intl.NumberFormat("en-US", { notation: "compact", maximum
 export const compact = (n: number) => (n < 1000 ? String(n) : compactFmt.format(n))
 export const pct = (v: number | null | undefined) => `${Math.round((v || 0) * 100)}%`
 
-const PREFIX: Record<string, Kind> = { REQ: "requirements", EPIC: "epics", STORY: "stories", TASK: "tasks" }
+const PREFIX: Record<string, Kind> = { REQ: "requirements", EPIC: "epics", STORY: "stories", TASK: "tasks", COMP: "components" }
 export const kindOf = (id: string): Kind | undefined => PREFIX[String(id).split("-")[0]]
 
 /** Splits text on record ids; odd indices are ids. */
-export const ID_SPLIT_RE = /((?:REQ|EPIC|STORY|TASK)-\d{4,})/
-export const ID_RE_G = /\b((?:REQ|EPIC|STORY|TASK)-\d{4,})\b/g
+export const ID_SPLIT_RE = /((?:REQ|EPIC|STORY|TASK|COMP)-\d{4,})/
+export const ID_RE_G = /\b((?:REQ|EPIC|STORY|TASK|COMP)-\d{4,})\b/g
 
 export const singular = (kind: Kind) => kind.replace(/ies$/, "y").replace(/s$/, "")
 
@@ -54,4 +54,16 @@ export function describeCounts(a: ArtifactCounts): string {
   return NOUNS.filter(([k], i) => i < 4 || a[k] > 0)
     .map(([k, one, many]) => `${fmt(a[k])} ${a[k] === 1 ? one : many}`)
     .join(", ")
+}
+
+/** first 8 chars of a commit sha */
+export const shortSha = (c: string | null | undefined) => (c ? c.slice(0, 8) : "")
+
+/** "2026-10-04T00:24:34+00:00" -> "2026-10-04 00:24" */
+export const shortTime = (t: string | null | undefined) => (t ? t.replace("T", " ").slice(0, 16) : "")
+
+/** blob URL of a file in a component's repository (GitHub/GitLab style), or null */
+export function blobUrl(repoUrl: string | null | undefined, file: string, line?: number | null): string | null {
+  if (!repoUrl || !/^https?:\/\//.test(repoUrl)) return null
+  return `${repoUrl.replace(/\/+$/, "").replace(/\.git$/, "")}/blob/HEAD/${file}${line ? `#L${line}` : ""}`
 }

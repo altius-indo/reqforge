@@ -38,8 +38,10 @@ src/
   state/app.tsx       view state of the active project (tab, filters, query, sort, paging, selection, drawer, tree)
   state/chat.tsx      chat log/session per project (persisted in localStorage), streaming send, cancel
   state/queries.ts    TanStack Query hooks; keys start with ["p", <KEY>, …]
-  components/         Header, Sidebar, Crumbs, RecordDrawer, ChangesetCard, chat/*, ui/* (shadcn)
-  views/              ListView, TraceView, LintView, ChangesView, ProjectsView (+ onboarding; code-split)
+  components/         Header, Sidebar, Crumbs, RecordDrawer, ChangesetCard, CodeEvidence (drawer "Code & evidence"),
+                      verification (status badges, code locations, tag snippets), chat/*, ui/* (shadcn)
+  views/              ListView (also Components), TraceView, LintView, ChangesView,
+                      VerificationView (gate, scan, ingest, impact; code-split), ProjectsView (+ onboarding; code-split)
 ```
 
 ## Projects
@@ -61,5 +63,5 @@ Per project: `reqforge.tab.<KEY>`, `reqforge.open.<KEY>` (expanded tree types), 
 ## Tests
 
 Interactive elements carry stable `data-testid` attributes (`row`, `tree-type`, `tree-cat`,
-`facet-chip`, `bulk-*`, `drawer-*`, `changeset-card`, `cs-apply`, `choice-option`, `chat-input`, …)
+`facet-chip`, `verif-badge`, `verif-chip`, `code-panel`, `ac-verif`, `comp-row`, `ingest-*`, `impact-*`, `bulk-*`, `drawer-*`, `changeset-card`, `cs-apply`, `choice-option`, `chat-input`, …)
 so a headless-browser script can drive the UI.

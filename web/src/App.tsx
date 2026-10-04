@@ -19,11 +19,20 @@ function MainView() {
   if (metaError) return <ErrorText testId="meta-error">{metaError.message}</ErrorText>
   if (!meta) return <p className="text-muted-foreground">Loading…</p>
   if (view.tab === "trace") return <TraceView />
+  if (view.tab === "verification")
+    return (
+      <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
+        <VerificationView />
+      </Suspense>
+    )
   if (view.tab === "lint") return <LintView />
   if (view.tab === "changes") return <ChangesView />
   if ((KINDS as string[]).includes(view.tab)) return <ListView key={view.tab} kind={view.tab as Kind} />
   return null
 }
+
+// the verification dashboard (scan, ingest, impact) is code-split too
+const VerificationView = lazy(() => import("@/views/VerificationView").then((m) => ({ default: m.VerificationView })))
 
 // project management UI is code-split: it is not needed to work inside a project
 const ProjectsView = lazy(() => import("@/views/ProjectsView").then((m) => ({ default: m.ProjectsView })))

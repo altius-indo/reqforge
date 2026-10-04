@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Chip, ErrorText } from "@/components/common"
 import { Crumbs } from "@/components/Crumbs"
+import { VerifBadge } from "@/components/verification"
 import { PAGE_SIZE_OPTIONS, useApp } from "@/state/app"
 import { useChat } from "@/state/chat"
 import { useListPage } from "@/state/queries"
@@ -17,13 +18,22 @@ import { fmt, viewPrompt } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 const COLS: Record<Kind, string[]> = {
-  requirements: ["title", "category", "priority", "status", "_stories", "_children", "tags"],
+  requirements: ["title", "category", "priority", "status", "_verification", "_stories", "_children", "tags"],
   epics: ["title", "requirements", "status", "tags"],
   stories: ["title", "epic", "requirements", "component", "_evals", "_tasks", "status"],
   tasks: ["title", "story", "kind", "status", "estimate"],
+  components: ["key", "title", "language", "path", "owners"],
 }
-const LABEL: Record<string, string> = { _stories: "stories", _children: "children", _evals: "evals", _tasks: "tasks" }
-const HIDE_MOBILE = ["tags", "requirements", "story", "epic", "component", "_children"]
+const LABEL: Record<string, string> = {
+  _stories: "stories",
+  _children: "children",
+  _evals: "evals",
+  _tasks: "tasks",
+  _verification: "verification",
+}
+/** columns the server cannot sort by */
+const NO_SORT = ["_verification"]
+const HIDE_MOBILE = ["tags", "requirements", "story", "epic", "component", "_children", "path", "owners"]
 const NUMERIC = ["_stories", "_children", "_evals", "_tasks"]
 
 function Cell({ kind, row, field }: { kind: Kind; row: ListRow; field: string }) {
@@ -65,6 +75,10 @@ function Cell({ kind, row, field }: { kind: Kind; row: ListRow; field: string })
         ▸ {String(v)}
       </button>
     ) : null
+  if (field === "_verification") return <VerifBadge status={row._verification} />
+  if (field === "key") return <span className="id-mono font-medium">{String(v ?? "")}</span>
+  if (field === "path")
+    return <span className="id-mono text-[12px] break-all text-muted-foreground">{String(v ?? "")}</span>
   if (field === "_evals")
     return <span className={cn("tabular-nums", !v && row.deliverable === "code" && "text-err")}>{String(v || 0)}</span>
   if (Array.isArray(v))
@@ -162,8 +176,8 @@ function BulkBar({ kind, allOnPage, total }: { kind: Kind; allOnPage: boolean; t
       : value
     const body: Parameters<typeof api.bulk>[1] = { dry_run: dry, [mode]: { [field]: v } }
     if (selAll) {
-      if (view.filters.covered) {
-        toast.error("bulk-by-filter can't use the story-link filter; select rows instead")
+      if (view.filters.covered || view.filters.verification) {
+        toast.error("bulk-by-filter can't use the story-link or verification filter; select rows instead")
         return
       }
       body.q = view.q
@@ -398,7 +412,7 @@ export function ListView({ kind }: { kind: Kind }) {
                   </Th>
                   <Th col="id">id</Th>
                   {cols.map((c) => (
-                    <Th key={c} col={c} className={HIDE_MOBILE.includes(c) ? "hidden md:table-cell" : undefined}>
+                    <Th key={c} col={NO_SORT.includes(c) ? undefined : c} className={HIDE_MOBILE.includes(c) ? "hidden md:table-cell" : undefined}>
                       {LABEL[c] || c}
                     </Th>
                   ))}

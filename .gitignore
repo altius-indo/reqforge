@@ -5,3 +5,4 @@ __pycache__/
 reqforge-reports/
 server/target/
 web/node_modules/
+.DS_Store

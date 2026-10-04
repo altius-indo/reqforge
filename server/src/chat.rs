@@ -20,10 +20,11 @@ pub const SYSTEM_PROMPT: &str = include_str!("chat_prompt.md");
 pub const MCP: &str = "mcp__plugin_reqforge_reqforge__";
 pub const READ_TOOLS: &[&str] = &[
     "taxonomy", "search", "get", "context", "lint", "trace", "eval_registry", "simulate_changeset", "propose_changeset",
-    "get_changeset", "list_changesets", "save_session",
+    "get_changeset", "list_changesets", "save_session", "verification", "impact",
 ];
 pub const WRITE_TOOLS: &[&str] = &[
     "create", "update", "delete", "bulk_update", "upsert_many", "apply_changeset", "reject_changeset", "config", "sync", "init_repo",
+    "scan_code", "ingest_evidence", "create_project",
 ];
 
 pub fn allowed() -> Vec<String> {
