@@ -5,9 +5,9 @@
   "kind": "code",
   "description": "Server: a start route that refuses while dependencies are unfinished, and otherwise sets the task and its todo story/epic to in-progress in one versioned commit. Web: Start button on todo task rows and in the drawer, disabled with the unfinished dependencies listed.",
   "done_when": "task-start e2e suite passes.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:26:54+00:00"
+  "updated": "2026-10-04T05:32:30+00:00"
 }
