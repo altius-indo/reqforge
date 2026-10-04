@@ -4,7 +4,9 @@
   "epic": "EPIC-0010",
   "narrative": "As a product owner, I want to review an agent's branch and complete the task in one action so that verified work lands on the main branch and the task is done.",
   "requirements": [
-    "REQ-0056"
+    "REQ-0056",
+    "REQ-0051",
+    "REQ-0052"
   ],
   "deliverable": "code",
   "component": "server",
@@ -21,7 +23,7 @@
         "REQ-0056#AC4",
         "REQ-0056#AC5",
         "REQ-0056#AC6",
-        "REQ-0056#AC7"
+        "REQ-0051#AC7"
       ]
     },
     {
@@ -32,13 +34,22 @@
       "covers": [
         "REQ-0056#AC1",
         "REQ-0056#AC5",
-        "REQ-0056#AC7"
+        "REQ-0051#AC7"
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "Complete eval-run sandbox",
+      "kind": "security",
+      "command": "cargo test --manifest-path server/Cargo.toml --test task_complete -- eval_run_sandboxed",
+      "covers": [
+        "REQ-0052#AC5"
       ]
     }
   ],
   "status": "in-progress",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T17:20:21+00:00",
-  "updated": "2026-10-04T18:10:15+00:00"
+  "updated": "2026-10-04T18:21:36+00:00"
 }

@@ -5,7 +5,7 @@
   "type": "functional",
   "category": "task-execution",
   "priority": "could",
-  "status": "implemented",
+  "status": "approved",
   "rationale": "Lets a product owner hand a planned task straight to an agent while keeping the work traceable to requirements.",
   "acceptance_criteria": [
     {
@@ -31,6 +31,10 @@
     {
       "id": "AC6",
       "text": "Start with agent is disabled, with the reason shown, when the story has no component, the component has no path, or any task in depends_on is not done"
+    },
+    {
+      "id": "AC7",
+      "text": "Start with agent warns, before confirmation, about other in-progress tasks of the same story with unmerged agent branches and offers to add them to depends_on"
     }
   ],
   "parent": null,
@@ -42,7 +46,7 @@
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
   "notes": null,
-  "version": 4,
+  "version": 5,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T05:32:30+00:00"
+  "updated": "2026-10-04T18:21:36+00:00"
 }

@@ -31,10 +31,6 @@
     {
       "id": "AC6",
       "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
-    },
-    {
-      "id": "AC7",
-      "text": "Start with agent warns, before confirmation, about other in-progress tasks of the same story with unmerged agent branches and offers to add them to depends_on"
     }
   ],
   "tags": [
@@ -42,7 +38,7 @@
   ],
   "standards": [],
   "stakeholders": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T17:20:21+00:00",
-  "updated": "2026-10-04T17:20:21+00:00"
+  "updated": "2026-10-04T18:21:36+00:00"
 }
