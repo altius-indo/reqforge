@@ -6,9 +6,9 @@
   "depends_on": [],
   "description": "Start the chat's MCP server with the chat's project and a chat role; refuse a project argument naming another project, and refuse deny-listed tools server-side. Code: server/src/chat.rs:256-260, server/src/mcp.rs:19-29, server/src/workspace.rs:380-389. Tag tests REQ-0041#AC2 and REQ-0041#AC3.",
   "done_when": "STORY-0005/E3 passes and REQ-0041 reports verified.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T06:45:40+00:00",
-  "updated": "2026-10-04T06:50:02+00:00"
+  "updated": "2026-10-04T16:22:17+00:00"
 }
