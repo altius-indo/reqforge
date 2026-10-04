@@ -1,0 +1,477 @@
+{
+  "id": "CS-0001",
+  "title": "In-app help and how-to panel",
+  "summary": "Add a slide-out help panel with contextual how-to guides for every web UI area, plus a story, tasks and evals.",
+  "rationale": "No requirement covers in-app help; product owner asked for a detailed help and how-to section delivered as a slide-out panel. Guide topics and Markdown-in-repo content source use the recommended defaults pending confirmation.",
+  "status": "pending",
+  "created": "2026-10-04T01:55:15+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r1",
+      "data": {
+        "title": "In-app help and how-to panel",
+        "statement": "The system shall provide a slide-out help panel, openable from every web UI view, containing step-by-step how-to guides for each area of the web UI.",
+        "type": "interface",
+        "category": "user-interface",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "Product owners and new users need guidance on reqforge workflows without leaving the UI.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "A Help button in the header opens the panel over the current view in 1 click, without changing the route, filters or selection"
+          },
+          {
+            "id": "AC2",
+            "text": "The panel opens on the section matching the active tab and offers a table of contents linking to every section"
+          },
+          {
+            "id": "AC3",
+            "text": "The panel contains numbered how-to guides for at least 6 topics: browse and filter, edit and bulk update, chat and changesets, lint and traceability, verification evidence and impact, and projects"
+          },
+          {
+            "id": "AC4",
+            "text": "A search box in the panel filters sections by keyword and shows a no-results message when nothing matches"
+          },
+          {
+            "id": "AC5",
+            "text": "Help content is authored as Markdown files versioned in the repository and bundled with the web UI"
+          },
+          {
+            "id": "AC6",
+            "text": "The panel is keyboard operable: focus moves into it on open, Esc closes it, and focus returns to the Help button"
+          }
+        ],
+        "tags": [
+          "help",
+          "onboarding"
+        ],
+        "source": "product owner request 2026-10-03"
+      },
+      "reason": "New capability: in-app help"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s1",
+      "data": {
+        "title": "In-app help and how-to panel",
+        "epic": "EPIC-0007",
+        "narrative": "As a product owner new to reqforge, I want a help panel with how-to guides I can open from any view so that I can learn each workflow without leaving my work.",
+        "requirements": [
+          "$r1"
+        ],
+        "deliverable": "code",
+        "component": "web",
+        "status": "todo",
+        "points": 5,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "UI e2e: help panel",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help.xml --suite help",
+            "covers": [
+              "$r1#AC1",
+              "$r1#AC2",
+              "$r1#AC3",
+              "$r1#AC4",
+              "$r1#AC5"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "Help panel keyboard and a11y",
+            "kind": "accessibility",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help-a11y.xml --suite help-a11y",
+            "covers": [
+              "$r1#AC6"
+            ]
+          }
+        ]
+      },
+      "reason": "Deliver the help panel"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "Help panel IA and guide outline",
+        "story": "$s1",
+        "kind": "design",
+        "description": "Define panel layout, the tab-to-section map, and the outline of each how-to guide.",
+        "done_when": "Outline covers all 6 topics and every UI tab maps to a section."
+      },
+      "reason": "Design"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "Write how-to guides in Markdown",
+        "story": "$s1",
+        "kind": "code",
+        "description": "Author web/help/*.md guides with numbered steps, bundled by the web build.",
+        "done_when": "6 guide files exist and render in the panel."
+      },
+      "reason": "Content"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "HelpPanel component, header button and search",
+        "story": "$s1",
+        "kind": "code",
+        "description": "Slide-out HelpPanel with contextual section, TOC, keyword search, focus management; Help button in Header.tsx.",
+        "done_when": "help and help-a11y e2e suites pass."
+      },
+      "reason": "Implementation"
+    },
+    {
+      "op": "update",
+      "id": "EPIC-0007",
+      "add": {
+        "requirements": [
+          "$r1"
+        ]
+      },
+      "patch": {
+        "status": "in-progress"
+      },
+      "reason": "New requirement reopens the Web UI epic"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "New STORY-0010 under EPIC-0007; EPIC-0007 reopened from done to in-progress. No existing story changes scope."
+    ],
+    "code": [
+      "web/src/components/Header.tsx (exists): add Help button",
+      "New web/src/components/HelpPanel.tsx; markdown rendering libs are already in web/node_modules",
+      "New web/help/*.md guide content",
+      "New e2e suites web/e2e/suites/help.js and help-a11y.js, registered in web/e2e/run.mjs (exists)",
+      "No existing trace tags affected"
+    ],
+    "evals": [
+      "STORY-0010/E1 e2e help panel covers AC1-AC5",
+      "STORY-0010/E2 accessibility covers AC6"
+    ],
+    "risks": [
+      "Guides can drift from the UI; keep them next to the code and update them in the same PR as UI changes",
+      "Guide topic list and Markdown content source were defaulted, not confirmed by the product owner"
+    ]
+  },
+  "base_versions": {
+    "EPIC-0007": 6
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0048",
+        "ref": "r1",
+        "title": "In-app help and how-to panel",
+        "reason": "New capability: in-app help",
+        "data": {
+          "id": "REQ-0048",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "A Help button in the header opens the panel over the current view in 1 click, without changing the route, filters or selection"
+            },
+            {
+              "id": "AC2",
+              "text": "The panel opens on the section matching the active tab and offers a table of contents linking to every section"
+            },
+            {
+              "id": "AC3",
+              "text": "The panel contains numbered how-to guides for at least 6 topics: browse and filter, edit and bulk update, chat and changesets, lint and traceability, verification evidence and impact, and projects"
+            },
+            {
+              "id": "AC4",
+              "text": "A search box in the panel filters sections by keyword and shows a no-results message when nothing matches"
+            },
+            {
+              "id": "AC5",
+              "text": "Help content is authored as Markdown files versioned in the repository and bundled with the web UI"
+            },
+            {
+              "id": "AC6",
+              "text": "The panel is keyboard operable: focus moves into it on open, Esc closes it, and focus returns to the Help button"
+            }
+          ],
+          "tags": [
+            "help",
+            "onboarding"
+          ],
+          "title": "In-app help and how-to panel",
+          "statement": "The system shall provide a slide-out help panel, openable from every web UI view, containing step-by-step how-to guides for each area of the web UI.",
+          "type": "interface",
+          "category": "user-interface",
+          "rationale": "Product owners and new users need guidance on reqforge workflows without leaving the UI.",
+          "source": "product owner request 2026-10-03"
+        }
+      },
+      {
+        "i": 1,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0010",
+        "ref": "s1",
+        "title": "In-app help and how-to panel",
+        "reason": "Deliver the help panel",
+        "data": {
+          "id": "STORY-0010",
+          "requirements": [
+            "REQ-0048"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "UI e2e: help panel",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help.xml --suite help",
+              "covers": [
+                "REQ-0048#AC1",
+                "REQ-0048#AC2",
+                "REQ-0048#AC3",
+                "REQ-0048#AC4",
+                "REQ-0048#AC5"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "Help panel keyboard and a11y",
+              "kind": "accessibility",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help-a11y.xml --suite help-a11y",
+              "covers": [
+                "REQ-0048#AC6"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "In-app help and how-to panel",
+          "epic": "EPIC-0007",
+          "narrative": "As a product owner new to reqforge, I want a help panel with how-to guides I can open from any view so that I can learn each workflow without leaving my work.",
+          "component": "web",
+          "points": 5
+        }
+      },
+      {
+        "i": 2,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0020",
+        "ref": null,
+        "title": "Help panel IA and guide outline",
+        "reason": "Design",
+        "data": {
+          "id": "TASK-0020",
+          "status": "todo",
+          "title": "Help panel IA and guide outline",
+          "story": "STORY-0010",
+          "kind": "design",
+          "description": "Define panel layout, the tab-to-section map, and the outline of each how-to guide.",
+          "done_when": "Outline covers all 6 topics and every UI tab maps to a section."
+        }
+      },
+      {
+        "i": 3,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0021",
+        "ref": null,
+        "title": "Write how-to guides in Markdown",
+        "reason": "Content",
+        "data": {
+          "id": "TASK-0021",
+          "status": "todo",
+          "title": "Write how-to guides in Markdown",
+          "story": "STORY-0010",
+          "kind": "code",
+          "description": "Author web/help/*.md guides with numbered steps, bundled by the web build.",
+          "done_when": "6 guide files exist and render in the panel."
+        }
+      },
+      {
+        "i": 4,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0022",
+        "ref": null,
+        "title": "HelpPanel component, header button and search",
+        "reason": "Implementation",
+        "data": {
+          "id": "TASK-0022",
+          "status": "todo",
+          "title": "HelpPanel component, header button and search",
+          "story": "STORY-0010",
+          "kind": "code",
+          "description": "Slide-out HelpPanel with contextual section, TOC, keyword search, focus management; Help button in Header.tsx.",
+          "done_when": "help and help-a11y e2e suites pass."
+        }
+      },
+      {
+        "i": 5,
+        "op": "update",
+        "kind": "epics",
+        "id": "EPIC-0007",
+        "title": "Web UI at scale",
+        "reason": "New requirement reopens the Web UI epic",
+        "changes": {
+          "requirements": [
+            [
+              "REQ-0016",
+              "REQ-0017",
+              "REQ-0030",
+              "REQ-0031",
+              "REQ-0032",
+              "REQ-0045"
+            ],
+            [
+              "REQ-0016",
+              "REQ-0017",
+              "REQ-0030",
+              "REQ-0031",
+              "REQ-0032",
+              "REQ-0045",
+              "REQ-0048"
+            ]
+          ],
+          "status": [
+            "done",
+            "in-progress"
+          ]
+        },
+        "base_version": 6
+      }
+    ],
+    "refmap": {
+      "r1": "REQ-0048",
+      "s1": "STORY-0010"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 47,
+        "active": 47,
+        "epics": 9,
+        "stories": 9,
+        "tasks": 19,
+        "evals": 22,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 0.978
+      },
+      "metrics_after": {
+        "requirements": 48,
+        "active": 48,
+        "epics": 9,
+        "stories": 10,
+        "tasks": 22,
+        "evals": 24,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 0.979
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0048"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0010",
+          "title": "In-app help and how-to panel",
+          "status": "todo",
+          "component": "web",
+          "via": [
+            "REQ-0048"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0020",
+          "title": "Help panel IA and guide outline",
+          "kind": "design",
+          "status": "todo",
+          "story": "STORY-0010"
+        },
+        {
+          "id": "TASK-0021",
+          "title": "Write how-to guides in Markdown",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0010"
+        },
+        {
+          "id": "TASK-0022",
+          "title": "HelpPanel component, header button and search",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0010"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0010",
+          "id": "E1",
+          "name": "UI e2e: help panel",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help.xml --suite help",
+          "covers": [
+            "REQ-0048#AC1",
+            "REQ-0048#AC2",
+            "REQ-0048#AC3",
+            "REQ-0048#AC4",
+            "REQ-0048#AC5"
+          ]
+        },
+        {
+          "story": "STORY-0010",
+          "id": "E2",
+          "name": "Help panel keyboard and a11y",
+          "kind": "accessibility",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help-a11y.xml --suite help-a11y",
+          "covers": [
+            "REQ-0048#AC6"
+          ]
+        }
+      ],
+      "components": [
+        "web"
+      ],
+      "in_progress_work": []
+    }
+  }
+}
