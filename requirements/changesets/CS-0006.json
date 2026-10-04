@@ -1,0 +1,1013 @@
+{
+  "id": "CS-0006",
+  "title": "Start tasks from the UI, with an optional coding agent and dependency blocking (replaces CS-0005)",
+  "summary": "Add task dependencies to the record model, a one-click Start action that is blocked until dependencies are done, and an optional sandboxed 'Start with agent' action. Supersedes CS-0005.",
+  "rationale": "Product owner chose both a Start button and an optional agent launch, and to block Start until a task's earlier work is done. Tasks have no dependency field today, so this adds a depends_on data requirement (REQ-0049 here). It is otherwise the same as CS-0005, plus the blocking criteria (Start AC5, Start with agent AC6). Reject CS-0005 and apply this one.",
+  "status": "pending",
+  "created": "2026-10-04T02:11:41+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r4",
+      "data": {
+        "title": "Task dependencies",
+        "statement": "The system shall let a task declare the tasks it depends on in a depends_on list of task ids, rejecting unknown ids, self-references and dependency cycles.",
+        "type": "data",
+        "category": "model",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "Starting a task must be blocked until the work it builds on is done, which needs dependencies recorded on tasks.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "depends_on accepts ids of existing tasks and rejects an unknown id with a field error"
+          },
+          {
+            "id": "AC2",
+            "text": "A self-reference or any dependency cycle is rejected with a field error naming the cycle"
+          },
+          {
+            "id": "AC3",
+            "text": "Deleting a task that another task depends on is refused unless forced, as for other references"
+          }
+        ],
+        "tags": [
+          "tasks"
+        ],
+        "source": "product owner request 2026-10-03"
+      },
+      "reason": "Dependency data needed for blocking"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r1",
+      "data": {
+        "title": "Start task action",
+        "statement": "The system shall offer a Start action on every todo task in the tasks list and the record drawer that moves the task to in-progress in 1 click.",
+        "type": "interface",
+        "category": "user-interface",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "Starting work today means opening the drawer and editing the status field.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "Start is shown only on tasks with status todo, in the list row and in the record drawer"
+          },
+          {
+            "id": "AC2",
+            "text": "1 click sets the task to in-progress as a single commit"
+          },
+          {
+            "id": "AC3",
+            "text": "In the same commit, the task's story and that story's epic move from todo to in-progress; parents that are blocked or done are left unchanged"
+          },
+          {
+            "id": "AC4",
+            "text": "If the task changed since it was loaded, Start returns 409, the status is unchanged and the row refreshes"
+          },
+          {
+            "id": "AC5",
+            "text": "While any task in depends_on is not done, Start is disabled and lists the unfinished tasks, and the start route refuses the request with the status unchanged"
+          }
+        ],
+        "tags": [
+          "tasks",
+          "workflow"
+        ],
+        "source": "product owner request 2026-10-03"
+      },
+      "reason": "One-click start"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r2",
+      "data": {
+        "title": "Start task with coding agent",
+        "statement": "The system shall, after user confirmation, launch a Claude Code coding agent for a task in its story's component repository on a dedicated branch, briefed with the task, story, requirements and acceptance criteria, and stream its progress to the UI.",
+        "type": "functional",
+        "category": "task-execution",
+        "priority": "could",
+        "status": "proposed",
+        "rationale": "Lets a product owner hand a planned task straight to an agent while keeping the work traceable to requirements.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "A confirmation dialog shows the component path, the branch name reqforge/TASK-NNNN and the full brief; nothing runs until the user confirms"
+          },
+          {
+            "id": "AC2",
+            "text": "The agent runs via the local claude CLI in a git worktree of the component on branch reqforge/TASK-NNNN"
+          },
+          {
+            "id": "AC3",
+            "text": "The brief contains the task description and done_when, the story narrative, each linked requirement statement and acceptance criteria, and the trace tag convention"
+          },
+          {
+            "id": "AC4",
+            "text": "Agent progress streams to the task drawer and the user can cancel the run"
+          },
+          {
+            "id": "AC5",
+            "text": "When the run ends, the task shows its branch, commits and exit status, and the task status is never set to done automatically"
+          },
+          {
+            "id": "AC6",
+            "text": "Start with agent is disabled, with the reason shown, when the story has no component, the component has no path, or any task in depends_on is not done"
+          }
+        ],
+        "tags": [
+          "tasks",
+          "agent"
+        ],
+        "source": "product owner request 2026-10-03"
+      },
+      "reason": "Optional agent start"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r3",
+      "data": {
+        "title": "Coding agent sandbox",
+        "statement": "The system shall confine a task's coding agent to its own worktree and task branch so that 0 commits reach the default branch and 0 files outside that worktree change without human review.",
+        "type": "quality",
+        "category": "security",
+        "priority": "must",
+        "status": "proposed",
+        "rationale": "Unlike the chat agent (REQ-0041), the coding agent edits code and runs commands, so its blast radius must be bounded and its runs auditable.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+          },
+          {
+            "id": "AC2",
+            "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+          },
+          {
+            "id": "AC3",
+            "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+          },
+          {
+            "id": "AC4",
+            "text": "Every run is logged with task id, starting user, start and end time, branch and exit status"
+          }
+        ],
+        "tags": [
+          "agent"
+        ],
+        "standards": [
+          "OWASP Top 10 for LLM Applications 2025 LLM06 Excessive Agency"
+        ],
+        "source": "product owner request 2026-10-03"
+      },
+      "reason": "Security bound for the agent"
+    },
+    {
+      "op": "create",
+      "kind": "epics",
+      "ref": "e1",
+      "data": {
+        "title": "Task execution from the UI",
+        "description": "Start planned tasks from the web UI, manually or with a sandboxed coding agent, respecting task dependencies.",
+        "requirements": [
+          "$r4",
+          "$r1",
+          "$r2",
+          "$r3"
+        ],
+        "status": "todo"
+      },
+      "reason": "New capability area"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s0",
+      "data": {
+        "title": "Task dependencies in the record model",
+        "epic": "$e1",
+        "narrative": "As a planner, I want to record which tasks a task depends on so that work can't start before its prerequisites are done.",
+        "requirements": [
+          "$r4"
+        ],
+        "deliverable": "code",
+        "component": "server",
+        "status": "todo",
+        "points": 3,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "task dependency validation",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test integration -- task_depends_on",
+            "covers": [
+              "$r4#AC1",
+              "$r4#AC2",
+              "$r4#AC3"
+            ]
+          }
+        ]
+      },
+      "reason": "Deliver r4"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "Add depends_on to the task schema with cycle check",
+        "story": "$s0",
+        "kind": "code",
+        "description": "Add depends_on (reflist of tasks) to the task schema; validate existence, self-reference and cycles; include it in reference-protected deletes, CSV and the drawer form.",
+        "done_when": "task_depends_on tests pass."
+      },
+      "reason": "Build r4"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s1",
+      "data": {
+        "title": "Start a task in one click",
+        "epic": "$e1",
+        "narrative": "As a product owner, I want a Start button on a task so that I can start work and have its story and epic follow without editing each record.",
+        "requirements": [
+          "$r1"
+        ],
+        "deliverable": "code",
+        "component": "web",
+        "status": "todo",
+        "points": 3,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "UI e2e: start task",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-start.xml --suite task-start",
+            "covers": [
+              "$r1#AC1",
+              "$r1#AC2",
+              "$r1#AC3",
+              "$r1#AC4",
+              "$r1#AC5"
+            ]
+          }
+        ]
+      },
+      "reason": "Deliver r1"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "Start endpoint with story/epic cascade, dependency block and Start button",
+        "story": "$s1",
+        "kind": "code",
+        "description": "Server: a start route that refuses while dependencies are unfinished, and otherwise sets the task and its todo story/epic to in-progress in one versioned commit. Web: Start button on todo task rows and in the drawer, disabled with the unfinished dependencies listed.",
+        "done_when": "task-start e2e suite passes."
+      },
+      "reason": "Build r1"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s2",
+      "data": {
+        "title": "Start a task with a sandboxed coding agent",
+        "epic": "$e1",
+        "narrative": "As a product owner, I want to hand a task to a coding agent from the UI so that work starts on a reviewable branch, traced to its requirements.",
+        "requirements": [
+          "$r2",
+          "$r3"
+        ],
+        "deliverable": "code",
+        "component": "server",
+        "status": "todo",
+        "points": 8,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "agent launcher integration (stub claude)",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test agent_run",
+            "covers": [
+              "$r2#AC2",
+              "$r2#AC3",
+              "$r2#AC5",
+              "$r2#AC6"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: start with agent",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-start.xml --suite agent-start",
+            "covers": [
+              "$r2#AC1",
+              "$r2#AC4"
+            ]
+          },
+          {
+            "id": "E3",
+            "name": "agent sandbox security",
+            "kind": "security",
+            "command": "cargo test --manifest-path server/Cargo.toml --test agent_sandbox",
+            "covers": [
+              "$r3#AC1",
+              "$r3#AC2",
+              "$r3#AC3",
+              "$r3#AC4"
+            ]
+          }
+        ]
+      },
+      "reason": "Deliver r2 and r3"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "Agent run design: brief, worktree, tool policy, run log",
+        "story": "$s2",
+        "kind": "design",
+        "description": "Define the brief template, worktree and branch lifecycle, the agent's allowed and denied tools, cancellation and the run log format.",
+        "done_when": "Design reviewed; tool policy denies reqforge write tools and default-branch pushes."
+      },
+      "reason": "Design r2/r3"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "Agent launcher and sandbox in the server",
+        "story": "$s2",
+        "kind": "code",
+        "description": "Create worktree and branch, build the brief, run claude -p with the coding tool policy, stream events, support cancel, write the run log.",
+        "done_when": "agent_run and agent_sandbox tests pass."
+      },
+      "reason": "Build r2/r3 server side"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "data": {
+        "title": "Start with agent dialog and run view",
+        "story": "$s2",
+        "kind": "code",
+        "description": "Confirmation dialog with brief preview, disabled state with reason, live progress and cancel in the task drawer, run result summary.",
+        "done_when": "agent-start e2e suite passes."
+      },
+      "reason": "Build r2 UI"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "New EPIC-0010 with 3 stories: task dependencies (server, 3 pts), Start button (web, 3 pts), coding agent (server, 8 pts)",
+      "No existing story changes scope"
+    ],
+    "code": [
+      "server: task schema gains depends_on with a cycle check (the schema and validation live in the server model); new start route; the agent launcher can reuse the claude -p invocation in server/src/chat.rs with a separate coding tool policy",
+      "web: Start button on task rows and in web/src/components/RecordDrawer.tsx; new agent dialog and run view",
+      "New tests: task_depends_on in server/tests/integration.rs, server/tests/agent_run.rs, server/tests/agent_sandbox.rs, web/e2e/suites/task-start.js and agent-start.js (none exist yet)",
+      "No existing trace tags affected"
+    ],
+    "evals": [
+      "4 stories' worth of evals: 5 new evals cover all 18 acceptance criteria of the 4 new requirements"
+    ],
+    "risks": [
+      "The coding agent edits code and runs commands. The sandbox requirement must be implemented and passing before 'Start with agent' is enabled",
+      "Existing tasks have no dependencies recorded. Once depends_on exists, a follow-up changeset should set them (e.g. TASK-0021 and TASK-0022 depend on TASK-0020)",
+      "Component records need a path for 'Start with agent' to be usable",
+      "CS-0005 must be rejected; applying both would duplicate the requirements"
+    ]
+  },
+  "base_versions": {},
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0049",
+        "ref": "r4",
+        "title": "Task dependencies",
+        "reason": "Dependency data needed for blocking",
+        "data": {
+          "id": "REQ-0049",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "depends_on accepts ids of existing tasks and rejects an unknown id with a field error"
+            },
+            {
+              "id": "AC2",
+              "text": "A self-reference or any dependency cycle is rejected with a field error naming the cycle"
+            },
+            {
+              "id": "AC3",
+              "text": "Deleting a task that another task depends on is refused unless forced, as for other references"
+            }
+          ],
+          "tags": [
+            "tasks"
+          ],
+          "title": "Task dependencies",
+          "statement": "The system shall let a task declare the tasks it depends on in a depends_on list of task ids, rejecting unknown ids, self-references and dependency cycles.",
+          "type": "data",
+          "category": "model",
+          "rationale": "Starting a task must be blocked until the work it builds on is done, which needs dependencies recorded on tasks.",
+          "source": "product owner request 2026-10-03"
+        }
+      },
+      {
+        "i": 1,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0050",
+        "ref": "r1",
+        "title": "Start task action",
+        "reason": "One-click start",
+        "data": {
+          "id": "REQ-0050",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "Start is shown only on tasks with status todo, in the list row and in the record drawer"
+            },
+            {
+              "id": "AC2",
+              "text": "1 click sets the task to in-progress as a single commit"
+            },
+            {
+              "id": "AC3",
+              "text": "In the same commit, the task's story and that story's epic move from todo to in-progress; parents that are blocked or done are left unchanged"
+            },
+            {
+              "id": "AC4",
+              "text": "If the task changed since it was loaded, Start returns 409, the status is unchanged and the row refreshes"
+            },
+            {
+              "id": "AC5",
+              "text": "While any task in depends_on is not done, Start is disabled and lists the unfinished tasks, and the start route refuses the request with the status unchanged"
+            }
+          ],
+          "tags": [
+            "tasks",
+            "workflow"
+          ],
+          "title": "Start task action",
+          "statement": "The system shall offer a Start action on every todo task in the tasks list and the record drawer that moves the task to in-progress in 1 click.",
+          "type": "interface",
+          "category": "user-interface",
+          "rationale": "Starting work today means opening the drawer and editing the status field.",
+          "source": "product owner request 2026-10-03"
+        }
+      },
+      {
+        "i": 2,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0051",
+        "ref": "r2",
+        "title": "Start task with coding agent",
+        "reason": "Optional agent start",
+        "data": {
+          "id": "REQ-0051",
+          "priority": "could",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "A confirmation dialog shows the component path, the branch name reqforge/TASK-NNNN and the full brief; nothing runs until the user confirms"
+            },
+            {
+              "id": "AC2",
+              "text": "The agent runs via the local claude CLI in a git worktree of the component on branch reqforge/TASK-NNNN"
+            },
+            {
+              "id": "AC3",
+              "text": "The brief contains the task description and done_when, the story narrative, each linked requirement statement and acceptance criteria, and the trace tag convention"
+            },
+            {
+              "id": "AC4",
+              "text": "Agent progress streams to the task drawer and the user can cancel the run"
+            },
+            {
+              "id": "AC5",
+              "text": "When the run ends, the task shows its branch, commits and exit status, and the task status is never set to done automatically"
+            },
+            {
+              "id": "AC6",
+              "text": "Start with agent is disabled, with the reason shown, when the story has no component, the component has no path, or any task in depends_on is not done"
+            }
+          ],
+          "tags": [
+            "tasks",
+            "agent"
+          ],
+          "title": "Start task with coding agent",
+          "statement": "The system shall, after user confirmation, launch a Claude Code coding agent for a task in its story's component repository on a dedicated branch, briefed with the task, story, requirements and acceptance criteria, and stream its progress to the UI.",
+          "type": "functional",
+          "category": "task-execution",
+          "rationale": "Lets a product owner hand a planned task straight to an agent while keeping the work traceable to requirements.",
+          "source": "product owner request 2026-10-03"
+        }
+      },
+      {
+        "i": 3,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0052",
+        "ref": "r3",
+        "title": "Coding agent sandbox",
+        "reason": "Security bound for the agent",
+        "data": {
+          "id": "REQ-0052",
+          "priority": "must",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+            },
+            {
+              "id": "AC2",
+              "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+            },
+            {
+              "id": "AC3",
+              "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+            },
+            {
+              "id": "AC4",
+              "text": "Every run is logged with task id, starting user, start and end time, branch and exit status"
+            }
+          ],
+          "tags": [
+            "agent"
+          ],
+          "standards": [
+            "OWASP Top 10 for LLM Applications 2025 LLM06 Excessive Agency"
+          ],
+          "title": "Coding agent sandbox",
+          "statement": "The system shall confine a task's coding agent to its own worktree and task branch so that 0 commits reach the default branch and 0 files outside that worktree change without human review.",
+          "type": "quality",
+          "category": "security",
+          "rationale": "Unlike the chat agent (REQ-0041), the coding agent edits code and runs commands, so its blast radius must be bounded and its runs auditable.",
+          "source": "product owner request 2026-10-03"
+        }
+      },
+      {
+        "i": 4,
+        "op": "create",
+        "kind": "epics",
+        "id": "EPIC-0010",
+        "ref": "e1",
+        "title": "Task execution from the UI",
+        "reason": "New capability area",
+        "data": {
+          "id": "EPIC-0010",
+          "requirements": [
+            "REQ-0049",
+            "REQ-0050",
+            "REQ-0051",
+            "REQ-0052"
+          ],
+          "status": "todo",
+          "title": "Task execution from the UI",
+          "description": "Start planned tasks from the web UI, manually or with a sandboxed coding agent, respecting task dependencies."
+        }
+      },
+      {
+        "i": 5,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0011",
+        "ref": "s0",
+        "title": "Task dependencies in the record model",
+        "reason": "Deliver r4",
+        "data": {
+          "id": "STORY-0011",
+          "requirements": [
+            "REQ-0049"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "task dependency validation",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test integration -- task_depends_on",
+              "covers": [
+                "REQ-0049#AC1",
+                "REQ-0049#AC2",
+                "REQ-0049#AC3"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Task dependencies in the record model",
+          "epic": "EPIC-0010",
+          "narrative": "As a planner, I want to record which tasks a task depends on so that work can't start before its prerequisites are done.",
+          "component": "server",
+          "points": 3
+        }
+      },
+      {
+        "i": 6,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0025",
+        "ref": null,
+        "title": "Add depends_on to the task schema with cycle check",
+        "reason": "Build r4",
+        "data": {
+          "id": "TASK-0025",
+          "status": "todo",
+          "title": "Add depends_on to the task schema with cycle check",
+          "story": "STORY-0011",
+          "kind": "code",
+          "description": "Add depends_on (reflist of tasks) to the task schema; validate existence, self-reference and cycles; include it in reference-protected deletes, CSV and the drawer form.",
+          "done_when": "task_depends_on tests pass."
+        }
+      },
+      {
+        "i": 7,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0012",
+        "ref": "s1",
+        "title": "Start a task in one click",
+        "reason": "Deliver r1",
+        "data": {
+          "id": "STORY-0012",
+          "requirements": [
+            "REQ-0050"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "UI e2e: start task",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-start.xml --suite task-start",
+              "covers": [
+                "REQ-0050#AC1",
+                "REQ-0050#AC2",
+                "REQ-0050#AC3",
+                "REQ-0050#AC4",
+                "REQ-0050#AC5"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Start a task in one click",
+          "epic": "EPIC-0010",
+          "narrative": "As a product owner, I want a Start button on a task so that I can start work and have its story and epic follow without editing each record.",
+          "component": "web",
+          "points": 3
+        }
+      },
+      {
+        "i": 8,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0026",
+        "ref": null,
+        "title": "Start endpoint with story/epic cascade, dependency block and Start button",
+        "reason": "Build r1",
+        "data": {
+          "id": "TASK-0026",
+          "status": "todo",
+          "title": "Start endpoint with story/epic cascade, dependency block and Start button",
+          "story": "STORY-0012",
+          "kind": "code",
+          "description": "Server: a start route that refuses while dependencies are unfinished, and otherwise sets the task and its todo story/epic to in-progress in one versioned commit. Web: Start button on todo task rows and in the drawer, disabled with the unfinished dependencies listed.",
+          "done_when": "task-start e2e suite passes."
+        }
+      },
+      {
+        "i": 9,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0013",
+        "ref": "s2",
+        "title": "Start a task with a sandboxed coding agent",
+        "reason": "Deliver r2 and r3",
+        "data": {
+          "id": "STORY-0013",
+          "requirements": [
+            "REQ-0051",
+            "REQ-0052"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "agent launcher integration (stub claude)",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test agent_run",
+              "covers": [
+                "REQ-0051#AC2",
+                "REQ-0051#AC3",
+                "REQ-0051#AC5",
+                "REQ-0051#AC6"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "UI e2e: start with agent",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-start.xml --suite agent-start",
+              "covers": [
+                "REQ-0051#AC1",
+                "REQ-0051#AC4"
+              ]
+            },
+            {
+              "id": "E3",
+              "name": "agent sandbox security",
+              "kind": "security",
+              "command": "cargo test --manifest-path server/Cargo.toml --test agent_sandbox",
+              "covers": [
+                "REQ-0052#AC1",
+                "REQ-0052#AC2",
+                "REQ-0052#AC3",
+                "REQ-0052#AC4"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Start a task with a sandboxed coding agent",
+          "epic": "EPIC-0010",
+          "narrative": "As a product owner, I want to hand a task to a coding agent from the UI so that work starts on a reviewable branch, traced to its requirements.",
+          "component": "server",
+          "points": 8
+        }
+      },
+      {
+        "i": 10,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0027",
+        "ref": null,
+        "title": "Agent run design: brief, worktree, tool policy, run log",
+        "reason": "Design r2/r3",
+        "data": {
+          "id": "TASK-0027",
+          "status": "todo",
+          "title": "Agent run design: brief, worktree, tool policy, run log",
+          "story": "STORY-0013",
+          "kind": "design",
+          "description": "Define the brief template, worktree and branch lifecycle, the agent's allowed and denied tools, cancellation and the run log format.",
+          "done_when": "Design reviewed; tool policy denies reqforge write tools and default-branch pushes."
+        }
+      },
+      {
+        "i": 11,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0028",
+        "ref": null,
+        "title": "Agent launcher and sandbox in the server",
+        "reason": "Build r2/r3 server side",
+        "data": {
+          "id": "TASK-0028",
+          "status": "todo",
+          "title": "Agent launcher and sandbox in the server",
+          "story": "STORY-0013",
+          "kind": "code",
+          "description": "Create worktree and branch, build the brief, run claude -p with the coding tool policy, stream events, support cancel, write the run log.",
+          "done_when": "agent_run and agent_sandbox tests pass."
+        }
+      },
+      {
+        "i": 12,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0029",
+        "ref": null,
+        "title": "Start with agent dialog and run view",
+        "reason": "Build r2 UI",
+        "data": {
+          "id": "TASK-0029",
+          "status": "todo",
+          "title": "Start with agent dialog and run view",
+          "story": "STORY-0013",
+          "kind": "code",
+          "description": "Confirmation dialog with brief preview, disabled state with reason, live progress and cancel in the task drawer, run result summary.",
+          "done_when": "agent-start e2e suite passes."
+        }
+      }
+    ],
+    "refmap": {
+      "r4": "REQ-0049",
+      "r1": "REQ-0050",
+      "r2": "REQ-0051",
+      "r3": "REQ-0052",
+      "e1": "EPIC-0010",
+      "s0": "STORY-0011",
+      "s1": "STORY-0012",
+      "s2": "STORY-0013"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 48,
+        "active": 48,
+        "epics": 9,
+        "stories": 10,
+        "tasks": 24,
+        "evals": 26,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 52,
+        "active": 52,
+        "epics": 10,
+        "stories": 13,
+        "tasks": 29,
+        "evals": 31,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0049",
+        "REQ-0050",
+        "REQ-0051",
+        "REQ-0052"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0011",
+          "title": "Task dependencies in the record model",
+          "status": "todo",
+          "component": "server",
+          "via": [
+            "REQ-0049"
+          ]
+        },
+        {
+          "id": "STORY-0012",
+          "title": "Start a task in one click",
+          "status": "todo",
+          "component": "web",
+          "via": [
+            "REQ-0050"
+          ]
+        },
+        {
+          "id": "STORY-0013",
+          "title": "Start a task with a sandboxed coding agent",
+          "status": "todo",
+          "component": "server",
+          "via": [
+            "REQ-0051",
+            "REQ-0052"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0025",
+          "title": "Add depends_on to the task schema with cycle check",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0011"
+        },
+        {
+          "id": "TASK-0026",
+          "title": "Start endpoint with story/epic cascade, dependency block and Start button",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0012"
+        },
+        {
+          "id": "TASK-0027",
+          "title": "Agent run design: brief, worktree, tool policy, run log",
+          "kind": "design",
+          "status": "todo",
+          "story": "STORY-0013"
+        },
+        {
+          "id": "TASK-0028",
+          "title": "Agent launcher and sandbox in the server",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0013"
+        },
+        {
+          "id": "TASK-0029",
+          "title": "Start with agent dialog and run view",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0013"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0011",
+          "id": "E1",
+          "name": "task dependency validation",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- task_depends_on",
+          "covers": [
+            "REQ-0049#AC1",
+            "REQ-0049#AC2",
+            "REQ-0049#AC3"
+          ]
+        },
+        {
+          "story": "STORY-0012",
+          "id": "E1",
+          "name": "UI e2e: start task",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-start.xml --suite task-start",
+          "covers": [
+            "REQ-0050#AC1",
+            "REQ-0050#AC2",
+            "REQ-0050#AC3",
+            "REQ-0050#AC4",
+            "REQ-0050#AC5"
+          ]
+        },
+        {
+          "story": "STORY-0013",
+          "id": "E1",
+          "name": "agent launcher integration (stub claude)",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test agent_run",
+          "covers": [
+            "REQ-0051#AC2",
+            "REQ-0051#AC3",
+            "REQ-0051#AC5",
+            "REQ-0051#AC6"
+          ]
+        },
+        {
+          "story": "STORY-0013",
+          "id": "E2",
+          "name": "UI e2e: start with agent",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-start.xml --suite agent-start",
+          "covers": [
+            "REQ-0051#AC1",
+            "REQ-0051#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0013",
+          "id": "E3",
+          "name": "agent sandbox security",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test agent_sandbox",
+          "covers": [
+            "REQ-0052#AC1",
+            "REQ-0052#AC2",
+            "REQ-0052#AC3",
+            "REQ-0052#AC4"
+          ]
+        }
+      ],
+      "components": [
+        "server",
+        "web"
+      ],
+      "in_progress_work": []
+    }
+  }
+}
