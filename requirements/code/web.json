@@ -1,10 +1,11 @@
 {
   "component": "web",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "e91b9595d0e9fe0520b971c2917cb3c9052facb0",
-  "scanned_at": "2026-10-04T01:04:36+00:00",
-  "files_scanned": 55,
+  "commit": "1de9dabed1119952adcb07b5f5212b4618660458",
+  "scanned_at": "2026-10-04T01:27:43+00:00",
+  "files_scanned": 58,
   "files": {
+    "web/e2e/suites/code.js": "2da5e170317d3c5b666e477107641b6dac899c9875c079473c6684dddf929aba",
     "web/e2e/suites/core.js": "8c3dfbf3a76ca7f60b09e91fe83aec657e13e818aef6451adebaa97491ebdce2",
     "web/e2e/suites/projects.js": "018377a916e2d5d3dc849ba9569eccae082b22b19d39871186fac0d320cde205",
     "web/src/components/ChangesetCard.tsx": "0625e3936262322509661d900e2b6ec661c51efbd347f7967412af8cf380a9ca",
@@ -21,6 +22,86 @@
     "web/src/views/VerificationView.tsx": "fb50028e79c1f85d94ea2d6472e06467a39028726c29f4aa82b18b9610ed1836"
   },
   "tags": [
+    {
+      "req": "REQ-0034",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 39,
+      "symbol": "verificationColumnAndFacet",
+      "text": "// reqforge: verifies REQ-0034#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0031",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 68,
+      "symbol": "codeEvidenceDrawer",
+      "text": "// reqforge: verifies REQ-0031#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0034",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 91,
+      "symbol": "dashboard",
+      "text": "// reqforge: verifies REQ-0034#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0034",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 116,
+      "symbol": "scanAndIngest",
+      "text": "// reqforge: verifies REQ-0034#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0034",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 148,
+      "symbol": "impact",
+      "text": "// reqforge: verifies REQ-0034#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 222,
+      "symbol": "coreOnBig",
+      "text": "// reqforge: verifies REQ-0030#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC6",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 223,
+      "symbol": "coreOnBig",
+      "text": "// reqforge: verifies REQ-0030#AC6",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0031",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/code.js",
+      "line": 224,
+      "symbol": "coreOnBig",
+      "text": "// reqforge: verifies REQ-0031#AC1",
+      "component": "web"
+    },
     {
       "req": "REQ-0030",
       "ac": "AC1",
