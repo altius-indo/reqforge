@@ -3,7 +3,7 @@
   "title": "Cover the start endpoint with server tests",
   "summary": "STORY-0012 gains an integration eval running the task_start tests that verify REQ-0050 AC2-AC5 at the API level.",
   "rationale": "",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T04:55:24+00:00",
   "valid": true,
   "ops": [
@@ -206,5 +206,8 @@
         "TASK-0026"
       ]
     }
-  }
+  },
+  "applied_at": "2026-10-04T04:55:24+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }

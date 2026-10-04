@@ -22,12 +22,24 @@
         "REQ-0050#AC4",
         "REQ-0050#AC5"
       ]
+    },
+    {
+      "id": "E2",
+      "name": "start endpoint (server)",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration -- task_start",
+      "covers": [
+        "REQ-0050#AC2",
+        "REQ-0050#AC3",
+        "REQ-0050#AC4",
+        "REQ-0050#AC5"
+      ]
     }
   ],
   "status": "todo",
   "points": 3,
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:12:08+00:00"
+  "updated": "2026-10-04T04:55:24+00:00"
 }
