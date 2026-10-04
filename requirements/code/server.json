@@ -1,8 +1,8 @@
 {
   "component": "server",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "e0b373ca053dc35ddd2f179620dd706db790409d",
-  "scanned_at": "2026-10-04T01:40:48+00:00",
+  "commit": "ccdad3785cb55a152e1f469aaf45e1e974c62c14",
+  "scanned_at": "2026-10-04T01:47:10+00:00",
   "files_scanned": 26,
   "files": {
     "server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
@@ -10,7 +10,7 @@
     "server/src/chat.rs": "bef971dfcc914457c230da2bcf80c170bcf9553288fcbcdc03486fb6f6eb2da4",
     "server/src/cicd.rs": "cf32485e3c038414daae292fb157add03d0ba708024c45e959ad58a2303e275c",
     "server/src/cli.rs": "7fbc9a8ef6c3f6576f8f67a0526e9abf4244f2e14d1812861117d5254862a48e",
-    "server/src/codetrace.rs": "feca136b82adabd4c7fb9786c83a29e69da99603322cd6777a862fa57f323db8",
+    "server/src/codetrace.rs": "38e607c7962cb59388b1c7ad3cfd38abb5fcf031feff006de651ab329af3d2f2",
     "server/src/console.rs": "25389b0c8bcdc0f5de4705b5da31b91826a1464f1c247802cab411f71fe6bf43",
     "server/src/csvio.rs": "1c74e1ab3ac5f8db42d1f224ff7c9f477ed40522a3237d59af77d9205238a0de",
     "server/src/evals.rs": "296f1adfcab0565bb76e44e120b1f39004dc44e9cdaa9ceece118c9d34201830",
@@ -24,7 +24,7 @@
     "server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
     "server/src/verify.rs": "fa147e48a34db72b8b660bdaffc21bbdeb1dd00cc668780bfec10b127c1ab902",
     "server/src/workspace.rs": "53bdc5132044397de7eabf4b2e18b1709572ab42aed9cdbac69398d3c4653ca5",
-    "server/tests/codetrace.rs": "f7401f57ef1d968d9e19a224ac35e49fbee9eb1587ef8a3b01cd8e4fad872d91",
+    "server/tests/codetrace.rs": "0eedc925cd654861f4d7f57f04c0569ea289c01fff6b7d07ce3e55d882f6c344",
     "server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9",
     "server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952",
     "server/tests/projects.rs": "a9a7cea85e49e89a9b51696fd47a43c0a0f59b1a40c2a15d40c26f73952c426d"
@@ -160,7 +160,7 @@
       "req": "REQ-0021",
       "kind": "implements",
       "file": "server/src/codetrace.rs",
-      "line": 152,
+      "line": 154,
       "symbol": "tags_in_mode",
       "text": "// reqforge: implements REQ-0021",
       "component": "server"
@@ -169,7 +169,7 @@
       "req": "REQ-0021",
       "kind": "implements",
       "file": "server/src/codetrace.rs",
-      "line": 311,
+      "line": 313,
       "symbol": "scan",
       "text": "// reqforge: implements REQ-0021",
       "component": "server"
@@ -621,6 +621,25 @@
       "line": 427,
       "symbol": "a_fresh_pass_supersedes_stale_evidence",
       "text": "// reqforge: verifies REQ-0022#AC1",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0021",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "server/tests/codetrace.rs",
+      "line": 443,
+      "symbol": "hidden_directories_are_scanned_but_vendored_copies_are_not",
+      "text": "// reqforge: verifies REQ-0021#AC2",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0003",
+      "kind": "implements",
+      "file": "server/tests/codetrace.rs",
+      "line": 447,
+      "symbol": "hidden_directories_are_scanned_but_vendored_copies_are_not",
+      "text": "for (rel, text) in [(\".github/workflows/ci.yml\", \"# reqforge: implements REQ-0003\\n\"), (\".reqforge/server/src/x.rs\", \"// reqforge: implements REQ-0003\\n\")] {",
       "component": "server"
     },
     {

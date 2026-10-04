@@ -1,9 +1,9 @@
 {
   "component": "plugin",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "e0b373ca053dc35ddd2f179620dd706db790409d",
-  "scanned_at": "2026-10-04T01:40:48+00:00",
-  "files_scanned": 17,
+  "commit": "ccdad3785cb55a152e1f469aaf45e1e974c62c14",
+  "scanned_at": "2026-10-04T01:47:10+00:00",
+  "files_scanned": 20,
   "files": {
     "agents/cicd-engineer.md": "484e6d0d27f50debca06e1517e4b60a5544084157039d971513bacf20b89966f",
     "agents/delivery-planner.md": "f4f6897d919634ba7a2e4d08fb6b62e673f092f33ffcd4cc9b14f8294433dced",
