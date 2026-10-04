@@ -26,6 +26,7 @@ import type {
   CreateProjectRequest,
   DeleteProjectResult,
   DeleteResult,
+  DesignDoc,
   Facets,
   ImportResult,
   Kind,
@@ -186,6 +187,9 @@ export function projectApi(key: string) {
     runs: (id: string) => request<AgentRunLog[]>("GET", `${b}/tasks/${id}/runs`),
     agentQueue: () => request<AgentQueue>("GET", `${b}/agent-queue`),
     setAgentQueue: (body: AgentQueueUpdate) => request<AgentQueue>("POST", `${b}/agent-queue`, body),
+    // design documents (design/<slug>.md), read-only
+    designDocs: () => request<DesignDoc[]>("GET", `${b}/design`),
+    designDoc: (slug: string) => request<string>("GET", `${b}/design/${encodeURIComponent(slug)}`),
   }
 }
 

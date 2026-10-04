@@ -2,7 +2,7 @@
 // chat.py exactly; the Rust backend serves the same shapes, so change both sides together.
 
 export type Kind = "requirements" | "epics" | "stories" | "tasks" | "components"
-export type Tab = Kind | "trace" | "verification" | "lint" | "changes"
+export type Tab = Kind | "trace" | "verification" | "lint" | "changes" | "design"
 export const KINDS: Kind[] = ["requirements", "epics", "stories", "tasks", "components"]
 
 // ------------------------------------------------------------------ meta
@@ -278,7 +278,20 @@ export interface RecordContext {
   lint?: LintFinding[]
   /** requirements only: per-criterion verification detail (same as GET /verification?req=ID) */
   code?: ReqVerification
+  /** requirements only: design documents whose `realises` lists this requirement */
+  design?: DesignDocRef[]
 }
+
+// ------------------------------------------------------------------ design documents
+/** A design document, design/<slug>.md (GET /design lists them; GET /design/{slug} is its raw Markdown). */
+export interface DesignDoc {
+  slug: string
+  title: string
+  /** requirement ids the document realises */
+  realises: string[]
+}
+
+export type DesignDocRef = Pick<DesignDoc, "slug" | "title">
 
 // ------------------------------------------------------------------ changesets
 export type ChangesetStatus = "pending" | "applied" | "rejected" | "stale"

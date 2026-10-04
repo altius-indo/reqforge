@@ -42,6 +42,7 @@ Every UI tab and page maps to exactly one section; every section is reachable fr
 | Verification                        | `verification-and-impact` | `05-verification-and-impact.md` |
 | Lint                                | `lint-and-traceability`   | `04-lint-and-traceability.md`   |
 | Changes                             | `chat-and-changesets`     | `03-chat-and-changesets.md`     |
+| Design                              | `design`                  | `08-design.md`                  |
 | Chat panel (its **?** help button)  | `chat-and-changesets`     | `03-chat-and-changesets.md`     |
 | Projects page, onboarding           | `projects`                | `07-projects.md`                |
 | (contents only)                     | `edit-and-bulk-update`    | `02-edit-and-bulk-update.md`    |
@@ -72,6 +73,9 @@ naming it in one guide.
    component.
 7. **Projects** — switch projects (switcher, back/forward); create a project (key rules, optional GitHub repo);
    import an existing repository; manage projects (open, rename, make default, delete, single-repository mode).
+8. **Design documents** — read a design document (list, Markdown, realised requirements, record ids open the
+   drawer); find the design behind a requirement (*Links & impact* drawer tab); add a design document
+   (`design/<slug>.md`, front matter, Lint).
 
 ## Authoring and bundling
 

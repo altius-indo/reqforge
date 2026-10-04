@@ -3,7 +3,7 @@ import { Bot, Loader2, MessageSquare, X } from "lucide-react"
 import { toast } from "sonner"
 import { ApiError } from "@/api/client"
 import { useApi } from "@/state/project"
-import type { FieldSchema, Kind, Meta, RecordBase, RecordContext, Requirement } from "@/api/types"
+import type { DesignDocRef, FieldSchema, Kind, Meta, RecordBase, RecordContext, Requirement } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -333,6 +333,42 @@ function DetailsForm({ kind, rec, meta }: { kind: Kind; rec: RecordBase | null; 
   )
 }
 
+/** Design documents that realise a requirement; each opens on the Design tab. */
+// reqforge: implements REQ-0055
+function DesignDocsSection({ docs }: { docs: DesignDocRef[] }) {
+  const { goto, closeDrawer } = useApp()
+  return (
+    <>
+      <H3>Design documents</H3>
+      {docs.length ? (
+        <ul data-testid="drawer-design-docs" className="list-disc space-y-0.5 pl-5">
+          {docs.map((d) => (
+            <li key={d.slug}>
+              <button
+                type="button"
+                data-testid="drawer-design-link"
+                data-slug={d.slug}
+                className="cursor-pointer text-primary hover:underline"
+                onClick={() => {
+                  goto("design", { doc: d.slug })
+                  closeDrawer()
+                }}
+              >
+                {d.title || d.slug}
+              </button>{" "}
+              <span className="id-mono text-[11.5px] text-muted-foreground">design/{d.slug}.md</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p data-testid="drawer-design-none" className="text-muted-foreground">
+          No design document realises this requirement.
+        </p>
+      )}
+    </>
+  )
+}
+
 function LinksPanel({ kind, ctx, meta }: { kind: Kind; ctx: RecordContext; meta: Meta }) {
   const r = ctx.record as Requirement
   if (kind === "requirements" && ctx.impact) {
@@ -395,6 +431,7 @@ function LinksPanel({ kind, ctx, meta }: { kind: Kind; ctx: RecordContext; meta:
             </ul>
           </>
         )}
+        <DesignDocsSection docs={ctx.design ?? []} />
         <H3>Acceptance criteria → evals</H3>
         {acs.length ? (
           <ul data-testid="ac-list" className="list-disc space-y-1 pl-5">

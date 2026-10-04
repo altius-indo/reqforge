@@ -150,6 +150,18 @@ export function useAgentQueue(pollMs = 3000) {
   })
 }
 
+/** the project's design documents (design/<slug>.md): slug, title, realises */
+export function useDesignDocs() {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "design"], queryFn: api.designDocs })
+}
+
+/** one design document's raw Markdown */
+export function useDesignDoc(slug: string | null) {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "design", slug], queryFn: () => api.designDoc(slug!), enabled: !!slug })
+}
+
 /** every task id + title + status, for pickers (depends_on) */
 export function useTaskOptions(enabled = true) {
   const api = useApi()
