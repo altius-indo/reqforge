@@ -198,6 +198,11 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                     errors.push(format!("{id}: {e}"));
                 }
             }
+            if kind == Kind::Tasks {
+                for e in crate::model::task_dependency_errors(rec, &view.records(Kind::Tasks)) {
+                    errors.push(format!("{id}: {e}"));
+                }
+            }
         }
     }
     let before = dangling(&base);

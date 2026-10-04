@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react"
-import { RotateCcw, Send, Square, X } from "lucide-react"
+import { CircleHelp, RotateCcw, Send, Square, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { useChat } from "@/state/chat"
+import { useHelp } from "@/state/help"
 import { useChatStatus } from "@/state/queries"
 import { cn } from "@/lib/utils"
 import { ChatMessage } from "./ChatMessage"
@@ -11,6 +12,7 @@ import { ChatMessage } from "./ChatMessage"
 // reqforge: implements REQ-0032
 export function ChatPanel() {
   const chat = useChat()
+  const help = useHelp()
   const status = useChatStatus()
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -52,6 +54,16 @@ export function ChatPanel() {
           <span className="text-[12px] text-muted-foreground">· ${chat.lastCost.toFixed(3)} last turn</span>
         )}
         <span className="flex-1" />
+        <Button
+          size="icon-xs"
+          variant="ghost"
+          aria-label="help on chat and changesets"
+          title="Help: chat and changesets"
+          onClick={(e) => help.openHelp("chat", e.currentTarget)}
+          data-testid="chat-help"
+        >
+          <CircleHelp />
+        </Button>
         <Button size="xs" variant="outline" title="start a fresh conversation" onClick={chat.reset} data-testid="chat-new">
           <RotateCcw /> New
         </Button>

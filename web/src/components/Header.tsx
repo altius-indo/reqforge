@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { getToken, setToken } from "@/api/client"
 import type { Tab } from "@/api/types"
 import { ProjectSwitcher } from "@/components/ProjectSwitcher"
+import { HelpButton } from "@/components/help/HelpButton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useApp } from "@/state/app"
@@ -57,8 +58,11 @@ function TokenForm() {
   )
 }
 
-/** Brand + project switcher; the app header and the project-less pages share it. */
-export function TopBar({ leading, children }: { leading?: ReactNode; children?: ReactNode }) {
+/**
+ * Brand + project switcher + Help; the app header and the project-less pages share it, so the
+ * Help button is on every view. `helpContext` picks the help section (the active tab, or `projects`).
+ */
+export function TopBar({ leading, children, helpContext }: { leading?: ReactNode; children?: ReactNode; helpContext: string }) {
   return (
     <header className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b bg-card px-3 py-2">
       {leading}
@@ -67,6 +71,7 @@ export function TopBar({ leading, children }: { leading?: ReactNode; children?: 
         <ProjectSwitcher />
       </div>
       {children}
+      <HelpButton context={helpContext} />
     </header>
   )
 }
@@ -75,7 +80,7 @@ export function TopBar({ leading, children }: { leading?: ReactNode; children?: 
 export function ProjectsHeader() {
   const { activeProject, open, route } = useProjects()
   return (
-    <TopBar>
+    <TopBar helpContext="projects">
       <span className="flex-1" />
       <TokenForm />
       {activeProject && route === "projects" && (
@@ -115,6 +120,7 @@ export function Header() {
 
   return (
     <TopBar
+      helpContext={view.tab}
       leading={
         listKind || view.tab === "trace" || view.tab === "verification" || view.tab === "changes" ? (
           <Button

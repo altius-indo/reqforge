@@ -56,6 +56,9 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* colour tokens: text tokens (foreground, muted-foreground, primary, ok/warn/err/info, destructive) keep
+   WCAG 2.2 AA contrast (>= 4.5:1) on background, card, muted and their own 10% tints in both schemes;
+   checked by web/e2e/suites/theme.js (REQ-0045#AC2) */
 :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -63,22 +66,22 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.546 0.215 262.88);
+    --primary: oklch(0.5 0.2 262);
     --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
+    --muted-foreground: oklch(0.52 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
+    --destructive: oklch(0.52 0.21 27.325);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.623 0.214 259.815);
-    --ok: oklch(0.527 0.137 150.07);
-    --warn: oklch(0.6 0.15 65);
-    --err: oklch(0.577 0.215 27.325);
-    --info: oklch(0.52 0.15 250);
+    --ok: oklch(0.46 0.12 150.07);
+    --warn: oklch(0.5 0.12 65);
+    --err: oklch(0.52 0.2 27.325);
+    --info: oklch(0.48 0.14 250);
     --sel: oklch(0.97 0.025 260);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
@@ -103,8 +106,8 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.623 0.214 259.815);
-    --primary-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.7 0.15 258);
+    --primary-foreground: oklch(0.145 0 0);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
@@ -178,4 +181,12 @@
   .md th, .md td { border: 1px solid var(--border); padding: 2px 6px; text-align: left; }
   .md a { color: var(--primary); }
   .md blockquote { border-left: 3px solid var(--border); padding-left: 8px; color: var(--muted-foreground); }
+}
+@layer components {
+  /* help panel guides (web/help/*.md) */
+  .help-md { font-size: 13.5px; line-height: 1.55; }
+  .help-md h3 { font-size: 14px; margin: 14px 0 4px; }
+  .help-md ol { padding-left: 22px; }
+  .help-md li { margin: 2px 0; }
+  .help-md li::marker { color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 }

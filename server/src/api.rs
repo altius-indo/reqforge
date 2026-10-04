@@ -26,9 +26,14 @@
 //! POST   /api/sync | PATCH /api/config
 //! GET    /api/chat/status | POST /api/chat (SSE) | POST /api/chat/cancel {chat_id}
 //! GET    /api/verification[?req=ID|full=1]  per-criterion status: verified/pending/untested/suspect/failing
+//! GET    /api/verification/history?limit=30  verified-ratio snapshots, one per evidence ingest
 //! GET    /api/code | /api/code/{component} | POST /api/code/scan {components?, root?}
 //! GET    /api/evidence?target= | POST /api/evidence {files:[{name, content}], component?, commit?, run?}
 //! GET    /api/impact?component=&base=&root=  requirements/tests/evals touched by a code change
+//! GET    /api/tasks/{id}/readiness | POST /api/tasks/{id}/start {_version}  start a todo task (+ story/epic)
+//! GET    /api/tasks/{id}/agent (plan + brief) | POST /api/tasks/{id}/agent (SSE run) | POST …/agent/cancel
+//! GET    /api/tasks/{id}/runs  agent run logs | GET /api/tasks/{id}/agent/live?since=n  live progress
+//! GET    /api/agent-queue | POST /api/agent-queue {enabled, limit, confirm}  per-project agent queue
 //! Auth: REQFORGE_TOKEN set => /api/* needs `Authorization: Bearer <token>`.
 
 use std::collections::HashMap;
@@ -55,6 +60,7 @@ use crate::{csvio, evals, query};
 pub struct AppState {
     pub ws: Arc<Workspace>,
     pub chats: std::sync::Mutex<HashMap<String, Arc<ChatRunner>>>,
+    pub agents: std::sync::Mutex<HashMap<String, Arc<crate::agent::AgentRunner>>>,
     pub token: String,
 }
 
@@ -84,7 +90,48 @@ pub fn router_with_token(store: Arc<Store>, token: String) -> Router {
 }
 
 pub fn workspace_router(ws: Arc<Workspace>, token: String) -> Router {
-    Router::new().fallback(dispatch).with_state(Arc::new(AppState { ws, chats: Default::default(), token }))
+    router_for(app_state(ws, token))
+}
+
+pub fn app_state(ws: Arc<Workspace>, token: String) -> Arc<AppState> {
+    Arc::new(AppState { ws, chats: Default::default(), agents: Default::default(), token })
+}
+
+pub fn router_for(state: Arc<AppState>) -> Router {
+    Router::new().fallback(dispatch).with_state(state)
+}
+
+impl AppState {
+    pub fn agents_for(&self, key: &str) -> Arc<crate::agent::AgentRunner> {
+        self.agents.lock().unwrap().entry(key.to_string()).or_default().clone()
+    }
+
+    /// One scheduler pass over every project with its agent queue on.
+    pub fn queue_tick(&self) -> Vec<String> {
+        let user = std::env::var("USER").unwrap_or_else(|_| "local".into());
+        let keys: Vec<String> = self.ws.list()["projects"].as_array().into_iter().flatten().filter_map(|p| p["key"].as_str().map(String::from)).collect();
+        let mut started = vec![];
+        for k in keys {
+            if let Ok(store) = self.ws.store(&k) {
+                started.extend(crate::queue::tick(&store, &self.agents_for(&k), &user));
+            }
+        }
+        started
+    }
+}
+
+/// Background agent-queue scheduler (REQ-0053#AC3): ticks every REQFORGE_QUEUE_TICK_MS (default 5000).
+// reqforge: implements REQ-0053
+pub fn spawn_scheduler(state: Arc<AppState>) -> tokio::task::JoinHandle<()> {
+    let ms = std::env::var("REQFORGE_QUEUE_TICK_MS").ok().and_then(|v| v.parse().ok()).unwrap_or(5000u64);
+    tokio::spawn(async move {
+        let mut iv = tokio::time::interval(std::time::Duration::from_millis(ms));
+        loop {
+            iv.tick().await;
+            let st = state.clone();
+            let _ = tokio::task::spawn_blocking(move || st.queue_tick()).await;
+        }
+    })
 }
 
 pub fn meta(store: &Store) -> Value {
@@ -243,6 +290,33 @@ async fn dispatch(State(st): State<Arc<AppState>>, method: Method, uri: Uri, hea
     if rest == ["chat".to_string()] && method == Method::POST {
         return chat_sse(chat, jbody);
     }
+    let agents = st.agents_for(&key);
+    if rest == ["agent-queue".to_string()] {
+        let res = if method == Method::GET {
+            Ok(crate::queue::view(&store, &agents))
+        } else if method == Method::POST {
+            let user = std::env::var("USER").unwrap_or_else(|_| "local".into());
+            let lim = jbody.get("limit").and_then(Value::as_u64);
+            crate::queue::set(&store, jbody.get("enabled").and_then(Value::as_bool), lim, &user, jbody.get("confirm").and_then(Value::as_bool).unwrap_or(false))
+                .map(|_| crate::queue::view(&store, &agents))
+        } else {
+            Err(StoreError::new("no such route", 404))
+        };
+        return match res {
+            Ok(v) => json_resp(200, &v),
+            Err(e) => err_resp(&e),
+        };
+    }
+    if rest.len() == 4 && rest[0] == "tasks" && rest[2] == "agent" && rest[3] == "live" && method == Method::GET {
+        let since = qs.get("since").and_then(|v| v.parse().ok()).unwrap_or(0);
+        return json_resp(200, &agents.live(&rest[1], since));
+    }
+    if rest.len() == 4 && rest[0] == "tasks" && rest[2] == "agent" && rest[3] == "cancel" && method == Method::POST {
+        return json_resp(200, &json!({"cancelled": agents.cancel(&rest[1])}));
+    }
+    if rest.len() == 3 && rest[0] == "tasks" && rest[2] == "agent" && method == Method::POST {
+        return agent_sse(agents, store.clone(), rest[1].clone());
+    }
     let res = tokio::task::spawn_blocking(move || route(&store, &chat, &method, &rest, qs, jbody, if is_csv { Some(raw) } else { None }, if_match)).await;
     match res {
         Ok(Ok(Out::Json(code, v))) => json_resp(code, &v),
@@ -259,6 +333,18 @@ fn chat_sse(chat: Arc<ChatRunner>, b: Value) -> Response {
     let session = b.get("session_id").and_then(Value::as_str).map(String::from);
     let ctx = b.get("context").cloned().unwrap_or(Value::Null);
     tokio::spawn(async move { chat.stream(chat_id, message, session, ctx, tx).await });
+    let stream = ReceiverStream::new(rx).map(|ev| Ok::<Bytes, Infallible>(Bytes::from(format!("data: {ev}\n\n"))));
+    Response::builder()
+        .header(header::CONTENT_TYPE, "text/event-stream")
+        .header(header::CACHE_CONTROL, "no-cache")
+        .body(Body::from_stream(stream))
+        .unwrap()
+}
+
+fn agent_sse(agents: Arc<crate::agent::AgentRunner>, store: Arc<Store>, task: String) -> Response {
+    let (tx, rx) = tokio::sync::mpsc::channel::<Value>(64);
+    let user = std::env::var("USER").unwrap_or_else(|_| "local".into());
+    tokio::spawn(async move { agents.run(store, task, user, tx).await });
     let stream = ReceiverStream::new(rx).map(|ev| Ok::<Bytes, Infallible>(Bytes::from(format!("data: {ev}\n\n"))));
     Response::builder()
         .header(header::CONTENT_TYPE, "text/event-stream")
@@ -353,6 +439,9 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
             return Ok(Out::Json(200, json!({"cancelled": chat.cancel(id)})));
         }
         ["context", id] => return Ok(Out::Json(200, changes::context(store, id)?)),
+        ["verification", "history"] if get => {
+            return Ok(Out::Json(200, json!(crate::evidence::history(&store.root, num(&qs, "limit", 30)))));
+        }
         ["verification"] if get => {
             let full = crate::verify::report(store);
             return Ok(Out::Json(200, match qs.get("req") {
@@ -477,6 +566,13 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
             };
             Ok(Out::Raw(200, csvio::export(&rows, kind), "text/csv; charset=utf-8"))
         }
+        [_, id, "readiness"] if get && kind == Kind::Tasks => Ok(Out::Json(200, crate::taskflow::readiness(store, id)?)),
+        [_, id, "agent"] if get && kind == Kind::Tasks => Ok(Out::Json(200, crate::agent::plan(store, id)?)),
+        [_, id, "runs"] if get && kind == Kind::Tasks => Ok(Out::Json(200, json!(crate::agent::runs(store, id)))),
+        [_, id, "start"] if post && kind == Kind::Tasks => {
+            let ver = b.get("_version").and_then(Value::as_i64).or_else(|| if_match.as_deref().and_then(|s| s.trim_matches('"').parse().ok()));
+            Ok(Out::Json(200, crate::taskflow::start(store, id, ver)?))
+        }
         [_, id] if get => Ok(Out::Json(200, Value::Object(store.get(kind, id)?))),
         [_, id] if matches!(*method, Method::PATCH | Method::PUT) => {
             let mut patch = b.as_object().cloned().unwrap_or_default();
@@ -493,12 +589,17 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
 
 /// Bind and serve a single repository. Returns the bound address (port 0 picks a free port).
 pub async fn serve(store: Arc<Store>, host: &str, port: u16) -> std::io::Result<(std::net::SocketAddr, tokio::task::JoinHandle<()>)> {
-    serve_app(router(store), host, port).await
+    let store = Arc::try_unwrap(store).unwrap_or_else(|a| Store::open(&a.root).expect("reopen store"));
+    let state = app_state(Arc::new(Workspace::single(store)), std::env::var("REQFORGE_TOKEN").unwrap_or_default());
+    spawn_scheduler(state.clone());
+    serve_app(router_for(state), host, port).await
 }
 
-/// Bind and serve a workspace (multi-project).
+/// Bind and serve a workspace (multi-project), with the agent-queue scheduler.
 pub async fn serve_workspace(ws: Arc<Workspace>, host: &str, port: u16) -> std::io::Result<(std::net::SocketAddr, tokio::task::JoinHandle<()>)> {
-    serve_app(workspace_router(ws, std::env::var("REQFORGE_TOKEN").unwrap_or_default()), host, port).await
+    let state = app_state(ws, std::env::var("REQFORGE_TOKEN").unwrap_or_default());
+    spawn_scheduler(state.clone());
+    serve_app(router_for(state), host, port).await
 }
 
 async fn serve_app(app: Router, host: &str, port: u16) -> std::io::Result<(std::net::SocketAddr, tokio::task::JoinHandle<()>)> {

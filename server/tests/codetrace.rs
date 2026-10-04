@@ -457,3 +457,36 @@ fn hidden_directories_are_scanned_but_vendored_copies_are_not() {
     assert!(files.contains(&".github/workflows/ci.yml"), "{files:?}");
     assert!(!files.iter().any(|f| f.starts_with(".reqforge/")), "{files:?}");
 }
+
+// reqforge: verifies REQ-0035#AC2
+#[test]
+fn init_github_attaches_and_sync_pushes() {
+    let d = TempDir::new().unwrap();
+    let remote = d.path().join("remote.git");
+    let o = Command::new("git").args(["init", "-q", "--bare", "-b", "main"]).arg(&remote).output().unwrap();
+    assert!(o.status.success());
+    let store = Store::init(d.path().join("reqs"), "GH", "Remote", Some(remote.to_str().unwrap()), true).unwrap();
+    let log = |n: &str| String::from_utf8(Command::new("git").arg("--git-dir").arg(&remote).args(["log", "--format=%s", "-n", n, "main"]).output().unwrap().stdout).unwrap();
+    assert!(log("1").contains("initialise requirements repository"), "init pushed: {}", log("1"));
+    store.create(Kind::Requirements, &rec(json!({"title": "x", "type": "functional", "category": "c", "statement": "The system shall x."})), None).unwrap();
+    let r = store.sync("sync from test").unwrap();
+    assert_eq!((r["ok"].clone(), r["pushed"].clone()), (json!(true), json!(true)), "{r}");
+    assert!(log("1").contains("REQ-0001: create"), "sync pushed: {}", log("3"));
+    let ws_remote = reqforge::workspace::remote_url(&store.root).unwrap();
+    assert_eq!(ws_remote, remote.to_str().unwrap());
+}
+
+// reqforge: verifies REQ-0034#AC5
+#[test]
+fn verification_history_records_each_ingest() {
+    let f = fx();
+    scan(&f.store, &[], None, true).unwrap();
+    let o = IngestOpts { component: Some("shop"), commit: Some("c1"), run: None };
+    ingest(&f.store, &[("j.xml".into(), JEST_XML.into())], &o).unwrap();
+    ingest(&f.store, &[("p.xml".into(), PYTEST_XML.replace(r#"<failure message="boom">trace</failure>"#, ""))], &o).unwrap();
+    let h = reqforge::evidence::history(&f.store.root, 30);
+    assert_eq!(h.len(), 2);
+    assert!(h[1]["verified_ratio"].as_f64().unwrap() > h[0]["verified_ratio"].as_f64().unwrap(), "{h:?}");
+    assert_eq!(h[0]["commit"], json!("c1"));
+    assert_eq!(reqforge::evidence::history(&f.store.root, 1).len(), 1);
+}

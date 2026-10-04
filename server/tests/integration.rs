@@ -611,3 +611,92 @@ fn crash_before_rename_keeps_previous_version() {
     assert_eq!(s.get(Kind::Requirements, "REQ-0001").unwrap()["version"], json!(1));
     assert_eq!(s.all(Kind::Requirements).len(), 1);
 }
+
+fn task(f: &Fx, title: &str, deps: Value) -> Result<Rec, reqforge::store::StoreError> {
+    f.store.create(Kind::Tasks, &rec(json!({"title": title, "story": "STORY-0001", "kind": "code", "depends_on": deps})), None)
+}
+
+// reqforge: verifies REQ-0049#AC1
+#[test]
+fn task_depends_on_validates_ids() {
+    let f = fx();
+    f.seed_plan(true); // TASK-0001..0004
+    let t = task(&f, "build on design", json!(["TASK-0001"])).unwrap();
+    assert_eq!(t["depends_on"], json!(["TASK-0001"]));
+    let e = task(&f, "bad", json!(["TASK-0099"])).unwrap_err();
+    assert!(e.details.iter().any(|d| d.as_str().unwrap() == "depends_on: TASK-0099 does not exist"), "{:?}", e.details);
+    // CSV round-trips the list
+    let csv = reqforge::csvio::export(&f.store.all(Kind::Tasks), Kind::Tasks);
+    assert!(csv.contains("TASK-0001"));
+}
+
+// reqforge: verifies REQ-0049#AC2
+#[test]
+fn task_depends_on_rejects_self_and_cycles() {
+    let f = fx();
+    f.seed_plan(true);
+    let e = f.store.update(Kind::Tasks, "TASK-0001", &rec(json!({"depends_on": ["TASK-0001"]})), None, None).unwrap_err();
+    assert!(e.details[0].as_str().unwrap().contains("cannot depend on itself"));
+    f.store.update(Kind::Tasks, "TASK-0002", &rec(json!({"depends_on": ["TASK-0001"]})), None, None).unwrap();
+    f.store.update(Kind::Tasks, "TASK-0003", &rec(json!({"depends_on": ["TASK-0002"]})), None, None).unwrap();
+    let e = f.store.update(Kind::Tasks, "TASK-0001", &rec(json!({"depends_on": ["TASK-0003"]})), None, None).unwrap_err();
+    assert_eq!(e.details[0], json!("depends_on: dependency cycle TASK-0001 -> TASK-0003 -> TASK-0002 -> TASK-0001"));
+    // the simulator catches the same cycle in a changeset
+    let sim = changes::simulate(&f.store, &json!({"ops": [{"op": "update", "id": "TASK-0001", "patch": {"depends_on": ["TASK-0003"]}}]}));
+    assert_eq!(sim["valid"], json!(false));
+    assert!(sim["errors"][0].as_str().unwrap().contains("dependency cycle"));
+}
+
+// reqforge: verifies REQ-0049#AC3
+#[test]
+fn task_depends_on_blocks_delete() {
+    let f = fx();
+    f.seed_plan(true);
+    f.store.update(Kind::Tasks, "TASK-0002", &rec(json!({"depends_on": ["TASK-0001"]})), None, None).unwrap();
+    let e = f.store.delete(Kind::Tasks, "TASK-0001", false).unwrap_err();
+    assert_eq!(e.status, 409);
+    assert!(e.message.contains("TASK-0002"));
+    f.store.delete(Kind::Tasks, "TASK-0001", true).unwrap();
+}
+
+// reqforge: verifies REQ-0050#AC2
+// reqforge: verifies REQ-0050#AC3
+#[test]
+fn task_start_cascades_in_one_commit() {
+    let f = fx();
+    f.seed_plan(true);
+    let before = f.git_log().lines().count();
+    let r = reqforge::taskflow::start(&f.store, "TASK-0001", Some(1)).unwrap();
+    assert_eq!(r["changed"], json!(["TASK-0001", "STORY-0001", "EPIC-0001"]));
+    assert_eq!(f.git_log().lines().count(), before + 1, "one commit");
+    assert!(f.git_log().lines().next().unwrap().starts_with("TASK-0001: start"));
+    for (k, id) in [(Kind::Tasks, "TASK-0001"), (Kind::Stories, "STORY-0001"), (Kind::Epics, "EPIC-0001")] {
+        assert_eq!(f.store.get(k, id).unwrap()["status"], json!("in-progress"), "{id}");
+    }
+    // a second task leaves the already in-progress / blocked parents alone
+    f.store.update(Kind::Epics, "EPIC-0001", &rec(json!({"status": "blocked"})), None, None).unwrap();
+    let r = reqforge::taskflow::start(&f.store, "TASK-0002", None).unwrap();
+    assert_eq!(r["changed"], json!(["TASK-0002"]));
+    assert_eq!(f.store.get(Kind::Epics, "EPIC-0001").unwrap()["status"], json!("blocked"));
+}
+
+// reqforge: verifies REQ-0050#AC4
+// reqforge: verifies REQ-0050#AC5
+#[test]
+fn task_start_refuses_stale_and_blocked() {
+    let f = fx();
+    f.seed_plan(true);
+    f.store.update(Kind::Tasks, "TASK-0002", &rec(json!({"depends_on": ["TASK-0001"]})), None, None).unwrap(); // v2
+    assert_eq!(reqforge::taskflow::start(&f.store, "TASK-0002", Some(1)).unwrap_err().status, 409); // stale
+    let e = reqforge::taskflow::start(&f.store, "TASK-0002", Some(2)).unwrap_err();
+    assert_eq!(e.status, 409);
+    assert!(e.message.contains("blocked by unfinished dependencies: TASK-0001"));
+    assert_eq!(f.store.get(Kind::Tasks, "TASK-0002").unwrap()["status"], json!("todo"));
+    let rd = reqforge::taskflow::readiness(&f.store, "TASK-0002").unwrap();
+    assert_eq!(rd["can_start"], json!(false));
+    assert_eq!(rd["unfinished"][0]["id"], json!("TASK-0001"));
+    f.store.update(Kind::Tasks, "TASK-0001", &rec(json!({"status": "done"})), None, None).unwrap();
+    assert_eq!(reqforge::taskflow::readiness(&f.store, "TASK-0002").unwrap()["can_start"], json!(true));
+    reqforge::taskflow::start(&f.store, "TASK-0002", None).unwrap();
+    assert_eq!(reqforge::taskflow::start(&f.store, "TASK-0002", None).unwrap_err().status, 409); // no longer todo
+}

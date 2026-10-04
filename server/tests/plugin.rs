@@ -91,3 +91,12 @@ fn ci_workflow_runs_clippy_and_tests() {
     assert!(wf.contains("cargo clippy --manifest-path server/Cargo.toml --all-targets -- -D warnings"));
     assert!(wf.contains("cargo test --manifest-path server/Cargo.toml"));
 }
+
+// reqforge: verifies REQ-0043#AC3
+#[test]
+fn ci_workflow_runs_verification_gate() {
+    let wf = fs::read_to_string(root().join(".github/workflows/test.yml")).unwrap();
+    let ingest = wf.find("evidence ingest").expect("CI ingests test evidence");
+    let gate = wf.find("verify --md --gate").expect("CI runs the verification gate");
+    assert!(ingest < gate, "evidence must be ingested before the gate runs");
+}

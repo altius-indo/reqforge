@@ -358,6 +358,9 @@ impl Store {
         if kind == Kind::Components {
             errors.extend(crate::model::component_key_clash(rec, &self.records(Kind::Components)));
         }
+        if kind == Kind::Tasks && errors.is_empty() {
+            errors.extend(crate::model::task_dependency_errors(rec, &self.records(Kind::Tasks)));
+        }
         if errors.is_empty() {
             Ok(())
         } else {
@@ -802,10 +805,22 @@ pub mod git {
         }
     }
 
-    /// Create (or attach to) a GitHub repo `owner/name` and push.
+    /// Create (or attach to) a GitHub repo `owner/name` and push. A URL or path (https://…,
+    /// git@…, /srv/repo.git, ./remote) is attached as `origin` as-is, without gh.
+    // reqforge: implements REQ-0035
     pub fn create_remote(root: &Path, slug: &str, private: bool) -> Result<(), String> {
         if has_remote(root) {
             return Ok(());
+        }
+        let is_url = slug.contains("://") || slug.starts_with("git@") || slug.starts_with('/') || slug.starts_with('.') || slug.ends_with(".git");
+        if is_url {
+            run(root, &["remote", "add", "origin", slug]);
+            let branch = run(root, &["rev-parse", "--abbrev-ref", "HEAD"]).map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_else(|| "main".into());
+            return match run(root, &["push", "-u", "origin", &branch]) {
+                Some(o) if o.status.success() => Ok(()),
+                Some(o) => Err(format!("push to {slug} failed: {}", String::from_utf8_lossy(&o.stderr).trim())),
+                None => Err("git not available".into()),
+            };
         }
         let gh = Command::new("gh").arg("--version").output().map(|o| o.status.success()).unwrap_or(false);
         if !gh {

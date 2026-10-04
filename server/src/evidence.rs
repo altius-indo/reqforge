@@ -44,6 +44,18 @@ pub struct Evidence {
 
 pub type Latest = BTreeMap<String, Evidence>;
 
+fn indexes_all(store: &Store) -> Vec<Index> {
+    load_all(&store.root)
+}
+
+/// The last `limit` verification snapshots, oldest first.
+// reqforge: implements REQ-0034
+pub fn history(root: &Path, limit: usize) -> Vec<Value> {
+    let text = fs::read_to_string(root.join("evidence/verification-history.jsonl")).unwrap_or_default();
+    let all: Vec<Value> = text.lines().filter_map(|l| serde_json::from_str(l).ok()).collect();
+    all[all.len().saturating_sub(limit)..].to_vec()
+}
+
 pub fn load_latest(root: &Path) -> Latest {
     fs::read_to_string(root.join("evidence/latest.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default()
 }
@@ -330,6 +342,12 @@ pub fn ingest(store: &Store, files: &[(String, String)], o: &IngestOpts) -> Res<
         latest.insert(format!("{}|{}", e.target, e.source), e.clone());
     }
     fs::write(dir.join("latest.json"), crate::store::dump(&serde_json::to_value(&latest).unwrap())).map_err(|e| StoreError::bad(e.to_string()))?;
+    // trend: one verification snapshot per ingest
+    let snap = crate::verify::compute(store, &indexes_all(store), &latest);
+    let entry = json!({"at": at, "commit": commit, "run": o.run, "criteria": snap["summary"]["criteria"],
+                       "criteria_total": snap["summary"]["criteria_total"], "verified_ratio": snap["summary"]["verified_ratio"]});
+    let mut vh = OpenOptions::new().create(true).append(true).open(dir.join("verification-history.jsonl")).map_err(|e| StoreError::bad(e.to_string()))?;
+    let _ = writeln!(vh, "{entry}");
     store.commit(&format!("evidence: {} results ({} passed, {} failed){}", new.len(), passed, failed, commit.as_deref().map(|c| format!(" @ {}", &c[..c.len().min(10)])).unwrap_or_default()));
     Ok(json!({"cases": cases, "matched": matched, "skipped": skipped, "unmatched": unmatched, "evidence": new.len(),
               "passed": passed, "failed": failed, "targets": targets.len(), "commit": commit}))

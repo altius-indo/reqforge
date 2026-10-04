@@ -37,6 +37,25 @@ const rowIds = () => rows().map((r) => r.dataset.id).join(",");
 const pagerTotal = () => +(txt(T("pager-range")).match(/of ([\d,]+)/) || [0, "-1"])[1].replace(/,/g, "");
 const getJ = async (u) => (await fetch(u)).json();
 const project = () => txt(T("project"));
+// Chrome DevTools bridge (run.mjs binds window.__e2eCdp once it has attached): Emulation.* / Input.* commands only.
+// `cdp` resolves when Chrome has executed the command (false after 5s); `pressKey` sends a trusted key press to
+// the focused element.
+const cdpReady = () => until(() => typeof window.__e2eCdp === "function", 15000);
+const cdpWaiters = new Map();
+let cdpSeq = 0;
+window.__e2eCdpDone = (id) => { cdpWaiters.get(id)?.(true); cdpWaiters.delete(id) };
+const cdp = (method, params = {}) => new Promise((resolve) => {
+  const id = ++cdpSeq;
+  cdpWaiters.set(id, resolve);
+  window.__e2eCdp(JSON.stringify({ method, params, id }));
+  setTimeout(() => { if (cdpWaiters.delete(id)) resolve(false) }, 5000);
+});
+const KEYS = { Escape: 27, Tab: 9, Enter: 13 };
+const pressKey = async (k, shift = false) => {
+  const base = { key: k, code: k, windowsVirtualKeyCode: KEYS[k], nativeVirtualKeyCode: KEYS[k], modifiers: shift ? 8 : 0 };
+  await cdp("Input.dispatchKeyEvent", { type: "keyDown", ...base, ...(k === "Enter" ? { text: "\r" } : {}) });
+  await cdp("Input.dispatchKeyEvent", { type: "keyUp", ...base });
+};
 const openSwitcher = async () => { if (!$(T("switcher-menu"))) pdown($(T("project-switcher"))); return until(() => $(T("switcher-menu")) && $$(T("switcher-item")).length > 0, 4000) };
 
 let reloading = false, finished = false;

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,12 +36,12 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
   const suites = o.suite === "all" ? SUITE_NAMES : o.suite.split(",");
-  for (const s of suites) if (!SUITE_NAMES.includes(s)) die(`unknown suite: ${s} (core, projects, code, all)`);
+  for (const s of suites) if (!SUITE_NAMES.includes(s)) die(`unknown suite: ${s} (${SUITE_NAMES.join(", ")}, all)`);
   if (o.timeout !== null && !(o.timeout > 0)) die("--timeout must be a positive number of seconds");
   return { ...o, suites };
 }
@@ -200,6 +200,10 @@ const SUITES = {
         workspaceName: "ws" };
     },
   },
+  // help panel, its keyboard behaviour, and colour schemes: same BIG repository as core
+  help: { timeout: 180, setup: (ctx, dir) => SUITES.core.setup(ctx, dir) },
+  "help-a11y": { timeout: 180, setup: (ctx, dir) => SUITES.core.setup(ctx, dir) },
+  theme: { timeout: 240, setup: (ctx, dir) => SUITES.core.setup(ctx, dir) },
 };
 
 function injectedDist(name, dir, cfg) {
@@ -223,6 +227,8 @@ function injectedDist(name, dir, cfg) {
 
 // ------------------------------------------------------------------------------------------------ Chrome DevTools
 // Attach to the page to collect uncaught exceptions/console errors, and to read a partial log on timeout.
+// Also exposes `window.__e2eCdp(json)` to suites: a bridge for Emulation.* and Input.* commands (colour-scheme
+// emulation, trusted key presses) that calls `window.__e2eCdpDone(id)` when done; see `cdp()` in lib/prelude.js.
 async function cdpAttach(userDataDir, chrome, deadline) {
   const portFile = path.join(userDataDir, "DevToolsActivePort");
   let port;
@@ -249,6 +255,12 @@ async function cdpAttach(userDataDir, chrome, deadline) {
       diagnostics.push(`exception: ${d.exception?.description || d.text}`.split("\n")[0]);
     } else if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") {
       diagnostics.push(`console.error: ${m.params.args.map((a) => a.value ?? a.description ?? "").join(" ")}`.slice(0, 500));
+    } else if (m.method === "Runtime.bindingCalled" && m.params.name === "__e2eCdp") {
+      try {
+        const c = JSON.parse(m.params.payload);
+        if (/^(Emulation|Input)\./.test(c.method))
+          send(c.method, c.params || {}).then(() => send("Runtime.evaluate", { expression: `window.__e2eCdpDone?.(${+c.id || 0})` }));
+      } catch {}
     } else if (m.method === "Log.entryAdded" && m.params.entry.level === "error") {
       diagnostics.push(`log: ${m.params.entry.text} ${m.params.entry.url || ""}`.trim().slice(0, 500));
     }
@@ -260,6 +272,7 @@ async function cdpAttach(userDataDir, chrome, deadline) {
   });
   await send("Runtime.enable");
   await send("Log.enable");
+  await send("Runtime.addBinding", { name: "__e2eCdp" });
   return {
     diagnostics,
     evaluate: async (expr) => (await send("Runtime.evaluate", { expression: expr, returnByValue: true })).result?.result?.value,

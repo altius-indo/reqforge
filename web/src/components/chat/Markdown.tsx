@@ -25,11 +25,12 @@ const components: Components = {
   },
 }
 
-export const Markdown = memo(function Markdown({ text }: { text: string }) {
+/** `linkIds={false}` keeps record ids as plain text (outside a project, e.g. the help panel). */
+export const Markdown = memo(function Markdown({ text, linkIds = true, className }: { text: string; linkIds?: boolean; className?: string }) {
   return (
-    <div className="md">
+    <div className={className ? `md ${className}` : "md"}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-        {linkifyIds(text)}
+        {linkIds ? linkifyIds(text) : text}
       </ReactMarkdown>
     </div>
   )

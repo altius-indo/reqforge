@@ -6,6 +6,7 @@ import { ChatPanel } from "@/components/chat/ChatPanel"
 import { ErrorText } from "@/components/common"
 import { AppProvider, useApp } from "@/state/app"
 import { ChatProvider, useChat } from "@/state/chat"
+import { HelpProvider } from "@/state/help"
 import { useProjects } from "@/state/project"
 import { ChangesView } from "@/views/ChangesView"
 import { LintView } from "@/views/LintView"
@@ -112,13 +113,13 @@ export default function App() {
       </AppProvider>
     )
   return (
-    <>
+    <HelpProvider>
       {body}
       {p.createMode && (
         <Suspense fallback={null}>
           <CreateProjectDialog />
         </Suspense>
       )}
-    </>
+    </HelpProvider>
   )
 }

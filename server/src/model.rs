@@ -284,10 +284,11 @@ static STORIES: [Field; 11] = [
     f("points", FType::Int),
     f("tags", FType::List),
 ];
-static TASKS: [Field; 8] = [
+static TASKS: [Field; 9] = [
     req(f("title", FType::Str)),
     req(rf("story", FType::Ref, Kind::Stories)),
     req(en("kind", TASK_KINDS, None)),
+    rf("depends_on", FType::RefList, Kind::Tasks),
     f("description", FType::Text),
     f("done_when", FType::Text),
     en("status", WORK_STATUSES, Some("todo")),
@@ -566,4 +567,36 @@ pub fn component_key_clash(rec: &Rec, all: &[std::sync::Arc<Rec>]) -> Vec<String
         .filter(|o| s(o, "key") == key && s(o, "id") != id && !key.is_empty())
         .map(|o| format!("key: '{key}' is already used by {}", s(o, "id")))
         .collect()
+}
+
+/// Task dependency integrity: no self-reference and no cycle through `depends_on`.
+// reqforge: implements REQ-0049
+pub fn task_dependency_errors(rec: &Rec, all: &[std::sync::Arc<Rec>]) -> Vec<String> {
+    let id = s(rec, "id").to_string();
+    let deps = strs(rec, "depends_on");
+    if deps.contains(&id.as_str()) {
+        return vec![format!("depends_on: {id} cannot depend on itself")];
+    }
+    let graph: std::collections::HashMap<String, Vec<String>> = all
+        .iter()
+        .filter(|t| s(t, "id") != id)
+        .map(|t| (s(t, "id").to_string(), strs(t, "depends_on").into_iter().map(String::from).collect()))
+        .chain(std::iter::once((id.clone(), deps.iter().map(|d| d.to_string()).collect())))
+        .collect();
+    // depth-first search from rec for a path back to it
+    fn dfs(n: &str, target: &str, g: &std::collections::HashMap<String, Vec<String>>, path: &mut Vec<String>, seen: &mut std::collections::HashSet<String>) -> bool {
+        for m in g.get(n).into_iter().flatten() {
+            path.push(m.clone());
+            if m == target || (seen.insert(m.clone()) && dfs(m, target, g, path, seen)) {
+                return true;
+            }
+            path.pop();
+        }
+        false
+    }
+    let mut path = vec![id.clone()];
+    if dfs(&id, &id, &graph, &mut path, &mut Default::default()) {
+        return vec![format!("depends_on: dependency cycle {}", path.join(" -> "))];
+    }
+    vec![]
 }
