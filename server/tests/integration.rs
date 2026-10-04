@@ -566,6 +566,112 @@ fn chat_tool_policy_excludes_writes() {
     assert!(denied.contains(&"mcp__plugin_reqforge_reqforge__apply_changeset".to_string()));
 }
 
+/// Run a chat-role MCP server pinned to the project at `repo` (as ChatRunner starts it).
+fn chat_mcp_session(repo: &Path, key: &str, workspace: &Path, calls: &[(&str, Value)]) -> Vec<Value> {
+    let runner = reqforge::chat::ChatRunner::new(repo.to_path_buf(), &json!({"key": key}));
+    let mut msgs = vec![json!({"jsonrpc": "2.0", "id": 0, "method": "tools/list"})];
+    for (i, (name, args)) in calls.iter().enumerate() {
+        msgs.push(json!({"jsonrpc": "2.0", "id": i + 1, "method": "tools/call", "params": {"name": name, "arguments": args}}));
+    }
+    let mut child = Command::new(BIN)
+        .arg("mcp")
+        .envs(runner.mcp_env())
+        .env("REQFORGE_WORKSPACE", workspace)
+        .env_remove("REQFORGE_PROJECT")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let input: String = msgs.iter().map(|m| m.to_string() + "\n").collect();
+    child.stdin.take().unwrap().write_all(input.as_bytes()).unwrap();
+    let out = child.wait_with_output().unwrap();
+    String::from_utf8(out.stdout).unwrap().lines().map(|l| serde_json::from_str(l).unwrap()).collect()
+}
+
+fn tool_text(r: &Value) -> Value {
+    serde_json::from_str(r["result"]["content"][0]["text"].as_str().unwrap()).unwrap()
+}
+
+// reqforge: verifies REQ-0041#AC2
+#[test]
+fn chat_project_pinned_refuses_other_projects() {
+    let d = TempDir::new().unwrap();
+    let ws = reqforge::workspace::Workspace::open(d.path()).unwrap();
+    ws.create("SHOP", "Shop", None, true).unwrap();
+    ws.create("PAY", "Payments", None, true).unwrap();
+    let shop = ws.store("SHOP").unwrap();
+    let pay = ws.store("PAY").unwrap();
+    shop.create(Kind::Requirements, &rec(req_login()), None).unwrap();
+    pay.create(Kind::Requirements, &rec(req_latency()), None).unwrap();
+    let cs = json!({"title": "x", "ops": [{"op": "update", "id": "REQ-0001", "patch": {"priority": "could"}}]});
+    let out = chat_mcp_session(
+        &shop.root,
+        "SHOP",
+        d.path(),
+        &[
+            ("search", json!({"kind": "requirements", "project": "PAY"})),
+            ("get", json!({"id": "REQ-0001", "project": "PAY"})),
+            ("propose_changeset", json!({"changeset": cs, "project": "PAY"})),
+            ("search", json!({"kind": "requirements"})),
+            ("search", json!({"kind": "requirements", "project": "shop"})),
+        ],
+    );
+    for i in 1..=3 {
+        assert_eq!(out[i]["result"]["isError"], json!(true), "call {i} on PAY must be refused");
+        assert!(tool_text(&out[i])["error"].as_str().unwrap().contains("pinned to project SHOP"));
+    }
+    assert!(changes::list(&pay, None).is_empty(), "nothing proposed in PAY");
+    for i in [4, 5] {
+        let rows = tool_text(&out[i]);
+        assert_eq!(rows.as_array().unwrap().len(), 1);
+        assert_eq!(rows[0]["title"], json!(req_login()["title"]), "reads come from SHOP");
+    }
+}
+
+// reqforge: verifies REQ-0041#AC3
+#[test]
+fn mcp_chat_role_refuses_writes() {
+    let f = fx();
+    f.store.create(Kind::Requirements, &rec(req_login()), None).unwrap();
+    let log_before = f.git_log();
+    let before = f.store.get(Kind::Requirements, "REQ-0001").unwrap();
+    let cs_id = changes::propose(&f.store, &json!({"title": "x", "ops": [{"op": "update", "id": "REQ-0001", "patch": {"priority": "could"}}]})).unwrap()["changeset_id"].as_str().unwrap().to_string();
+    let after_propose = f.git_log();
+    let key = f.store.config_value()["key"].as_str().unwrap().to_string();
+    let calls: Vec<(&str, Value)> = vec![
+        ("create", json!({"kind": "requirements", "data": req_latency()})),
+        ("update", json!({"id": "REQ-0001", "patch": {"priority": "could"}})),
+        ("delete", json!({"id": "REQ-0001", "force": true})),
+        ("bulk_update", json!({"kind": "requirements", "set": {"priority": "could"}})),
+        ("upsert_many", json!({"kind": "requirements", "rows": [req_latency()]})),
+        ("apply_changeset", json!({"id": cs_id})),
+        ("reject_changeset", json!({"id": cs_id})),
+        ("config", json!({"patch": {"name": "pwned"}})),
+        ("sync", json!({})),
+        ("init_repo", json!({"path": f.dir.path().join("x").display().to_string(), "key": "X", "name": "x"})),
+        ("scan_code", json!({})),
+        ("ingest_evidence", json!({"paths": []})),
+        ("create_project", json!({"key": "EVIL", "name": "evil"})),
+    ];
+    assert_eq!(calls.len(), reqforge::chat::WRITE_TOOLS.len(), "every deny-listed tool is exercised");
+    let ws = TempDir::new().unwrap();
+    let out = chat_mcp_session(f.dir.path(), &key, ws.path(), &calls);
+    let listed: Vec<&str> = out[0]["result"]["tools"].as_array().unwrap().iter().map(|t| t["name"].as_str().unwrap()).collect();
+    for (i, (name, _)) in calls.iter().enumerate() {
+        assert!(!listed.contains(name), "{name} must not be listed");
+        assert_eq!(out[i + 1]["result"]["isError"], json!(true), "{name} must be refused");
+        assert!(tool_text(&out[i + 1])["error"].as_str().unwrap().contains("not available to the chat agent"), "{name}");
+    }
+    let s = Store::open(f.dir.path()).unwrap();
+    assert_eq!(s.records(Kind::Requirements).len(), 1);
+    assert_eq!(s.get(Kind::Requirements, "REQ-0001").unwrap(), before);
+    assert_eq!(s.config_value()["name"], json!("Demo"));
+    assert_eq!(changes::get(&s, &cs_id).unwrap()["status"], json!("pending"));
+    assert_eq!(f.git_log(), after_propose);
+    assert_ne!(log_before, after_propose);
+    assert!(!f.dir.path().join("x").exists());
+}
+
 // ============================================================================ scale
 
 // reqforge: verifies REQ-0039#AC1

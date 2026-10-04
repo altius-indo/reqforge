@@ -377,6 +377,21 @@ impl Workspace {
     }
 }
 
+// reqforge: implements REQ-0041
+/// Resolve the project for a pinned (chat) MCP session: always the repository at `root`.
+/// A `requested` project key naming any other project is refused, so nothing is read or
+/// proposed outside the project the chat was opened in.
+pub fn resolve_pinned(root: &Path, pinned: Option<&str>, requested: Option<&str>) -> Res<Arc<Store>> {
+    let store = Store::open(root)?;
+    let key = pinned.filter(|k| !k.is_empty()).map(String::from).or_else(|| store.config_value()["key"].as_str().map(String::from)).unwrap_or_default();
+    if let Some(r) = requested.filter(|r| !r.is_empty()) {
+        if !r.eq_ignore_ascii_case(&key) {
+            return Err(StoreError::new(format!("this chat is pinned to project {key}; refusing a call on project {r}"), 403));
+        }
+    }
+    Ok(Arc::new(store))
+}
+
 /// Resolve the project a CLI/MCP command acts on:
 /// 1. explicit repo path   2. explicit project key (or REQFORGE_PROJECT) in the workspace
 /// 3. REQFORGE_REPO / a reqforge.json (or .reqforge-repo pointer) above the cwd
