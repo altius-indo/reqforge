@@ -1,0 +1,485 @@
+{
+  "id": "CS-0016",
+  "title": "Complete a task from its agent branch",
+  "summary": "Close the gap after an agent run: review the branch, merge it once the story's evals pass on the merged result, mark the task done and clean up; warn when related tasks run in parallel.",
+  "rationale": "TASK-0033..0037 finished their agent runs but stayed in-progress: nothing reviewed, merged or completed them, and three dependent tasks ran in parallel on separate branches.",
+  "status": "pending",
+  "created": "2026-10-04T16:23:02+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "req",
+      "data": {
+        "title": "Complete task from agent branch",
+        "type": "functional",
+        "category": "task-execution",
+        "priority": "should",
+        "status": "proposed",
+        "statement": "The system shall let a user complete a task whose agent branch is ready by reviewing it, merging it after the story's evals pass on the merged result, and marking the task done in 1 action.",
+        "rationale": "Agent work otherwise stays on local branches and tasks never reach done.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "The task drawer lists the agent branch's commits and changed files and shows its diff against the merge base"
+          },
+          {
+            "id": "AC2",
+            "text": "Complete is refused, with the reason shown, while the component checkout has uncommitted changes outside the requirements folder"
+          },
+          {
+            "id": "AC3",
+            "text": "Complete first merges the checked-out branch into the task branch in its worktree; on conflict it aborts, leaves both branches unchanged and lists the conflicting files"
+          },
+          {
+            "id": "AC4",
+            "text": "The story's evals then run in the task worktree; Complete is refused while any of them fails, listing the failing evals and their output tail"
+          },
+          {
+            "id": "AC5",
+            "text": "On success the task branch is merged into the checked-out branch with --no-ff, the task becomes done, and its worktree and branch are removed, within 1 action"
+          },
+          {
+            "id": "AC6",
+            "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+          },
+          {
+            "id": "AC7",
+            "text": "Start with agent warns, before confirmation, about other in-progress tasks of the same story with unmerged agent branches and offers to add them to depends_on"
+          }
+        ],
+        "tags": [
+          "task-execution"
+        ]
+      },
+      "reason": "new capability"
+    },
+    {
+      "op": "update",
+      "id": "EPIC-0010",
+      "add": {
+        "requirements": [
+          "$req"
+        ]
+      },
+      "reason": "belongs to task execution"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "st",
+      "data": {
+        "title": "Complete a task from its agent branch",
+        "epic": "EPIC-0010",
+        "requirements": [
+          "$req"
+        ],
+        "component": "server",
+        "deliverable": "code",
+        "status": "todo",
+        "narrative": "As a product owner, I want to review an agent's branch and complete the task in one action so that verified work lands on the main branch and the task is done.",
+        "evals": [
+          {
+            "id": "E1",
+            "name": "complete flow",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+            "covers": [
+              "$req#AC2",
+              "$req#AC3",
+              "$req#AC4",
+              "$req#AC5",
+              "$req#AC6",
+              "$req#AC7"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: task complete",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+            "covers": [
+              "$req#AC1",
+              "$req#AC5",
+              "$req#AC7"
+            ]
+          }
+        ]
+      },
+      "reason": "deliver it"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t1",
+      "data": {
+        "title": "Complete-flow design: merge order, eval run, cleanup, parallel-task warning",
+        "story": "$st",
+        "kind": "design",
+        "description": "Extend docs/agent-runs.md with the complete flow: preconditions, merge of main into the task branch, eval run in the worktree, --no-ff merge, status cascade to story/epic, cleanup, and the parallel-task warning.",
+        "done_when": "Design covers all 7 acceptance criteria."
+      },
+      "reason": "design first"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t2",
+      "data": {
+        "title": "Complete endpoint in the server",
+        "story": "$st",
+        "kind": "code",
+        "depends_on": [
+          "$t1"
+        ],
+        "description": "GET tasks/{id}/branch (commits, files, diff) and POST tasks/{id}/complete implementing AC2-AC6; parallel-branch warning in the agent plan (AC7).",
+        "done_when": "task_complete integration tests pass."
+      },
+      "reason": "server"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t3",
+      "data": {
+        "title": "Review & complete UI in the task drawer",
+        "story": "$st",
+        "kind": "code",
+        "depends_on": [
+          "$t2"
+        ],
+        "description": "Branch review (commits, files, diff), Complete button with refusal reasons and eval output, parallel-task warning in the agent confirmation dialog.",
+        "done_when": "task-complete e2e suite passes."
+      },
+      "reason": "web"
+    }
+  ],
+  "impact_notes": {
+    "stories": "New STORY in EPIC-0010; no existing story changes.",
+    "code": "server: taskflow/agent (complete endpoint, branch review); web: task drawer.",
+    "evals": "task_complete integration tests and a task-complete e2e suite.",
+    "risks": [
+      "Merging into the checked-out branch changes the user's working copy; refuse when it has uncommitted changes."
+    ]
+  },
+  "base_versions": {
+    "EPIC-0010": 3
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0056",
+        "ref": "req",
+        "title": "Complete task from agent branch",
+        "reason": "new capability",
+        "data": {
+          "id": "REQ-0056",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "The task drawer lists the agent branch's commits and changed files and shows its diff against the merge base"
+            },
+            {
+              "id": "AC2",
+              "text": "Complete is refused, with the reason shown, while the component checkout has uncommitted changes outside the requirements folder"
+            },
+            {
+              "id": "AC3",
+              "text": "Complete first merges the checked-out branch into the task branch in its worktree; on conflict it aborts, leaves both branches unchanged and lists the conflicting files"
+            },
+            {
+              "id": "AC4",
+              "text": "The story's evals then run in the task worktree; Complete is refused while any of them fails, listing the failing evals and their output tail"
+            },
+            {
+              "id": "AC5",
+              "text": "On success the task branch is merged into the checked-out branch with --no-ff, the task becomes done, and its worktree and branch are removed, within 1 action"
+            },
+            {
+              "id": "AC6",
+              "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+            },
+            {
+              "id": "AC7",
+              "text": "Start with agent warns, before confirmation, about other in-progress tasks of the same story with unmerged agent branches and offers to add them to depends_on"
+            }
+          ],
+          "tags": [
+            "task-execution"
+          ],
+          "title": "Complete task from agent branch",
+          "type": "functional",
+          "category": "task-execution",
+          "statement": "The system shall let a user complete a task whose agent branch is ready by reviewing it, merging it after the story's evals pass on the merged result, and marking the task done in 1 action.",
+          "rationale": "Agent work otherwise stays on local branches and tasks never reach done."
+        }
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "epics",
+        "id": "EPIC-0010",
+        "title": "Task execution from the UI",
+        "reason": "belongs to task execution",
+        "changes": {
+          "requirements": [
+            [
+              "REQ-0049",
+              "REQ-0050",
+              "REQ-0051",
+              "REQ-0052",
+              "REQ-0053"
+            ],
+            [
+              "REQ-0049",
+              "REQ-0050",
+              "REQ-0051",
+              "REQ-0052",
+              "REQ-0053",
+              "REQ-0056"
+            ]
+          ]
+        },
+        "base_version": 3
+      },
+      {
+        "i": 2,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0016",
+        "ref": "st",
+        "title": "Complete a task from its agent branch",
+        "reason": "deliver it",
+        "data": {
+          "id": "STORY-0016",
+          "requirements": [
+            "REQ-0056"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "complete flow",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+              "covers": [
+                "REQ-0056#AC2",
+                "REQ-0056#AC3",
+                "REQ-0056#AC4",
+                "REQ-0056#AC5",
+                "REQ-0056#AC6",
+                "REQ-0056#AC7"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "UI e2e: task complete",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+              "covers": [
+                "REQ-0056#AC1",
+                "REQ-0056#AC5",
+                "REQ-0056#AC7"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Complete a task from its agent branch",
+          "epic": "EPIC-0010",
+          "component": "server",
+          "narrative": "As a product owner, I want to review an agent's branch and complete the task in one action so that verified work lands on the main branch and the task is done."
+        }
+      },
+      {
+        "i": 3,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0038",
+        "ref": "t1",
+        "title": "Complete-flow design: merge order, eval run, cleanup, parallel-task warning",
+        "reason": "design first",
+        "data": {
+          "id": "TASK-0038",
+          "status": "todo",
+          "title": "Complete-flow design: merge order, eval run, cleanup, parallel-task warning",
+          "story": "STORY-0016",
+          "kind": "design",
+          "description": "Extend docs/agent-runs.md with the complete flow: preconditions, merge of main into the task branch, eval run in the worktree, --no-ff merge, status cascade to story/epic, cleanup, and the parallel-task warning.",
+          "done_when": "Design covers all 7 acceptance criteria."
+        }
+      },
+      {
+        "i": 4,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0039",
+        "ref": "t2",
+        "title": "Complete endpoint in the server",
+        "reason": "server",
+        "data": {
+          "id": "TASK-0039",
+          "depends_on": [
+            "TASK-0038"
+          ],
+          "status": "todo",
+          "title": "Complete endpoint in the server",
+          "story": "STORY-0016",
+          "kind": "code",
+          "description": "GET tasks/{id}/branch (commits, files, diff) and POST tasks/{id}/complete implementing AC2-AC6; parallel-branch warning in the agent plan (AC7).",
+          "done_when": "task_complete integration tests pass."
+        }
+      },
+      {
+        "i": 5,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0040",
+        "ref": "t3",
+        "title": "Review & complete UI in the task drawer",
+        "reason": "web",
+        "data": {
+          "id": "TASK-0040",
+          "depends_on": [
+            "TASK-0039"
+          ],
+          "status": "todo",
+          "title": "Review & complete UI in the task drawer",
+          "story": "STORY-0016",
+          "kind": "code",
+          "description": "Branch review (commits, files, diff), Complete button with refusal reasons and eval output, parallel-task warning in the agent confirmation dialog.",
+          "done_when": "task-complete e2e suite passes."
+        }
+      }
+    ],
+    "refmap": {
+      "req": "REQ-0056",
+      "st": "STORY-0016",
+      "t1": "TASK-0038",
+      "t2": "TASK-0039",
+      "t3": "TASK-0040"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 55,
+        "active": 55,
+        "epics": 10,
+        "stories": 15,
+        "tasks": 37,
+        "evals": 38,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 56,
+        "active": 56,
+        "epics": 10,
+        "stories": 16,
+        "tasks": 40,
+        "evals": 40,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0056"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0016",
+          "title": "Complete a task from its agent branch",
+          "status": "todo",
+          "component": "server",
+          "via": [
+            "REQ-0056"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0038",
+          "title": "Complete-flow design: merge order, eval run, cleanup, parallel-task warning",
+          "kind": "design",
+          "status": "todo",
+          "story": "STORY-0016"
+        },
+        {
+          "id": "TASK-0039",
+          "title": "Complete endpoint in the server",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0016"
+        },
+        {
+          "id": "TASK-0040",
+          "title": "Review & complete UI in the task drawer",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0016"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0016",
+          "id": "E1",
+          "name": "complete flow",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+          "covers": [
+            "REQ-0056#AC2",
+            "REQ-0056#AC3",
+            "REQ-0056#AC4",
+            "REQ-0056#AC5",
+            "REQ-0056#AC6",
+            "REQ-0056#AC7"
+          ]
+        },
+        {
+          "story": "STORY-0016",
+          "id": "E2",
+          "name": "UI e2e: task complete",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+          "covers": [
+            "REQ-0056#AC1",
+            "REQ-0056#AC5",
+            "REQ-0056#AC7"
+          ]
+        }
+      ],
+      "components": [
+        "server"
+      ],
+      "in_progress_work": []
+    }
+  }
+}
