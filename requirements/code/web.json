@@ -1,0 +1,401 @@
+{
+  "component": "web",
+  "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
+  "commit": "61d1a126604317b6b0174a2cb352683089b478e6",
+  "scanned_at": "2026-10-04T01:04:16+00:00",
+  "files_scanned": 55,
+  "files": {
+    "web/e2e/suites/core.js": "8c3dfbf3a76ca7f60b09e91fe83aec657e13e818aef6451adebaa97491ebdce2",
+    "web/e2e/suites/projects.js": "018377a916e2d5d3dc849ba9569eccae082b22b19d39871186fac0d320cde205",
+    "web/src/components/ChangesetCard.tsx": "0625e3936262322509661d900e2b6ec661c51efbd347f7967412af8cf380a9ca",
+    "web/src/components/CodeEvidence.tsx": "02026364e455451d8978acbbe1070ffbc3c3d8c7abea9d4622ed9463264709d4",
+    "web/src/components/ProjectDialogs.tsx": "bfb973073fadf85a54e79ad10315ebe64f420dd6cca959ffb4b42bbd2821962d",
+    "web/src/components/ProjectSwitcher.tsx": "62d5b4f2caf11aa59e77680a520d43f17767ca8fd44f2179e0fd3362f817355a",
+    "web/src/components/RecordDrawer.tsx": "fef3483d03433928d5d53c8c5d2c256507b4b43e1ef80b5e62a1855f97c8db71",
+    "web/src/components/Sidebar.tsx": "2c6b25386929362844caa9927889a107b88f5efddfbb6cadd41e4e5f75678ea4",
+    "web/src/components/chat/ChatPanel.tsx": "6db5fd1af350c48f3f795d6ab257ef2bc92ea6974f8a376158e694ad548c60e8",
+    "web/src/components/verification.tsx": "7f1330063ca71a732a333a46581e0e8a940eacce11af90085e77c9e13b25de9b",
+    "web/src/views/LintView.tsx": "5b62203ecb356a46dc8600b5b3086807c2a90932fe55c9e707ffd9780f20fcbc",
+    "web/src/views/ListView.tsx": "2261c89e4e3c1759709b57458a00595b9f143c47fd667ae570057e29eb6b9652",
+    "web/src/views/TraceView.tsx": "2e8cebb2c805bf2cc9a1499f969e48cfbf3230bf49cfeec7684626d8c5ee249d",
+    "web/src/views/VerificationView.tsx": "fb50028e79c1f85d94ea2d6472e06467a39028726c29f4aa82b18b9610ed1836"
+  },
+  "tags": [
+    {
+      "req": "REQ-0030",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 11,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0030#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 18,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0030#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 32,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0030#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 41,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0030#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 59,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0030#AC5",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0031",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 72,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0031#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0031",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 73,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0031#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0045",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 74,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0045#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC6",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 88,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0030#AC6",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 102,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0032#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 103,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0032#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 104,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0032#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/core.js",
+      "line": 143,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0032#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0033",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 20,
+      "symbol": "phaseOne",
+      "text": "// reqforge: verifies REQ-0033#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0033",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 66,
+      "symbol": "createTest",
+      "text": "// reqforge: verifies REQ-0033#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0033",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 128,
+      "symbol": "chatPerProject",
+      "text": "// reqforge: verifies REQ-0033#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 129,
+      "symbol": "chatPerProject",
+      "text": "// reqforge: verifies REQ-0032#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 130,
+      "symbol": "chatPerProject",
+      "text": "// reqforge: verifies REQ-0032#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 131,
+      "symbol": "chatPerProject",
+      "text": "// reqforge: verifies REQ-0032#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0033",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 173,
+      "symbol": "deleteTest",
+      "text": "// reqforge: verifies REQ-0033#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 212,
+      "symbol": "coreOnBig",
+      "text": "// reqforge: verifies REQ-0030#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 213,
+      "symbol": "coreOnBig",
+      "text": "// reqforge: verifies REQ-0030#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "ac": "AC6",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 214,
+      "symbol": "coreOnBig",
+      "text": "// reqforge: verifies REQ-0030#AC6",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0031",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 215,
+      "symbol": "coreOnBig",
+      "text": "// reqforge: verifies REQ-0031#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0045",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/projects.js",
+      "line": 216,
+      "symbol": "coreOnBig",
+      "text": "// reqforge: verifies REQ-0045#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "kind": "implements",
+      "file": "web/src/components/ChangesetCard.tsx",
+      "line": 105,
+      "symbol": "ChangesetCard",
+      "text": "// reqforge: implements REQ-0032",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0031",
+      "kind": "implements",
+      "file": "web/src/components/CodeEvidence.tsx",
+      "line": 152,
+      "symbol": "CodeEvidencePanel",
+      "text": "// reqforge: implements REQ-0031",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0033",
+      "kind": "implements",
+      "file": "web/src/components/ProjectDialogs.tsx",
+      "line": 36,
+      "symbol": "CreateProjectDialog",
+      "text": "// reqforge: implements REQ-0033",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0033",
+      "kind": "implements",
+      "file": "web/src/components/ProjectDialogs.tsx",
+      "line": 364,
+      "symbol": "DeleteProjectDialog",
+      "text": "// reqforge: implements REQ-0033",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0033",
+      "kind": "implements",
+      "file": "web/src/components/ProjectSwitcher.tsx",
+      "line": 16,
+      "symbol": "ProjectSwitcher",
+      "text": "// reqforge: implements REQ-0033",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0031",
+      "kind": "implements",
+      "file": "web/src/components/RecordDrawer.tsx",
+      "line": 489,
+      "symbol": "RecordDrawer",
+      "text": "// reqforge: implements REQ-0031",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0045",
+      "kind": "implements",
+      "file": "web/src/components/RecordDrawer.tsx",
+      "line": 490,
+      "symbol": "RecordDrawer",
+      "text": "// reqforge: implements REQ-0045",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "kind": "implements",
+      "file": "web/src/components/Sidebar.tsx",
+      "line": 383,
+      "symbol": "Sidebar",
+      "text": "// reqforge: implements REQ-0030",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0032",
+      "kind": "implements",
+      "file": "web/src/components/chat/ChatPanel.tsx",
+      "line": 11,
+      "symbol": "ChatPanel",
+      "text": "// reqforge: implements REQ-0032",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0034",
+      "kind": "implements",
+      "file": "web/src/components/verification.tsx",
+      "line": 42,
+      "symbol": "VerifBadge",
+      "text": "// reqforge: implements REQ-0034",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "kind": "implements",
+      "file": "web/src/views/LintView.tsx",
+      "line": 14,
+      "symbol": "LintView",
+      "text": "// reqforge: implements REQ-0030",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "kind": "implements",
+      "file": "web/src/views/ListView.tsx",
+      "line": 310,
+      "symbol": "ListView",
+      "text": "// reqforge: implements REQ-0030",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0030",
+      "kind": "implements",
+      "file": "web/src/views/TraceView.tsx",
+      "line": 12,
+      "symbol": "TraceView",
+      "text": "// reqforge: implements REQ-0030",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0034",
+      "kind": "implements",
+      "file": "web/src/views/VerificationView.tsx",
+      "line": 372,
+      "symbol": "VerificationView",
+      "text": "// reqforge: implements REQ-0034",
+      "component": "web"
+    }
+  ]
+}
