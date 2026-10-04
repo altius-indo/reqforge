@@ -1,0 +1,32 @@
+{
+  "id": "STORY-0003",
+  "title": "Lint and trace gates",
+  "epic": "EPIC-0003",
+  "narrative": "As a reqforge maintainer, I want lint and trace gates so that the documented requirements hold.",
+  "requirements": [
+    "REQ-0009",
+    "REQ-0010"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "lint and trace tests",
+      "kind": "unit",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration lint trace waivers",
+      "covers": [
+        "REQ-0009#AC1",
+        "REQ-0009#AC2",
+        "REQ-0010#AC1",
+        "REQ-0010#AC2"
+      ]
+    }
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

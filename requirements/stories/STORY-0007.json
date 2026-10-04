@@ -1,0 +1,57 @@
+{
+  "id": "STORY-0007",
+  "title": "Web UI lists, drawer and chat",
+  "epic": "EPIC-0007",
+  "narrative": "As a reqforge maintainer, I want web ui lists, drawer and chat so that the documented requirements hold.",
+  "requirements": [
+    "REQ-0016",
+    "REQ-0017",
+    "REQ-0030",
+    "REQ-0031",
+    "REQ-0032",
+    "REQ-0045"
+  ],
+  "deliverable": "code",
+  "component": "web",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "query tests",
+      "kind": "unit",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration page_sort facets_and_tree",
+      "covers": [
+        "REQ-0016#AC1",
+        "REQ-0017#AC1"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: core",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --suite core",
+      "covers": [
+        "REQ-0030#AC1",
+        "REQ-0030#AC2",
+        "REQ-0030#AC3",
+        "REQ-0030#AC4",
+        "REQ-0030#AC5",
+        "REQ-0030#AC6",
+        "REQ-0031#AC1",
+        "REQ-0031#AC2",
+        "REQ-0031#AC3",
+        "REQ-0032#AC1",
+        "REQ-0032#AC2",
+        "REQ-0032#AC3",
+        "REQ-0032#AC4",
+        "REQ-0045#AC1",
+        "REQ-0045#AC2"
+      ]
+    }
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

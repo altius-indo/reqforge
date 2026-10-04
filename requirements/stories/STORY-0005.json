@@ -1,0 +1,37 @@
+{
+  "id": "STORY-0005",
+  "title": "Changesets and chat bridge",
+  "epic": "EPIC-0005",
+  "narrative": "As a reqforge maintainer, I want changesets and chat bridge so that the documented requirements hold.",
+  "requirements": [
+    "REQ-0013",
+    "REQ-0014",
+    "REQ-0015",
+    "REQ-0041"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "changeset and chat tests",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration simulate delete_without propose mece_delta sse_chat chat_tool",
+      "covers": [
+        "REQ-0013#AC1",
+        "REQ-0013#AC2",
+        "REQ-0013#AC3",
+        "REQ-0014#AC1",
+        "REQ-0014#AC2",
+        "REQ-0015#AC1",
+        "REQ-0041#AC1"
+      ]
+    }
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

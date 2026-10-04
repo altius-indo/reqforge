@@ -1,0 +1,50 @@
+{
+  "id": "STORY-0004",
+  "title": "Eval runner and pipeline generator",
+  "epic": "EPIC-0004",
+  "narrative": "As a reqforge maintainer, I want eval runner and pipeline generator so that the documented requirements hold.",
+  "requirements": [
+    "REQ-0011",
+    "REQ-0012",
+    "REQ-0043",
+    "REQ-0044"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "evals and cicd tests",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration eval_runner cicd_generation",
+      "covers": [
+        "REQ-0011#AC1",
+        "REQ-0012#AC1",
+        "REQ-0012#AC2",
+        "REQ-0044#AC1"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "clippy clean",
+      "kind": "static",
+      "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+      "covers": [
+        "REQ-0043#AC1"
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "verification pipeline jobs",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace cicd_includes",
+      "covers": []
+    }
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

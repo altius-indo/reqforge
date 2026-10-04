@@ -1,0 +1,51 @@
+{
+  "id": "STORY-0001",
+  "title": "Plugin agents and skills",
+  "epic": "EPIC-0001",
+  "narrative": "As a reqforge maintainer, I want plugin agents and skills so that the documented requirements hold.",
+  "requirements": [
+    "REQ-0001",
+    "REQ-0002",
+    "REQ-0036",
+    "REQ-0047"
+  ],
+  "deliverable": "code",
+  "component": "plugin",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "plugin contract tests",
+      "kind": "unit",
+      "command": "cargo test --manifest-path server/Cargo.toml --test plugin",
+      "covers": [
+        "REQ-0001#AC1",
+        "REQ-0001#AC2",
+        "REQ-0002#AC1",
+        "REQ-0036#AC1",
+        "REQ-0036#AC2"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "plugin manifest validates",
+      "kind": "static",
+      "command": "claude plugin validate .",
+      "covers": []
+    },
+    {
+      "id": "E3",
+      "name": "chat runs the claude CLI",
+      "kind": "unit",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration sse_chat_bridge",
+      "covers": [
+        "REQ-0047#AC1"
+      ]
+    }
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

@@ -1,0 +1,65 @@
+{
+  "id": "STORY-0009",
+  "title": "Trace tags, evidence, verification and impact",
+  "epic": "EPIC-0009",
+  "narrative": "As a reqforge maintainer, I want trace tags, evidence, verification and impact so that the documented requirements hold.",
+  "requirements": [
+    "REQ-0021",
+    "REQ-0022",
+    "REQ-0023",
+    "REQ-0024",
+    "REQ-0025",
+    "REQ-0034",
+    "REQ-0038",
+    "REQ-0039"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "code-trace tests",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace",
+      "covers": [
+        "REQ-0021#AC1",
+        "REQ-0021#AC2",
+        "REQ-0021#AC3",
+        "REQ-0021#AC4",
+        "REQ-0022#AC1",
+        "REQ-0022#AC2",
+        "REQ-0023#AC1",
+        "REQ-0024#AC1",
+        "REQ-0025#AC1",
+        "REQ-0038#AC1"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "scale test",
+      "kind": "performance",
+      "command": "cargo test --manifest-path server/Cargo.toml --release --test integration thousands_of_requirements",
+      "covers": [
+        "REQ-0039#AC1"
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "UI e2e: code traceability",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --suite code",
+      "covers": [
+        "REQ-0034#AC1",
+        "REQ-0034#AC2",
+        "REQ-0034#AC3",
+        "REQ-0034#AC4"
+      ]
+    }
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

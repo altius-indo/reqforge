@@ -1,0 +1,55 @@
+{
+  "id": "STORY-0002",
+  "title": "JSON record store with git commits",
+  "epic": "EPIC-0002",
+  "narrative": "As a reqforge maintainer, I want json record store with git commits so that the documented requirements hold.",
+  "requirements": [
+    "REQ-0003",
+    "REQ-0004",
+    "REQ-0005",
+    "REQ-0006",
+    "REQ-0007",
+    "REQ-0008",
+    "REQ-0035",
+    "REQ-0037",
+    "REQ-0042"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "store integration tests",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration",
+      "covers": [
+        "REQ-0003#AC1",
+        "REQ-0003#AC2",
+        "REQ-0004#AC1",
+        "REQ-0004#AC2",
+        "REQ-0005#AC1",
+        "REQ-0006#AC1",
+        "REQ-0007#AC1",
+        "REQ-0007#AC2",
+        "REQ-0008#AC1",
+        "REQ-0037#AC1"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "scoped commits",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace commits_are_scoped",
+      "covers": [
+        "REQ-0035#AC1",
+        "REQ-0035#AC2"
+      ]
+    }
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

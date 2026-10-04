@@ -1,0 +1,60 @@
+{
+  "id": "STORY-0006",
+  "title": "REST, MCP, CLI and console",
+  "epic": "EPIC-0006",
+  "narrative": "As a reqforge maintainer, I want rest, mcp, cli and console so that the documented requirements hold.",
+  "requirements": [
+    "REQ-0026",
+    "REQ-0027",
+    "REQ-0028",
+    "REQ-0029",
+    "REQ-0040",
+    "REQ-0046"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "interface tests",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration rest_api mcp_protocol cli console security_guard token_protects",
+      "covers": [
+        "REQ-0026#AC1",
+        "REQ-0026#AC2",
+        "REQ-0027#AC1",
+        "REQ-0027#AC2",
+        "REQ-0028#AC1",
+        "REQ-0028#AC2",
+        "REQ-0028#AC3",
+        "REQ-0029#AC1",
+        "REQ-0040#AC1",
+        "REQ-0040#AC2",
+        "REQ-0046#AC1"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "code-trace interfaces",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace http_routes cli_scan",
+      "covers": []
+    },
+    {
+      "id": "E3",
+      "name": "security headers and origin checks",
+      "kind": "security",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration security_guard token_protects",
+      "covers": [
+        "REQ-0040#AC1",
+        "REQ-0040#AC2"
+      ]
+    }
+  ],
+  "status": "done",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}
