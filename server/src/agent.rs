@@ -194,11 +194,18 @@ pub struct Snapshot {
     pub default_head: String,
     pub component_status: String,
     pub requirements_status: String,
+    /// the component checkout's top level, and the requirements folder inside it (if any)
+    pub top: PathBuf,
+    pub requirements_rel: Option<String>,
 }
 
 // reqforge: implements REQ-0052
 pub fn snapshot(component_root: &Path, requirements_root: &Path) -> Snapshot {
     let top = git(component_root, &["rev-parse", "--show-toplevel"]).map(PathBuf::from).unwrap_or_else(|_| component_root.to_path_buf());
+    // git reports canonical paths (e.g. /private/var on macOS); compare like with like
+    let top = std::fs::canonicalize(&top).unwrap_or(top);
+    let canon = std::fs::canonicalize(requirements_root).unwrap_or_else(|_| requirements_root.to_path_buf());
+    let requirements_root = canon.as_path();
     // ignore the requirements folder when it lives inside the component checkout: the server writes the run log there
     let rel = requirements_root.strip_prefix(&top).ok().map(|r| format!(":(exclude){}", r.display()));
     let mut args = vec!["status", "--porcelain", "--", "."];
@@ -206,6 +213,8 @@ pub fn snapshot(component_root: &Path, requirements_root: &Path) -> Snapshot {
         args.push(x);
     }
     Snapshot {
+        top: top.clone(),
+        requirements_rel: requirements_root.strip_prefix(&top).ok().map(|r| r.display().to_string()).filter(|r| !r.is_empty()),
         default_head: git(&top, &["rev-parse", "HEAD"]).unwrap_or_default(),
         component_status: git(&top, &args).unwrap_or_default(),
         requirements_status: git(requirements_root, &["status", "--porcelain", "--", "."]).unwrap_or_default(),
@@ -214,7 +223,15 @@ pub fn snapshot(component_root: &Path, requirements_root: &Path) -> Snapshot {
 
 pub fn violations(before: &Snapshot, after: &Snapshot) -> Vec<String> {
     let mut v = vec![];
-    if before.default_head != after.default_head {
+    // reqforge's own commits (task start, run logs, evidence) touch only the requirements folder
+    // when it lives inside the component checkout: those are not the agent's doing
+    let only_requirements = before.default_head != after.default_head
+        && before.requirements_rel.as_ref().is_some_and(|rel| {
+            git(&before.top, &["diff", "--name-only", &before.default_head, &after.default_head])
+                .map(|names| names.lines().all(|f| f.starts_with(&format!("{rel}/"))))
+                .unwrap_or(false)
+        });
+    if before.default_head != after.default_head && !only_requirements {
         v.push(format!("the component's checked-out branch moved from {} to {}", &before.default_head[..before.default_head.len().min(10)], &after.default_head[..after.default_head.len().min(10)]));
     }
     if before.component_status != after.component_status {
@@ -254,6 +271,8 @@ pub fn runs(store: &Store, task_id: &str) -> Vec<Value> {
 }
 
 pub struct AgentRunner {
+    /// a run still going after this long is stopped and logged as "timeout"
+    pub timeout: std::time::Duration,
     /// running (or starting) runs by task id; also the cancel signal
     cancels: Mutex<HashMap<String, Arc<Notify>>>,
     /// live progress per task (the last run's events, newest 500) and how many were dropped before them
@@ -264,7 +283,13 @@ pub struct AgentRunner {
 
 impl Default for AgentRunner {
     fn default() -> Self {
-        AgentRunner { cancels: Mutex::new(HashMap::new()), live: Mutex::new(HashMap::new()), pending: Mutex::new(Default::default()) }
+        let mins = std::env::var("REQFORGE_AGENT_TIMEOUT_MIN").ok().and_then(|v| v.parse().ok()).unwrap_or(60u64);
+        AgentRunner {
+            timeout: std::time::Duration::from_secs(mins * 60),
+            cancels: Mutex::new(HashMap::new()),
+            live: Mutex::new(HashMap::new()),
+            pending: Mutex::new(Default::default()),
+        }
     }
 }
 
@@ -442,8 +467,23 @@ impl AgentRunner {
                 let mut lines = BufReader::new(child.stdout.take().unwrap()).lines();
                 let mut tool_names = HashMap::new();
                 let mut cancelled = false;
+                let mut timed_out = false;
+                let deadline = tokio::time::sleep(self.timeout);
+                tokio::pin!(deadline);
                 loop {
                     tokio::select! {
+                        _ = &mut deadline => {
+                            timed_out = true;
+                            if let Some(pid) = child.id() {
+                                let _ = std::process::Command::new("kill").args(["-TERM", &format!("-{pid}")]).status();
+                            }
+                            let _ = child.kill().await;
+                            let ev = json!({"type": "error", "text": format!("agent run stopped after the {} min time limit", self.timeout.as_secs() / 60)});
+                            self.record(&task_id, &ev);
+                            events.push(ev.clone());
+                            let _ = tx.send(ev).await;
+                            break;
+                        }
                         line = lines.next_line() => {
                             let Ok(Some(line)) = line else { break };
                             let Ok(msg) = serde_json::from_str::<Value>(line.trim()) else { continue };
@@ -469,7 +509,9 @@ impl AgentRunner {
                 let wait = std::time::Duration::from_secs(5);
                 let status = tokio::time::timeout(wait, child.wait()).await.ok().and_then(|r| r.ok());
                 let err = tokio::time::timeout(wait, err_task).await.ok().and_then(|r| r.ok()).unwrap_or_default();
-                exit_status = if cancelled {
+                exit_status = if timed_out {
+                    json!("timeout")
+                } else if cancelled {
                     json!("cancelled")
                 } else {
                     status.and_then(|s| s.code()).map(|c| json!(c)).unwrap_or(json!("killed"))

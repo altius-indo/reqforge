@@ -96,3 +96,26 @@ fn a_running_agent_can_be_cancelled() {
     });
     assert_eq!(result(&evs)["exit_status"], json!("cancelled"));
 }
+
+// reqforge: verifies REQ-0051#AC5
+#[test]
+fn runs_past_the_time_limit_are_stopped() {
+    let f = fx("RUNE", "Implement feature SLOW");
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let evs = rt.block_on(async {
+        let mut runner = reqforge::agent::AgentRunner::default();
+        runner.timeout = std::time::Duration::from_millis(1500);
+        let (tx, mut rx) = tokio::sync::mpsc::channel(256);
+        let store = f.store.clone();
+        let h = tokio::spawn(async move { runner.run(store, "TASK-0001".into(), "tester".into(), tx).await });
+        let mut out = vec![];
+        while let Some(ev) = rx.recv().await {
+            out.push(ev);
+        }
+        h.await.unwrap();
+        out
+    });
+    assert_eq!(result(&evs)["exit_status"], json!("timeout"));
+    assert!(evs.iter().any(|e| e["text"].as_str().is_some_and(|t| t.contains("time limit"))));
+    assert_eq!(reqforge::agent::runs(&f.store, "TASK-0001")[0]["exit_status"], json!("timeout"));
+}

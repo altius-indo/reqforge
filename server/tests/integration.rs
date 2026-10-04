@@ -662,9 +662,9 @@ fn chat_project_pinned_refuses_other_projects() {
             ("search", json!({"kind": "requirements", "project": "shop"})),
         ],
     );
-    for i in 1..=3 {
-        assert_eq!(out[i]["result"]["isError"], json!(true), "call {i} on PAY must be refused");
-        assert!(tool_text(&out[i])["error"].as_str().unwrap().contains("pinned to project SHOP"));
+    for (i, call) in out.iter().enumerate().skip(1).take(3) {
+        assert_eq!(call["result"]["isError"], json!(true), "call {i} on PAY must be refused");
+        assert!(tool_text(call)["error"].as_str().unwrap().contains("pinned to project SHOP"));
     }
     assert!(changes::list(&pay, None).is_empty(), "nothing proposed in PAY");
     for i in [4, 5] {

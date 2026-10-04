@@ -74,3 +74,30 @@ fn every_run_is_logged() {
     let committed = git(&f.store.root, &["log", "--format=%s", "-1"]);
     assert!(committed.contains("agent run RUN-TASK-0001-"), "{committed}");
 }
+
+// reqforge: verifies REQ-0052#AC1
+#[test]
+fn reqforge_commits_to_its_requirements_folder_are_not_violations() {
+    let d = tempfile::TempDir::new().unwrap();
+    let repo = d.path();
+    git(repo, &["init", "-q", "-b", "main"]);
+    std::fs::create_dir_all(repo.join("requirements")).unwrap();
+    std::fs::write(repo.join("requirements/a.json"), "{}").unwrap();
+    std::fs::write(repo.join("app.rs"), "fn main() {}").unwrap();
+    git(repo, &["-c", "user.email=t@t", "-c", "user.name=t", "add", "-A"]);
+    git(repo, &["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "base"]);
+    let reqs = repo.join("requirements");
+    let commit = |file: &str, body: &str| {
+        std::fs::write(repo.join(file), body).unwrap();
+        git(repo, &["-c", "user.email=t@t", "-c", "user.name=t", "add", "-A"]);
+        git(repo, &["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", file]);
+    };
+    let s0 = reqforge::agent::snapshot(repo, &reqs);
+    commit("requirements/a.json", "{\"run\": 1}"); // reqforge writing a run log / task start
+    let s1 = reqforge::agent::snapshot(repo, &reqs);
+    assert_eq!(reqforge::agent::violations(&s0, &s1), Vec::<String>::new());
+    commit("app.rs", "fn main() { evil(); }"); // a commit to code on the checked-out branch
+    let s2 = reqforge::agent::snapshot(repo, &reqs);
+    let v = reqforge::agent::violations(&s1, &s2);
+    assert!(v[0].contains("checked-out branch moved"), "{v:?}");
+}
