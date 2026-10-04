@@ -8,9 +8,9 @@
   ],
   "description": "GET tasks/{id}/branch (commits, files, diff) and POST tasks/{id}/complete implementing REQ-0056 AC2-AC6; run the story's evals under the coding-agent sandbox limits (REQ-0052 AC5); parallel-branch warning in the agent plan (REQ-0051 AC7). Tag tests REQ-0056#AC2..AC6, REQ-0052#AC5, REQ-0051#AC7.",
   "done_when": "task_complete integration tests pass.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T17:20:21+00:00",
   "updated": "2026-10-04T18:21:36+00:00"
 }
