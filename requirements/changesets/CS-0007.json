@@ -3,7 +3,7 @@
   "title": "Remove CS-0005 duplicates of task-execution plan",
   "summary": "Deletes the stale CS-0005 copy of the 'Start tasks from the UI' plan: REQ-0053..0055, EPIC-0011, STORY-0014/0015, TASK-0030..0033. The CS-0006 records (REQ-0050..0052, EPIC-0010, STORY-0012/0013, TASK-0026..0029) remain the single source.",
   "rationale": "All 3 lint errors have one root cause. CS-0005 was replaced by CS-0006 but was still applied after it (commit 413c6fd), so every record was created twice. The CS-0006 set is a strict superset: REQ-0050 adds AC5 (dependency blocking) and REQ-0051 AC6 adds the depends_on condition. REQ-0052 and REQ-0055 are identical. Nothing needs merging into the survivors. Their statements are already measurable.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T02:16:15+00:00",
   "valid": true,
   "ops": [
@@ -376,5 +376,8 @@
       ],
       "in_progress_work": []
     }
-  }
+  },
+  "applied_at": "2026-10-04T02:17:17+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }
