@@ -5,9 +5,9 @@
   "kind": "design",
   "description": "Define the per-project queue setting and concurrency limit, the eligibility check, start order and how queued runs reuse the REQ-0051 launcher.",
   "done_when": "Design covers all 6 acceptance criteria of the queue requirement.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T02:29:01+00:00",
-  "updated": "2026-10-04T02:29:01+00:00"
+  "updated": "2026-10-04T02:32:50+00:00"
 }
