@@ -3,7 +3,7 @@
   "title": "Link the last 2 uncovered evals to their criteria",
   "summary": "STORY-0001/E2 (claude plugin validate) now covers REQ-0036#AC1, and STORY-0004/E3 (cicd_includes test) now covers REQ-0012#AC2. After this, every eval covers at least one criterion.",
   "rationale": "Both evals run but covered no criteria, so their results never counted as evidence. STORY-0001/E2 validates the plugin manifests that REQ-0036#AC1 requires. STORY-0004/E3 runs cicd_includes_impact_and_verification, which is tagged REQ-0012#AC2 (server/tests/codetrace.rs:311).",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T06:46:46+00:00",
   "valid": true,
   "ops": [
@@ -491,5 +491,8 @@
         "STORY-0004"
       ]
     }
-  }
+  },
+  "applied_at": "2026-10-04T06:47:14+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }

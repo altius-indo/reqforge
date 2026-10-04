@@ -31,7 +31,9 @@
       "name": "plugin manifest validates",
       "kind": "static",
       "command": "claude plugin validate .",
-      "covers": []
+      "covers": [
+        "REQ-0036#AC1"
+      ]
     },
     {
       "id": "E3",
@@ -45,7 +47,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T06:47:14+00:00"
 }

@@ -39,7 +39,9 @@
       "name": "verification pipeline jobs",
       "kind": "integration",
       "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
-      "covers": []
+      "covers": [
+        "REQ-0012#AC2"
+      ]
     },
     {
       "id": "E4",
@@ -54,7 +56,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 7,
+  "version": 8,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T02:24:52+00:00"
+  "updated": "2026-10-04T06:47:14+00:00"
 }
