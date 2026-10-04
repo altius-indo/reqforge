@@ -1,0 +1,72 @@
+{
+  "run_id": "RUN-TASK-0038-20261004T181844569",
+  "task": "TASK-0038",
+  "story": "STORY-0016",
+  "component": "server",
+  "branch": "reqforge/TASK-0038",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0038",
+  "base": "bcc4162ff430fa90df37e266db4ec21520217d7c",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-04T18:18:44+00:00",
+  "ended": "2026-10-04T18:19:17+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "b319c8c",
+      "message": "TASK-0038: design the Complete flow in docs/agent-runs.md"
+    }
+  ],
+  "violations": [],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "d4467bb4-e274-4145-8150-8eba3940e22d"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The design was already committed in an earlier run. Let me review it against the criteria."
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0038/docs/agent-runs.md"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The design for TASK-0038 was already written and committed on this branch in an earlier run (`b319c8c`). I reviewed it against REQ-0056 in this run and made no changes, so there's nothing new to commit.\n\n**What's there:** a new section in `docs/agent-runs.md:80-187`, \"Completing a task from its agent branch\". Here is where each acceptance criterion is covered:\n\n| AC | Section | Gist |\n|---|---|---|\n| AC1 | Review | `GET …/tasks/{id}/branch` returns the commits, changed files and diff against the merge base (diff capped at 512 KiB). It also returns whether Complete is ready, so the drawer can disable the button before it's clicked. |\n| AC2 | 1. Preconditions | Complete is refused when the checkout has uncommitted changes outside the requirements folder. This reuses `agent::snapshot(...).component_status`, and the reason lists the first 20 paths. There are other guards too: the task must be in progress, no agent run or other Complete can be active, and the worktree must be clean. |\n| AC3 | 2. Bring the target into the task branch | The checked-out head is merged into the task branch inside the worktree. On conflict it runs `merge --abort`, checks that the task branch is back where it was, and returns the conflicting files. The target is never touched in this step. |\n| AC4 | 3. Run the story's evals | Every eval of the story that has a command runs in the worktree. If any fails, Complete is refused and the response lists each failing eval with the last 4000 characters of its output. Each attempt is logged under `requirements/agent-runs/`. |\n| AC5 | 4. Land, 5. Status cascade, 6. Cleanup | It first checks the target hasn't moved since step 2, then merges with `--no-ff`. Only after the code lands does the task become `done`. Then `worktree remove` and `branch -d` (not `-D`) clean up. All of this is one action, and re-running Complete is safe if it stops partway. |\n| AC6 | 5. Status cascade | The story becomes `done` once all its tasks are done, and the epic once all its stories are, in one versioned commit. |\n| AC7 | Parallel-task warning | The Start with agent plan gets a `parallel` list: other in-progress tasks of the same story whose branches aren't merged. The confirmation dialog warns about them and offers \"Add to depends_on\" or \"Start anyway\". |\n\n**Evals:** I ran both, and neither can run yet because the code they test doesn't exist. This is a design task, and the implementation hasn't been written.\n- E1 `cargo test --manifest-path server/Cargo.toml --test task_complete`: cargo reports that there's no `task_complete` test target in `server/tests/`.\n- E2 `node web/e2e/run.mjs … --suite task-complete`: fails with `e2e: unknown suite: task-complete`.\n\n**Left open:**\n- The tests behind E1 and E2, and the implementation itself, belong to the follow-up code tasks.\n- The design runs agent-written eval code with the server's privileges and doesn't sandbox it. CS-0017 proposed changing that, but it's stale and not applied, so the design follows REQ-0056 as it stands. The doc notes this under \"Not covered here\".\n- The reqforge MCP server failed to connect (`ENOENT` on its binary), so I checked the requirements against the brief rather than the live store.\n- The Google Calendar connector needs to be authorized in claude.ai connector settings before it can be used; it isn't needed for this task."
+    },
+    {
+      "type": "done",
+      "session_id": "d4467bb4-e274-4145-8150-8eba3940e22d",
+      "cost": 0.2154458,
+      "turns": 6,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
