@@ -5,7 +5,7 @@
   "type": "functional",
   "category": "task-execution",
   "priority": "could",
-  "status": "approved",
+  "status": "implemented",
   "rationale": "Lets a product owner hand a planned task straight to an agent while keeping the work traceable to requirements.",
   "acceptance_criteria": [
     {
@@ -46,7 +46,7 @@
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
   "notes": null,
-  "version": 5,
+  "version": 6,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T18:21:36+00:00"
+  "updated": "2026-10-04T19:08:02+00:00"
 }
