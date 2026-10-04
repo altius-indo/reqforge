@@ -1,0 +1,100 @@
+{
+  "run_id": "RUN-TASK-0038-20261004T181250226",
+  "task": "TASK-0038",
+  "story": "STORY-0016",
+  "component": "server",
+  "branch": "reqforge/TASK-0038",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0038",
+  "base": "bcc4162ff430fa90df37e266db4ec21520217d7c",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-04T18:12:50+00:00",
+  "ended": "2026-10-04T18:14:18+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "b319c8c",
+      "message": "TASK-0038: design the Complete flow in docs/agent-runs.md"
+    }
+  ],
+  "violations": [],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "5629347d-c37f-4bb5-8ce4-9b3e7ab7959b"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I'm reading the existing agent/taskflow/evals code so the design reuses what's there; next I'll write the Complete section."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now writing the design section."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I've added the Complete design to `docs/agent-runs.md` as a new section, \"Completing a task from its agent branch\", and committed it on `reqforge/TASK-0038` (commit `b319c8c`). I didn't change any code, and the two required evals can't run yet because what they test doesn't exist.\n\n**How the design covers each acceptance criterion:**\n- **AC1, review:** a new `GET …/tasks/{id}/branch` endpoint returns the merge base, the branch's commits, its changed files and the diff (capped at 512 KiB). It also says whether Complete is currently possible and why not, so the drawer can disable the button in advance.\n- **AC2, preconditions:** Complete is refused if the main checkout has uncommitted changes outside the requirements folder. It reuses the existing check in `agent::snapshot`, which already skips that folder. It is also refused if the task isn't in progress, an agent is still running on it, another Complete is running, the worktree is dirty, or the branch has no commits.\n- **AC3, merge order:** the checked-out branch is merged into the task branch inside the task's worktree, never in the main checkout. On conflict it aborts, checks the task branch is back where it was, and lists the conflicting files.\n- **AC4, eval run:** every eval of the story that has a command runs in the worktree. Any failure refuses Complete and shows the failing evals with the end of their output. No report file is written into the worktree; the existing eval runner would otherwise leave it dirty. Each attempt is logged under `requirements/agent-runs/`.\n- **AC5, landing:** before merging, it checks the checked-out branch hasn't moved apart from reqforge's own requirements commits. It then merges the task branch with `--no-ff`. The code lands before the task is marked done, so a task is never done without its code on the branch, and a partial failure can be retried safely. Finally it removes the worktree and deletes the branch with `branch -d`, which only deletes it if git agrees it's merged. All of this is the one POST.\n- **AC6, status cascade:** in one commit the task becomes done, then the story if all its tasks are done, then the epic if all its stories are done.\n- **AC7, parallel-task warning:** the Start-with-agent plan gains a `parallel` list: other in-progress tasks of the same story whose agent branches aren't merged yet. The confirmation dialog warns about them and offers \"Add to depends_on\", which saves the dependency and doesn't start, or \"Start anyway\". The agent queue is not affected.\n\n**Evals:** E1 and E2 were not run.\n- E1 needs `server/tests/task_complete.rs`, which doesn't exist yet.\n- E2 needs a `task-complete` suite in `web/e2e/suites/`, which doesn't exist either.\n\nBoth belong to the code tasks TASK-0039 (server) and TASK-0040 (UI).\n\n**Open:**\n- The eval run in step 3 executes code the agent wrote, with the server's full privileges. Changeset CS-0017 proposed sandboxing this as REQ-0052#AC5 and moving the parallel-task warning (AC7) to REQ-0051, but it is marked stale and was never applied. The design follows REQ-0056 as it stands and lists the sandboxing under \"Not covered here\".\n- The reqforge MCP server failed to start in this session (`ENOENT` launching the `reqforge` binary), so I read the requirements from the JSON files in `requirements/` instead."
+    },
+    {
+      "type": "done",
+      "session_id": "5629347d-c37f-4bb5-8ce4-9b3e7ab7959b",
+      "cost": 0.7028492,
+      "turns": 10,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
