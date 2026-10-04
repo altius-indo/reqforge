@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { MessageSquare, X } from "lucide-react"
 import { toast } from "sonner"
-import { api, ApiError } from "@/api/client"
+import { ApiError } from "@/api/client"
+import { useApi } from "@/state/project"
 import type { FieldSchema, Kind, Meta, RecordBase, RecordContext, Requirement } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -139,6 +140,7 @@ function Field({
 
 function DetailsForm({ kind, rec, meta }: { kind: Kind; rec: RecordBase | null; meta: Meta }) {
   const { closeDrawer, refreshAll } = useApp()
+  const api = useApi()
   const schema = meta.schemas[kind]
   const [values, setValues] = useState<FormValues>(() => toForm(schema, rec))
   const [err, setErr] = useState("")

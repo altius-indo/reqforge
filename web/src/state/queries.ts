@@ -1,7 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { api } from "@/api/client"
 import type { Kind, LintParams } from "@/api/types"
 import type { Filters, ViewState } from "./app"
+import { useApi } from "./project"
+
+// Every project-scoped query key starts with ["p", <KEY>, …] so switching projects never
+// shows another project's cached data, and one project's cache can be dropped as a unit.
 
 export function listParams(view: ViewState) {
   return { q: view.q, ...view.filters, sort: view.sort, order: view.order, offset: view.offset, limit: view.limit }
@@ -12,9 +15,10 @@ export function facetParams(q: string, filters: Filters) {
 }
 
 export function useListPage(kind: Kind | null, view: ViewState) {
+  const api = useApi()
   const params = listParams(view)
   return useQuery({
-    queryKey: ["list", kind, params],
+    queryKey: ["p", api.key, "list", kind, params],
     queryFn: () => api.list(kind!, params),
     enabled: !!kind,
     placeholderData: keepPreviousData,
@@ -22,8 +26,9 @@ export function useListPage(kind: Kind | null, view: ViewState) {
 }
 
 export function useFacets(kind: Kind | null, params: Record<string, string | undefined>) {
+  const api = useApi()
   return useQuery({
-    queryKey: ["facets", kind, params],
+    queryKey: ["p", api.key, "facets", kind, params],
     queryFn: () => api.facets(kind!, params),
     enabled: !!kind,
     placeholderData: keepPreviousData,
@@ -31,20 +36,28 @@ export function useFacets(kind: Kind | null, params: Record<string, string | und
 }
 
 export function useLintPage(params: LintParams) {
-  return useQuery({ queryKey: ["lint", params], queryFn: () => api.lint(params), placeholderData: keepPreviousData })
+  const api = useApi()
+  return useQuery({
+    queryKey: ["p", api.key, "lint", params],
+    queryFn: () => api.lint(params),
+    placeholderData: keepPreviousData,
+  })
 }
 
 export function useTrace() {
-  return useQuery({ queryKey: ["trace"], queryFn: api.trace })
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "trace"], queryFn: api.trace })
 }
 
 export function useChangesets() {
-  return useQuery({ queryKey: ["changesets", "all"], queryFn: () => api.changesets() })
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "changesets", "all"], queryFn: () => api.changesets() })
 }
 
 export function usePendingCount() {
+  const api = useApi()
   return useQuery({
-    queryKey: ["changesets", "pending"],
+    queryKey: ["p", api.key, "changesets", "pending"],
     queryFn: () => api.changesets("pending"),
     select: (l) => l.length,
     refetchInterval: 60_000,
@@ -52,17 +65,25 @@ export function usePendingCount() {
 }
 
 export function useChangeset(id: string) {
-  return useQuery({ queryKey: ["changeset", id], queryFn: () => api.changeset(id) })
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "changeset", id], queryFn: () => api.changeset(id) })
 }
 
 export function useRecord(kind: Kind, id: string | null) {
-  return useQuery({ queryKey: ["record", kind, id], queryFn: () => api.get(kind, id!), enabled: !!id })
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "record", kind, id], queryFn: () => api.get(kind, id!), enabled: !!id })
 }
 
 export function useRecordContext(id: string | null, enabled: boolean) {
-  return useQuery({ queryKey: ["context", id], queryFn: () => api.context(id!), enabled: !!id && enabled })
+  const api = useApi()
+  return useQuery({
+    queryKey: ["p", api.key, "context", id],
+    queryFn: () => api.context(id!),
+    enabled: !!id && enabled,
+  })
 }
 
 export function useChatStatus() {
-  return useQuery({ queryKey: ["chat-status"], queryFn: api.chatStatus, staleTime: 5 * 60_000 })
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "chat-status"], queryFn: api.chatStatus, staleTime: 5 * 60_000 })
 }

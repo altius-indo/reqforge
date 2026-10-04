@@ -1,11 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { api, streamChat } from "@/api/client"
+import { streamChat } from "@/api/client"
 import { KINDS, type ChatContextPayload, type Kind } from "@/api/types"
-import { ls } from "@/lib/storage"
+import { ls, pkey } from "@/lib/storage"
 import { fmt, randomId } from "@/lib/format"
 import { useApp } from "./app"
+import { useApi } from "./project"
 import { useListPage } from "./queries"
 
 export interface ToolItem {
@@ -19,13 +20,13 @@ export type ChatEntry =
   | { k: string; role: "tools"; items: ToolItem[]; live: boolean }
   | { k: string; role: "changeset"; id: string }
 
-const LOG_KEY = "reqforge.chat.log"
-const SESSION_KEY = "reqforge.chat.session"
+// chat log + session are per project (reqforge.chat.log.<KEY>, reqforge.chat.session.<KEY>);
+// whether the panel is open is global
 const OPEN_KEY = "reqforge.chat.open"
 const MAX_LOG = 200
 
-function loadLog(): ChatEntry[] {
-  const raw = ls.get<unknown[]>(LOG_KEY, [])
+function loadLog(key: string): ChatEntry[] {
+  const raw = ls.get<unknown[]>(key, [])
   if (!Array.isArray(raw)) return []
   return raw
     .filter((e): e is Record<string, unknown> => !!e && typeof e === "object" && "role" in e)
@@ -60,12 +61,30 @@ interface ChatCtx {
 
 const Ctx = createContext<ChatCtx | null>(null)
 
+/**
+ * Chat for the active project. Mounted under the project-keyed AppProvider, so a switch unmounts
+ * it: the in-flight stream is aborted and late events are ignored, never rendered into another
+ * project's log.
+ */
 export function ChatProvider({ children }: { children: ReactNode }) {
   const app = useApp()
+  const api = useApi()
+  const project = api.key
+  const LOG_KEY = pkey("chat.log", project)
+  const SESSION_KEY = pkey("chat.session", project)
   const qc = useQueryClient()
   const [open, setOpenState] = useState(() => ls.get<boolean>(OPEN_KEY, false))
-  const [log, setLog] = useState<ChatEntry[]>(loadLog)
+  const [log, setLog] = useState<ChatEntry[]>(() => loadLog(LOG_KEY))
   const [sessionId, setSessionId] = useState<string | null>(() => ls.get<string | null>(SESSION_KEY, null))
+  const aliveRef = useRef(true)
+  const abortRef = useRef<AbortController | null>(null)
+  useEffect(() => {
+    aliveRef.current = true
+    return () => {
+      aliveRef.current = false
+      abortRef.current?.abort()
+    }
+  }, [])
   const sessionRef = useRef(sessionId)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
@@ -77,13 +96,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     ls.set(LOG_KEY, log.slice(-MAX_LOG))
-  }, [log])
+  }, [log, LOG_KEY])
 
-  const setSession = useCallback((id: string | null) => {
-    sessionRef.current = id
-    setSessionId(id)
-    ls.set(SESSION_KEY, id)
-  }, [])
+  const setSession = useCallback(
+    (id: string | null) => {
+      if (!aliveRef.current) return
+      sessionRef.current = id
+      setSessionId(id)
+      ls.set(SESSION_KEY, id)
+    },
+    [SESSION_KEY],
+  )
 
   const setOpen = useCallback((b: boolean) => {
     setOpenState(b)
@@ -120,9 +143,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setDraft("")
       const chatId = randomId()
       chatIdRef.current = chatId
+      const ctl = new AbortController()
+      abortRef.current = ctl
       setLog((l) => [...l, { k: randomId(), role: "user", text }])
       let toolsKey: string | null = null
-      const push = (e: ChatEntry) => setLog((l) => [...l, e])
+      const push = (e: ChatEntry) => {
+        if (aliveRef.current) setLog((l) => [...l, e])
+      }
       const endTools = () => {
         if (!toolsKey) return
         const k = toolsKey
@@ -130,12 +157,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setLog((l) => l.map((e) => (e.k === k && e.role === "tools" ? { ...e, live: false } : e)))
       }
       try {
-        for await (const ev of streamChat({
-          chat_id: chatId,
-          message: text,
-          session_id: sessionRef.current,
-          context: opts.noCtx ? null : ctxRef.current,
-        })) {
+        for await (const ev of streamChat(
+          project,
+          {
+            chat_id: chatId,
+            message: text,
+            session_id: sessionRef.current,
+            context: opts.noCtx ? null : ctxRef.current,
+          },
+          ctl.signal,
+        )) {
+          // switched to another project: drop whatever is still arriving
+          if (!aliveRef.current) break
           switch (ev.type) {
             case "session":
               setSession(ev.session_id)
@@ -158,7 +191,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             case "changeset":
               endTools()
               push({ k: randomId(), role: "changeset", id: ev.id })
-              void qc.invalidateQueries({ queryKey: ["changesets"] })
+              void qc.invalidateQueries({ queryKey: ["p", project, "changesets"] })
               break
             case "warning":
               push({ k: randomId(), role: "sys", text: ev.text })
@@ -175,20 +208,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (e) {
-        push({ k: randomId(), role: "error", text: e instanceof Error ? e.message : String(e) })
+        if (!ctl.signal.aborted) push({ k: randomId(), role: "error", text: e instanceof Error ? e.message : String(e) })
       } finally {
-        endTools()
+        if (abortRef.current === ctl) abortRef.current = null
         busyRef.current = false
-        setBusy(false)
-        void qc.invalidateQueries({ queryKey: ["changesets"] })
+        if (aliveRef.current) {
+          endTools()
+          setBusy(false)
+        }
+        void qc.invalidateQueries({ queryKey: ["p", project, "changesets"] })
       }
     },
-    [qc, setSession],
+    [qc, setSession, project],
   )
 
   const stop = useCallback(() => {
     if (chatIdRef.current) api.chatCancel(chatIdRef.current).catch(() => {})
-  }, [])
+  }, [api])
 
   const reset = useCallback(() => {
     setSession(null)

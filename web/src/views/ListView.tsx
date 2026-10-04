@@ -1,7 +1,8 @@
 import { useRef, useState, type ReactNode } from "react"
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Download, MessageSquare, Plus, Upload } from "lucide-react"
 import { toast } from "sonner"
-import { api, ApiError } from "@/api/client"
+import { ApiError } from "@/api/client"
+import { useApi } from "@/state/project"
 import type { Kind, ListRow } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -131,6 +132,7 @@ function Pager({ total, testId }: { total: number; testId: string }) {
 
 function BulkBar({ kind, allOnPage, total }: { kind: Kind; allOnPage: boolean; total: number }) {
   const { meta, view, sel, selAll, setSelAll, clearSel, refreshAll } = useApp()
+  const api = useApi()
   const chat = useChat()
   const schema = meta!.schemas[kind]
   const fields = Object.entries(schema).filter(([, s]) => !["objlist", "text"].includes(s.type))
@@ -294,6 +296,7 @@ function Th({ col, children, className }: { col?: string; children: ReactNode; c
 export function ListView({ kind }: { kind: Kind }) {
   const app = useApp()
   const { view, sel, selAll, selectPage, toggleSel, setQuery, openDrawer, refreshAll } = app
+  const api = useApi()
   const chat = useChat()
   const page = useListPage(kind, view)
   const [search, setSearch] = useState(view.q)

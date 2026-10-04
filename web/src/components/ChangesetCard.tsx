@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from "react"
 import { Check, ChevronRight, X } from "lucide-react"
 import { toast } from "sonner"
-import { api, ApiError } from "@/api/client"
+import { ApiError } from "@/api/client"
+import { useApi } from "@/state/project"
 import type { Changeset, ImpactEval, ImpactStory, ImpactTask, ResolvedOp } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -103,6 +104,7 @@ function Fold({ summary, children, className, testId }: { summary: ReactNode; ch
 
 export function ChangesetCard({ id }: { id: string }) {
   const q = useChangeset(id)
+  const api = useApi()
   const { refreshAll } = useApp()
   const chat = useChat()
   const [excl, setExcl] = useState<Set<number>>(() => new Set())

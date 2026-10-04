@@ -7,6 +7,8 @@ import type {
   ChatEvent,
   ChatRequest,
   ChatStatus,
+  CreateProjectRequest,
+  DeleteProjectResult,
   DeleteResult,
   Facets,
   ImportResult,
@@ -16,6 +18,8 @@ import type {
   ListParams,
   Meta,
   Page,
+  Project,
+  ProjectList,
   RecordBase,
   RecordContext,
   RejectResult,
@@ -99,39 +103,66 @@ export async function request<T>(method: string, path: string, body?: unknown, c
 }
 
 // ------------------------------------------------------------------ endpoints
-export const api = {
-  meta: () => request<Meta>("GET", "/api/meta"),
-  list: (kind: Kind, params: ListParams) => request<Page>("GET", `/api/${kind}?${qs(params)}`),
-  facets: (kind: Kind, params: Record<string, string | undefined>) =>
-    request<Facets>("GET", `/api/${kind}/facets?${qs(params)}`),
-  get: <T extends RecordBase = RecordBase>(kind: Kind, id: string) => request<T>("GET", `/api/${kind}/${id}`),
-  create: (kind: Kind, data: Record<string, unknown>) => request<RecordBase>("POST", `/api/${kind}`, data),
-  update: (kind: Kind, id: string, patch: Record<string, unknown>, version?: number) =>
-    request<RecordBase>("PATCH", `/api/${kind}/${id}`, version != null ? { ...patch, _version: version } : patch),
-  remove: (kind: Kind, id: string, force = false) =>
-    request<DeleteResult>("DELETE", `/api/${kind}/${id}${force ? "?force=1" : ""}`),
-  bulk: (kind: Kind, body: BulkRequest) => request<BulkResult>("POST", `/api/${kind}/bulk`, body),
-  importCsv: (kind: Kind, csv: string) => request<ImportResult>("POST", `/api/${kind}/import`, csv, true),
-  exportUrl: (kind: Kind, params: Record<string, string | undefined>) => `/api/${kind}/export.csv?${qs(params)}`,
-  context: (id: string) => request<RecordContext>("GET", `/api/context/${id}`),
-  lint: (params: LintParams) => request<LintPage>("GET", `/api/lint?${qs({ limit: 100, ...params })}`),
-  trace: () => request<TraceReport>("GET", "/api/trace?matrix=0"),
-  changesets: (status?: string) => request<ChangesetSummary[]>("GET", `/api/changesets${status ? `?status=${status}` : ""}`),
-  changeset: (id: string) => request<Changeset>("GET", `/api/changesets/${id}`),
-  apply: (id: string, exclude: number[]) => request<ApplyResult>("POST", `/api/changesets/${id}/apply`, { exclude }),
-  reject: (id: string, reason: string) => request<RejectResult>("POST", `/api/changesets/${id}/reject`, { reason }),
-  sync: () => request<SyncResult>("POST", "/api/sync", {}),
-  chatStatus: () => request<ChatStatus>("GET", "/api/chat/status"),
-  chatCancel: (chatId: string) => request<{ cancelled: boolean }>("POST", "/api/chat/cancel", { chat_id: chatId }),
+/** Workspace-level project management (not project-scoped). */
+export const projectsApi = {
+  list: () => request<ProjectList>("GET", "/api/projects"),
+  create: (body: CreateProjectRequest) => request<Project>("POST", "/api/projects", body),
+  importRepo: (path: string, key?: string) =>
+    request<Project>("POST", "/api/projects/import", key ? { path, key } : { path }),
+  rename: (key: string, name: string) => request<Project>("PATCH", `/api/projects/${encodeURIComponent(key)}`, { name }),
+  makeDefault: (key: string) =>
+    request<Project>("PATCH", `/api/projects/${encodeURIComponent(key)}`, { default: true }),
+  remove: (key: string, deleteRemote: boolean) =>
+    request<DeleteProjectResult>(
+      "DELETE",
+      `/api/projects/${encodeURIComponent(key)}?${qs({ confirm: key, delete_remote: deleteRemote ? 1 : undefined })}`,
+    ),
 }
+
+/** Base path of every project-scoped route. */
+export const projectBase = (key: string) => `/api/p/${encodeURIComponent(key)}`
+
+/** Endpoints of one project; every path is `/api/p/{key}/…`. */
+export function projectApi(key: string) {
+  const b = projectBase(key)
+  return {
+    key,
+    meta: () => request<Meta>("GET", `${b}/meta`),
+    list: (kind: Kind, params: ListParams) => request<Page>("GET", `${b}/${kind}?${qs(params)}`),
+    facets: (kind: Kind, params: Record<string, string | undefined>) =>
+      request<Facets>("GET", `${b}/${kind}/facets?${qs(params)}`),
+    get: <T extends RecordBase = RecordBase>(kind: Kind, id: string) => request<T>("GET", `${b}/${kind}/${id}`),
+    create: (kind: Kind, data: Record<string, unknown>) => request<RecordBase>("POST", `${b}/${kind}`, data),
+    update: (kind: Kind, id: string, patch: Record<string, unknown>, version?: number) =>
+      request<RecordBase>("PATCH", `${b}/${kind}/${id}`, version != null ? { ...patch, _version: version } : patch),
+    remove: (kind: Kind, id: string, force = false) =>
+      request<DeleteResult>("DELETE", `${b}/${kind}/${id}${force ? "?force=1" : ""}`),
+    bulk: (kind: Kind, body: BulkRequest) => request<BulkResult>("POST", `${b}/${kind}/bulk`, body),
+    importCsv: (kind: Kind, csv: string) => request<ImportResult>("POST", `${b}/${kind}/import`, csv, true),
+    exportUrl: (kind: Kind, params: Record<string, string | undefined>) => `${b}/${kind}/export.csv?${qs(params)}`,
+    context: (id: string) => request<RecordContext>("GET", `${b}/context/${id}`),
+    lint: (params: LintParams) => request<LintPage>("GET", `${b}/lint?${qs({ limit: 100, ...params })}`),
+    trace: () => request<TraceReport>("GET", `${b}/trace?matrix=0`),
+    changesets: (status?: string) =>
+      request<ChangesetSummary[]>("GET", `${b}/changesets${status ? `?status=${status}` : ""}`),
+    changeset: (id: string) => request<Changeset>("GET", `${b}/changesets/${id}`),
+    apply: (id: string, exclude: number[]) => request<ApplyResult>("POST", `${b}/changesets/${id}/apply`, { exclude }),
+    reject: (id: string, reason: string) => request<RejectResult>("POST", `${b}/changesets/${id}/reject`, { reason }),
+    sync: () => request<SyncResult>("POST", `${b}/sync`, {}),
+    chatStatus: () => request<ChatStatus>("GET", `${b}/chat/status`),
+    chatCancel: (chatId: string) => request<{ cancelled: boolean }>("POST", `${b}/chat/cancel`, { chat_id: chatId }),
+  }
+}
+
+export type ProjectApi = ReturnType<typeof projectApi>
 
 // ------------------------------------------------------------------ chat stream
 /**
- * POST /api/chat and yield the server-sent events from the `text/event-stream` body.
+ * POST /api/p/{key}/chat and yield the server-sent events from the `text/event-stream` body.
  * Each event is a `data: {json}` line; events are separated by a blank line.
  */
-export async function* streamChat(req: ChatRequest, signal?: AbortSignal): AsyncGenerator<ChatEvent> {
-  const r = await fetch("/api/chat", {
+export async function* streamChat(key: string, req: ChatRequest, signal?: AbortSignal): AsyncGenerator<ChatEvent> {
+  const r = await fetch(`${projectBase(key)}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(req),

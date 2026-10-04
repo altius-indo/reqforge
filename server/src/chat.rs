@@ -224,6 +224,13 @@ impl ChatRunner {
         a
     }
 
+    /// Cancel every running turn (project deleted).
+    pub fn cancel_all(&self) {
+        for n in self.cancels.lock().unwrap().values() {
+            n.notify_one();
+        }
+    }
+
     pub fn cancel(&self, chat_id: &str) -> bool {
         match self.cancels.lock().unwrap().get(chat_id) {
             Some(n) => {
@@ -246,6 +253,7 @@ impl ChatRunner {
             .args(self.command_args(session_id.as_deref()))
             .current_dir(&self.root)
             .env("REQFORGE_REPO", &self.root)
+            .env_remove("REQFORGE_PROJECT") // pin the agent's MCP calls to this project
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

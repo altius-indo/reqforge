@@ -1,5 +1,13 @@
 //! REST API + embedded web UI (axum).
 //!
+//! Projects (workspace):
+//! GET    /api/projects                     {workspace, single, default, projects:[{key,name,path,remote,github,artifacts,..}]}
+//! POST   /api/projects                     {key, name, github?, private?} create
+//! POST   /api/projects/import              {path, key?} register an existing repository
+//! PATCH  /api/projects/{key}               {name?} rename, {default: true} make default
+//! DELETE /api/projects/{key}?confirm=KEY[&delete_remote=1]   delete the project and all its artifacts
+//! Every route below is project-scoped as /api/p/{key}/...; unscoped /api/... uses the default project.
+//!
 //! GET    /api/meta                         taxonomy, schemas, enums, config
 //! GET    /api/{kind}?q=..&field=value      search; add limit/offset/sort/order for {total, items} pages
 //! GET    /api/{kind}/facets?q=..           facet counts (+ requirement category tree)
@@ -36,21 +44,42 @@ use crate::changes;
 use crate::chat::ChatRunner;
 use crate::model::{enums_json, schemas_json, taxonomy_json, Kind, Rec, KINDS};
 use crate::store::{Res, Store, StoreError};
+use crate::workspace::Workspace;
 use crate::{csvio, evals, query};
 
 pub struct AppState {
-    pub store: Arc<Store>,
-    pub chat: Arc<ChatRunner>,
+    pub ws: Arc<Workspace>,
+    pub chats: std::sync::Mutex<HashMap<String, Arc<ChatRunner>>>,
     pub token: String,
 }
 
+impl AppState {
+    fn chat(&self, key: &str, store: &Store) -> Arc<ChatRunner> {
+        self.chats.lock().unwrap().entry(key.to_string()).or_insert_with(|| Arc::new(ChatRunner::new(store.root.clone(), &store.config_value()))).clone()
+    }
+    /// Resolve the project for a request: explicit key, else the workspace default.
+    fn project(&self, key: Option<&str>) -> Res<(String, Arc<Store>)> {
+        let key = match key {
+            Some(k) => k.to_string(),
+            None => self.ws.default_key().ok_or_else(|| StoreError::new("no projects yet: create one with POST /api/projects", 404))?,
+        };
+        let store = self.ws.store(&key)?;
+        Ok((self.ws.entry(&key)?.key, store))
+    }
+}
+
+/// Router over a single repository (single-project mode).
 pub fn router(store: Arc<Store>) -> Router {
     router_with_token(store, std::env::var("REQFORGE_TOKEN").unwrap_or_default())
 }
 
 pub fn router_with_token(store: Arc<Store>, token: String) -> Router {
-    let chat = Arc::new(ChatRunner::new(store.root.clone(), &store.config_value()));
-    Router::new().fallback(dispatch).with_state(Arc::new(AppState { store, chat, token }))
+    let store = Arc::try_unwrap(store).unwrap_or_else(|a| Store::open(&a.root).expect("reopen store"));
+    workspace_router(Arc::new(Workspace::single(store)), token)
+}
+
+pub fn workspace_router(ws: Arc<Workspace>, token: String) -> Router {
+    Router::new().fallback(dispatch).with_state(Arc::new(AppState { ws, chats: Default::default(), token }))
 }
 
 pub fn meta(store: &Store) -> Value {
@@ -181,12 +210,32 @@ async fn dispatch(State(st): State<Arc<AppState>>, method: Method, uri: Uri, hea
             Err(e) => return json_resp(400, &json!({"error": format!("invalid JSON body: {e}")})),
         }
     };
-    if parts[1..] == ["chat".to_string()] && method == Method::POST {
-        return chat_sse(st, jbody);
-    }
     let if_match = headers.get(header::IF_MATCH).and_then(|h| h.to_str().ok()).map(String::from);
     let st2 = st.clone();
-    let res = tokio::task::spawn_blocking(move || route(&st2, &method, &parts[1..], qs, jbody, if is_csv { Some(raw) } else { None }, if_match)).await;
+    if parts.get(1).map(String::as_str) == Some("projects") {
+        let m = method.clone();
+        let res = tokio::task::spawn_blocking(move || projects_route(&st2, &m, &parts[2..], &qs, &jbody)).await;
+        return match res {
+            Ok(Ok((code, v))) => json_resp(code, &v),
+            Ok(Err(e)) => err_resp(&e),
+            Err(e) => json_resp(500, &json!({"error": e.to_string()})),
+        };
+    }
+    // /api/p/{key}/... is project-scoped; anything else goes to the default project
+    let (key, rest): (Option<String>, Vec<String>) = if parts.get(1).map(String::as_str) == Some("p") && parts.len() >= 3 {
+        (Some(parts[2].clone()), parts[3..].to_vec())
+    } else {
+        (None, parts[1..].to_vec())
+    };
+    let (key, store) = match st.project(key.as_deref()) {
+        Ok(x) => x,
+        Err(e) => return err_resp(&e),
+    };
+    let chat = st.chat(&key, &store);
+    if rest == ["chat".to_string()] && method == Method::POST {
+        return chat_sse(chat, jbody);
+    }
+    let res = tokio::task::spawn_blocking(move || route(&store, &chat, &method, &rest, qs, jbody, if is_csv { Some(raw) } else { None }, if_match)).await;
     match res {
         Ok(Ok(Out::Json(code, v))) => json_resp(code, &v),
         Ok(Ok(Out::Raw(code, text, ct))) => (StatusCode::from_u16(code).unwrap_or(StatusCode::OK), [(header::CONTENT_TYPE, ct)], text).into_response(),
@@ -195,9 +244,8 @@ async fn dispatch(State(st): State<Arc<AppState>>, method: Method, uri: Uri, hea
     }
 }
 
-fn chat_sse(st: Arc<AppState>, b: Value) -> Response {
+fn chat_sse(chat: Arc<ChatRunner>, b: Value) -> Response {
     let (tx, rx) = tokio::sync::mpsc::channel::<Value>(64);
-    let chat = st.chat.clone();
     let chat_id = b.get("chat_id").and_then(Value::as_str).filter(|s| !s.is_empty()).unwrap_or("default").to_string();
     let message = b.get("message").and_then(Value::as_str).unwrap_or("").to_string();
     let session = b.get("session_id").and_then(Value::as_str).map(String::from);
@@ -223,8 +271,47 @@ fn num(qs: &HashMap<String, String>, k: &str, d: usize) -> usize {
     qs.get(k).and_then(|v| v.parse().ok()).unwrap_or(d)
 }
 
-fn route(st: &AppState, method: &Method, p: &[String], qs: HashMap<String, String>, b: Value, csv: Option<String>, if_match: Option<String>) -> Res<Out> {
-    let store = &*st.store;
+fn projects_route(st: &AppState, method: &Method, p: &[String], qs: &HashMap<String, String>, b: &Value) -> Res<(u16, Value)> {
+    let ws = &st.ws;
+    let bs = |k: &str| b.get(k).and_then(Value::as_str).map(String::from).or_else(|| qs.get(k).cloned());
+    let flag = |k: &str| b.get(k).and_then(Value::as_bool).unwrap_or(false) || matches!(qs.get(k).map(String::as_str), Some("1") | Some("true"));
+    let ps: Vec<&str> = p.iter().map(String::as_str).collect();
+    match (method.clone(), ps.as_slice()) {
+        (Method::GET, []) => Ok((200, ws.list())),
+        (Method::POST, []) => {
+            let key = bs("key").ok_or_else(|| StoreError::bad("key required"))?;
+            let private = b.get("private").and_then(Value::as_bool).unwrap_or(true);
+            Ok((201, ws.create(&key, &bs("name").unwrap_or_default(), bs("github").as_deref(), private)?))
+        }
+        (Method::POST, ["import"]) => {
+            let path = bs("path").ok_or_else(|| StoreError::bad("path required"))?;
+            Ok((201, ws.import(std::path::Path::new(&path), bs("key").as_deref())?))
+        }
+        (Method::GET, [key]) => Ok((200, ws.describe(&ws.entry(key)?))),
+        (Method::PATCH | Method::PUT, [key]) => {
+            let mut out = ws.describe(&ws.entry(key)?);
+            if let Some(name) = bs("name") {
+                out = ws.rename(key, &name)?;
+            }
+            if b.get("default").and_then(Value::as_bool) == Some(true) {
+                ws.set_default(key)?;
+                out = ws.describe(&ws.entry(key)?);
+            }
+            Ok((200, out))
+        }
+        (Method::DELETE, [key]) => {
+            let entry = ws.entry(key)?;
+            if let Some(c) = st.chats.lock().unwrap().remove(&entry.key) {
+                c.cancel_all();
+            }
+            Ok((200, ws.delete(key, &bs("confirm").unwrap_or_default(), flag("delete_remote"))?))
+        }
+        _ => Err(StoreError::new("no such route", 404)),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: HashMap<String, String>, b: Value, csv: Option<String>, if_match: Option<String>) -> Res<Out> {
     let ps: Vec<&str> = p.iter().map(String::as_str).collect();
     let get = *method == Method::GET;
     let post = *method == Method::POST;
@@ -250,10 +337,10 @@ fn route(st: &AppState, method: &Method, p: &[String], qs: HashMap<String, Strin
         }
         ["evals"] => return Ok(Out::Json(200, json!(evals::registry(store, qs.get("stage").map(String::as_str), qs.get("component").map(String::as_str))))),
         ["sync"] if post => return Ok(Out::Json(200, store.sync(b.get("message").and_then(Value::as_str).unwrap_or("reqforge: sync from API"))?)),
-        ["chat", "status"] => return Ok(Out::Json(200, st.chat.status())),
+        ["chat", "status"] => return Ok(Out::Json(200, chat.status())),
         ["chat", "cancel"] if post => {
             let id = b.get("chat_id").and_then(Value::as_str).unwrap_or("default");
-            return Ok(Out::Json(200, json!({"cancelled": st.chat.cancel(id)})));
+            return Ok(Out::Json(200, json!({"cancelled": chat.cancel(id)})));
         }
         ["context", id] => return Ok(Out::Json(200, changes::context(store, id)?)),
         ["changesets"] if get => return Ok(Out::Json(200, json!(changes::list(store, qs.get("status").map(String::as_str))))),
@@ -354,11 +441,19 @@ fn route(st: &AppState, method: &Method, p: &[String], qs: HashMap<String, Strin
     }
 }
 
-/// Bind and serve. Returns the bound address (port 0 picks a free port).
+/// Bind and serve a single repository. Returns the bound address (port 0 picks a free port).
 pub async fn serve(store: Arc<Store>, host: &str, port: u16) -> std::io::Result<(std::net::SocketAddr, tokio::task::JoinHandle<()>)> {
+    serve_app(router(store), host, port).await
+}
+
+/// Bind and serve a workspace (multi-project).
+pub async fn serve_workspace(ws: Arc<Workspace>, host: &str, port: u16) -> std::io::Result<(std::net::SocketAddr, tokio::task::JoinHandle<()>)> {
+    serve_app(workspace_router(ws, std::env::var("REQFORGE_TOKEN").unwrap_or_default()), host, port).await
+}
+
+async fn serve_app(app: Router, host: &str, port: u16) -> std::io::Result<(std::net::SocketAddr, tokio::task::JoinHandle<()>)> {
     let listener = tokio::net::TcpListener::bind((host, port)).await?;
     let addr = listener.local_addr()?;
-    let app = router(store);
     let h = tokio::spawn(async move {
         let _ = axum::serve(listener, app).await;
     });

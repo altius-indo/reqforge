@@ -7,6 +7,7 @@ use serde_json::{json, Value};
 
 use crate::model::{Kind, Rec};
 use crate::store::{Res, Store, StoreError};
+use crate::workspace::{resolve, Workspace};
 use crate::{changes, evals, lint, trace};
 
 const PROTOCOLS: &[&str] = &["2025-06-18", "2025-03-26", "2024-11-05"];
@@ -16,6 +17,19 @@ fn tool(name: &str, description: &str, props: Value, required: &[&str]) -> Value
 }
 
 pub fn tools() -> Vec<Value> {
+    let mut t = base_tools();
+    // every project-level tool accepts an optional project key
+    for tool in t.iter_mut() {
+        let name = tool["name"].as_str().unwrap_or("").to_string();
+        if !["init_repo", "list_projects", "create_project"].contains(&name.as_str()) {
+            tool["inputSchema"]["properties"]["project"] =
+                json!({"type": "string", "description": "project key in the workspace (default: the current/default project)"});
+        }
+    }
+    t
+}
+
+fn base_tools() -> Vec<Value> {
     let kind = json!({"type": "string", "enum": ["requirements", "epics", "stories", "tasks"]});
     let obj = json!({"type": "object"});
     let strs = json!({"type": "array", "items": {"type": "string"}});
@@ -42,6 +56,8 @@ pub fn tools() -> Vec<Value> {
         tool("list_changesets", "List changesets, optionally by status (pending, applied, rejected, stale).", json!({"status": s}), &[]),
         tool("apply_changeset", "Apply a pending changeset atomically (only after the user explicitly confirmed it). exclude = op indexes to skip.", json!({"id": s, "exclude": {"type": "array", "items": {"type": "integer"}}}), &["id"]),
         tool("reject_changeset", "Reject a pending changeset.", json!({"id": s, "reason": s}), &["id"]),
+        tool("list_projects", "List the projects in the workspace (key, name, path, GitHub remote, artifact counts) and which one is the default.", json!({}), &[]),
+        tool("create_project", "Create a new project (its own requirements repository) in the workspace, optionally with a GitHub repo owner/name.", json!({"key": s, "name": s, "github": s, "private": {"type": "boolean"}}), &["key", "name"]),
         tool("init_repo", "Initialise a requirements repository (optionally creating the GitHub repo owner/name).", json!({"path": s, "key": s, "name": s, "github": s, "private": {"type": "boolean"}}), &["path", "key", "name"]),
     ]
 }
@@ -65,9 +81,18 @@ pub fn call(name: &str, a: &Value) -> Res<Value> {
         let st = Store::init(arg(a, "path")?, arg(a, "key")?, arg(a, "name")?, a.get("github").and_then(Value::as_str).filter(|s| !s.is_empty()), a.get("private").and_then(Value::as_bool).unwrap_or(true))?;
         return Ok(json!({"root": st.root.display().to_string(), "config": st.config_value()}));
     }
-    let s = Store::discover(None)?;
+    if name == "list_projects" || name == "create_project" {
+        let ws = Workspace::open(&Workspace::locate(None).unwrap_or_else(Workspace::default_root))?;
+        return if name == "list_projects" {
+            Ok(ws.list())
+        } else {
+            ws.create(arg(a, "key")?, arg(a, "name")?, a.get("github").and_then(Value::as_str), a.get("private").and_then(Value::as_bool).unwrap_or(true))
+        };
+    }
+    let s = resolve(None, a.get("project").and_then(Value::as_str).filter(|p| !p.is_empty()), None)?;
+    let s: &Store = &s;
     Ok(match name {
-        "taxonomy" => crate::api::meta(&s),
+        "taxonomy" => crate::api::meta(s),
         "search" => json!(s.search(kind(a)?, a.get("q").and_then(Value::as_str).unwrap_or(""), &o(a, "where")).iter().map(|r| Value::Object((**r).clone())).collect::<Vec<_>>()),
         "get" => {
             let (k, id) = idkind(a)?;
@@ -90,25 +115,25 @@ pub fn call(name: &str, a: &Value) -> Res<Value> {
             let (k, id) = idkind(a)?;
             s.delete(k, &id, a.get("force").and_then(Value::as_bool).unwrap_or(false))?
         }
-        "lint" => lint::lint(&s),
-        "trace" => trace::evaluate(&s),
-        "eval_registry" => json!(evals::registry(&s, a.get("stage").and_then(Value::as_str), a.get("component").and_then(Value::as_str))),
+        "lint" => lint::lint(s),
+        "trace" => trace::evaluate(s),
+        "eval_registry" => json!(evals::registry(s, a.get("stage").and_then(Value::as_str), a.get("component").and_then(Value::as_str))),
         "save_session" => json!({"id": s.save_session(arg(a, "title")?, arg(a, "markdown")?, a.get("id").and_then(Value::as_str))?}),
         "config" => match a.get("patch").and_then(Value::as_object) {
             Some(p) if !p.is_empty() => s.save_config(p)?,
             _ => s.config_value(),
         },
         "sync" => s.sync(a.get("message").and_then(Value::as_str).unwrap_or("reqforge: sync"))?,
-        "context" => changes::context(&s, arg(a, "id")?)?,
-        "simulate_changeset" => changes::simulate(&s, a.get("changeset").unwrap_or(&Value::Null)),
-        "propose_changeset" => changes::propose(&s, a.get("changeset").unwrap_or(&Value::Null))?,
-        "get_changeset" => changes::get(&s, arg(a, "id")?)?,
-        "list_changesets" => json!(changes::list(&s, a.get("status").and_then(Value::as_str))),
+        "context" => changes::context(s, arg(a, "id")?)?,
+        "simulate_changeset" => changes::simulate(s, a.get("changeset").unwrap_or(&Value::Null)),
+        "propose_changeset" => changes::propose(s, a.get("changeset").unwrap_or(&Value::Null))?,
+        "get_changeset" => changes::get(s, arg(a, "id")?)?,
+        "list_changesets" => json!(changes::list(s, a.get("status").and_then(Value::as_str))),
         "apply_changeset" => {
             let ex: Vec<usize> = a.get("exclude").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_u64).map(|x| x as usize).collect();
-            changes::apply(&s, arg(a, "id")?, &ex)?
+            changes::apply(s, arg(a, "id")?, &ex)?
         }
-        "reject_changeset" => changes::reject(&s, arg(a, "id")?, a.get("reason").and_then(Value::as_str).unwrap_or(""))?,
+        "reject_changeset" => changes::reject(s, arg(a, "id")?, a.get("reason").and_then(Value::as_str).unwrap_or(""))?,
         other => return Err(StoreError::bad(format!("unknown tool {other}"))),
     })
 }

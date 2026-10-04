@@ -8,14 +8,21 @@ use serde_json::{json, Map, Value};
 
 use crate::model::{Kind, Rec, TAXONOMY};
 use crate::store::{Res, Store, StoreError};
+use crate::workspace::{resolve, Workspace};
 use crate::{api, cicd, console, csvio, evals, lint, mcp, trace};
 
 #[derive(Parser)]
 #[command(name = "reqforge", version, about = "Requirements -> plan -> evals -> CI/CD, stored in git/GitHub.")]
 pub struct Cli {
-    /// requirements repo path (default: $REQFORGE_REPO or discover upward)
+    /// requirements repo path (default: $REQFORGE_REPO, discover upward, or the workspace default project)
     #[arg(long, global = true)]
     pub repo: Option<PathBuf>,
+    /// project key within the workspace (or $REQFORGE_PROJECT)
+    #[arg(short = 'P', long, global = true)]
+    pub project: Option<String>,
+    /// workspace directory (default: $REQFORGE_WORKSPACE, discover upward, or ~/.reqforge)
+    #[arg(long, global = true)]
+    pub workspace: Option<PathBuf>,
     #[command(subcommand)]
     pub cmd: Cmd,
 }
@@ -160,10 +167,55 @@ pub enum Cmd {
         #[arg(long, default_value_t = 8787)]
         port: u16,
     },
+    /// manage the projects in a workspace
+    Project {
+        #[command(subcommand)]
+        cmd: ProjectCmd,
+    },
     /// interactive console
     Console,
     /// run the MCP server on stdio
     Mcp,
+}
+
+#[derive(Subcommand)]
+pub enum ProjectCmd {
+    /// list projects with their artifact counts
+    List {
+        #[arg(long)]
+        json: bool,
+    },
+    /// create a project (a new requirements repository inside the workspace)
+    Create {
+        key: String,
+        #[arg(long, default_value = "")]
+        name: String,
+        /// owner/name to create or attach on GitHub
+        #[arg(long)]
+        github: Option<String>,
+        #[arg(long)]
+        public: bool,
+    },
+    /// register an existing requirements repository as a project
+    Import {
+        path: PathBuf,
+        #[arg(long)]
+        key: Option<String>,
+    },
+    /// rename a project
+    Rename { key: String, name: String },
+    /// make a project the workspace default
+    Default { key: String },
+    /// delete a project and ALL its artifacts (requirements, plan, changesets, sessions, git history)
+    Delete {
+        key: String,
+        /// repeat the project key to confirm
+        #[arg(long)]
+        confirm: String,
+        /// also delete the GitHub repository (irreversible)
+        #[arg(long)]
+        delete_remote: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -236,11 +288,8 @@ fn kind(k: &str) -> Res<Kind> {
     Kind::parse(k).map_err(StoreError::bad)
 }
 
-fn open(repo: &Option<PathBuf>) -> Res<Store> {
-    match repo {
-        Some(r) => Store::open(r),
-        None => Store::discover(None),
-    }
+fn workspace(explicit: &Option<PathBuf>) -> Res<Workspace> {
+    Workspace::open(&Workspace::locate(explicit.as_deref()).unwrap_or_else(Workspace::default_root))
 }
 
 pub fn main() -> i32 {
@@ -278,9 +327,67 @@ pub fn run(cli: Cli) -> Res<i32> {
             }
             return Ok(0);
         }
+        Cmd::Project { cmd } => {
+            let ws = workspace(&cli.workspace)?;
+            match cmd {
+                ProjectCmd::List { json: j } => {
+                    let l = ws.list();
+                    if j {
+                        pretty(&l);
+                    } else {
+                        println!("workspace {}", l["workspace"].as_str().unwrap_or(""));
+                        for p in l["projects"].as_array().into_iter().flatten() {
+                            let a = &p["artifacts"];
+                            println!(
+                                "{} {:<12} {:<34} {} reqs · {} stories · {} tasks{}",
+                                if p["default"] == json!(true) { "*" } else { " " },
+                                p["key"].as_str().unwrap_or(""),
+                                p["name"].as_str().unwrap_or(""),
+                                a["requirements"], a["stories"], a["tasks"],
+                                p["github"].as_str().map(|g| format!(" · github.com/{g}")).unwrap_or_default()
+                            );
+                        }
+                    }
+                }
+                ProjectCmd::Create { key, name, github, public } => pretty(&ws.create(&key, &name, github.as_deref(), !public)?),
+                ProjectCmd::Import { path, key } => pretty(&ws.import(&path, key.as_deref())?),
+                ProjectCmd::Rename { key, name } => pretty(&ws.rename(&key, &name)?),
+                ProjectCmd::Default { key } => pretty(&ws.set_default(&key)?),
+                ProjectCmd::Delete { key, confirm, delete_remote } => pretty(&ws.delete(&key, &confirm, delete_remote)?),
+            }
+            return Ok(0);
+        }
+        Cmd::Serve { host, port } => {
+            // --repo / a project directory => single-project mode; otherwise the workspace
+            let ws_dir = Workspace::locate(cli.workspace.as_deref());
+            let single = cli.repo.is_some()
+                || (ws_dir.is_none() && cli.project.is_none() && (std::env::var("REQFORGE_REPO").map(|v| !v.is_empty()).unwrap_or(false) || Store::discover(None).is_ok()));
+            let rt = tokio::runtime::Runtime::new().map_err(|e| StoreError::bad(e.to_string()))?;
+            rt.block_on(async {
+                let (addr, h, what) = if single {
+                    let store = resolve(cli.repo.as_deref(), None, None)?;
+                    let root = store.root.display().to_string();
+                    let store = Arc::try_unwrap(store).unwrap_or_else(|a| Store::open(&a.root).expect("reopen"));
+                    let (addr, h) = api::serve(Arc::new(store), &host, port).await.map_err(|e| StoreError::bad(format!("bind {host}:{port}: {e}")))?;
+                    (addr, h, format!("project {root}"))
+                } else {
+                    let ws = Arc::new(Workspace::open(&ws_dir.unwrap_or_else(Workspace::default_root))?);
+                    let what = format!("workspace {} ({} projects)", ws.root.display(), ws.list()["projects"].as_array().map(Vec::len).unwrap_or(0));
+                    let (addr, h) = api::serve_workspace(ws, &host, port).await.map_err(|e| StoreError::bad(format!("bind {host}:{port}: {e}")))?;
+                    (addr, h, what)
+                };
+                println!("reqforge UI + API on http://{addr}  ({what})");
+                use std::io::Write;
+                let _ = std::io::stdout().flush();
+                let _ = h.await;
+                Ok::<(), StoreError>(())
+            })?;
+            return Ok(0);
+        }
         _ => {}
     }
-    let s = open(&cli.repo)?;
+    let s = resolve(cli.repo.as_deref(), cli.project.as_deref(), cli.workspace.as_deref())?;
+    let s: &Store = &s;
     match cli.cmd {
         Cmd::List { kind: k, query, where_, json } => emit_list(&s.search(kind(&k)?, &query, &parse_assignments(&where_)?), json),
         Cmd::Show { id } => pretty(&Value::Object(s.get(Kind::of_id(&id)?, &id)?)),
@@ -312,25 +419,25 @@ pub fn run(cli: Cli) -> Res<i32> {
             print!("{}", csvio::export(&s.search(k, &query, &Map::new()), k));
         }
         Cmd::Lint { md, gate } => {
-            let rep = lint::lint(&s);
+            let rep = lint::lint(s);
             println!("{}", if md { lint::to_markdown(&rep) } else { serde_json::to_string_pretty(&rep).unwrap() });
             return Ok(if gate && rep["ok"] != json!(true) { 1 } else { 0 });
         }
         Cmd::Trace { md, gate } => {
-            let rep = trace::evaluate(&s);
+            let rep = trace::evaluate(s);
             println!("{}", if md { trace::to_markdown(&rep) } else { serde_json::to_string_pretty(&rep).unwrap() });
             return Ok(if gate && rep["ok"] != json!(true) { 1 } else { 0 });
         }
         Cmd::Evals { cmd } => match cmd {
-            EvalsCmd::List { stage, component } => pretty(&json!(evals::registry(&s, stage.as_deref(), component.as_deref()))),
+            EvalsCmd::List { stage, component } => pretty(&json!(evals::registry(s, stage.as_deref(), component.as_deref()))),
             EvalsCmd::Run { stage, workdir, component, md } => {
-                let rep = evals::run(&s, &stage, &workdir, component.as_deref(), None).map_err(StoreError::bad)?;
+                let rep = evals::run(s, &stage, &workdir, component.as_deref(), None).map_err(StoreError::bad)?;
                 println!("{}", if md { evals::to_markdown(&rep) } else { serde_json::to_string_pretty(&rep).unwrap() });
                 return Ok(if rep["ok"] == json!(true) { 0 } else { 1 });
             }
         },
         Cmd::Cicd { out, requirements_path, no_vendor } => {
-            for p in cicd::generate(&s, &out, &requirements_path, !no_vendor).map_err(StoreError::bad)? {
+            for p in cicd::generate(s, &out, &requirements_path, !no_vendor).map_err(StoreError::bad)? {
                 println!("wrote {p}");
             }
         }
@@ -346,21 +453,8 @@ pub fn run(cli: Cli) -> Res<i32> {
             pretty(&r);
             return Ok(if r["ok"] == json!(true) { 0 } else { 1 });
         }
-        Cmd::Serve { host, port } => {
-            let rt = tokio::runtime::Runtime::new().map_err(|e| StoreError::bad(e.to_string()))?;
-            rt.block_on(async {
-                let store = Arc::new(s);
-                let root = store.root.clone();
-                let (addr, h) = api::serve(store, &host, port).await.map_err(|e| StoreError::bad(format!("bind {host}:{port}: {e}")))?;
-                println!("reqforge UI + API on http://{addr}  (repo {})", root.display());
-                use std::io::Write;
-                let _ = std::io::stdout().flush();
-                let _ = h.await;
-                Ok::<(), StoreError>(())
-            })?;
-        }
-        Cmd::Console => console::run(&s),
-        Cmd::Mcp | Cmd::Init { .. } | Cmd::Taxonomy => unreachable!(),
+        Cmd::Console => console::run(s),
+        Cmd::Mcp | Cmd::Init { .. } | Cmd::Taxonomy | Cmd::Project { .. } | Cmd::Serve { .. } => unreachable!(),
     }
     Ok(0)
 }

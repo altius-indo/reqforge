@@ -3,8 +3,7 @@ import { createRoot } from "react-dom/client"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { AppProvider } from "@/state/app"
-import { ChatProvider } from "@/state/chat"
+import { ProjectProvider } from "@/state/project"
 import App from "./App.tsx"
 import "./index.css"
 
@@ -24,12 +23,10 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={300}>
-        <AppProvider>
-          <ChatProvider>
-            <App />
-            <Toaster position="bottom-center" richColors closeButton />
-          </ChatProvider>
-        </AppProvider>
+        <ProjectProvider>
+          <App />
+          <Toaster position="bottom-center" richColors closeButton />
+        </ProjectProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </StrictMode>,

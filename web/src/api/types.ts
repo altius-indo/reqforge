@@ -467,3 +467,53 @@ export type ChatEvent =
       is_error?: boolean
       result?: string | null
     }
+
+// ------------------------------------------------------------------ projects (workspace)
+export interface ArtifactCounts {
+  requirements: number
+  epics: number
+  stories: number
+  tasks: number
+  changesets: number
+  sessions: number
+  reports: number
+}
+
+export interface Project {
+  key: string
+  name: string
+  path: string
+  created: string
+  default: boolean
+  /** false when the project directory is missing or unreadable */
+  available: boolean
+  remote: string | null
+  /** "owner/name" when the remote is on GitHub */
+  github: string | null
+  artifacts: ArtifactCounts
+}
+
+export interface ProjectList {
+  workspace: string
+  /** the server runs one repository (--repo): no create/delete/default */
+  single: boolean
+  default: string | null
+  projects: Project[]
+}
+
+export interface CreateProjectRequest {
+  key: string
+  name: string
+  github?: string
+  private?: boolean
+}
+
+export interface DeleteProjectResult {
+  deleted: string
+  path: string
+  removed: ArtifactCounts
+  remote: string | null
+  remote_deleted: unknown
+  /** the workspace default after the delete */
+  default: string | null
+}

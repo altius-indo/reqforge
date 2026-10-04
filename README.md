@@ -15,7 +15,7 @@ A Claude Code plugin that takes a plain-language requirement and runs it all the
  traceability-evaluator (gate + LLM judge)     cicd-engineer → .github/workflows/reqforge-pipeline.yml
 ```
 
-The requirement repository is plain JSON in git, one file per record, and every change is a commit pushed to GitHub. You can reach it six ways, all sharing one validated store: the **agents (MCP)**, the **web UI**, the **REST API**, the **CLI**, the **console**, and **CSV** round-trips.
+Work is organised into **projects** inside a **workspace** (default `~/.reqforge`). Each project is its own requirements repository: plain JSON in git, one file per record, every change a commit, optionally pushed to its own GitHub repo. You can reach it six ways, all sharing one validated store: the **agents (MCP)**, the **web UI**, the **REST API**, the **CLI**, the **console**, and **CSV** round-trips.
 
 **Stack.** The backend is a single Rust binary (`server/`: axum + tokio). It serves the REST API, the chat bridge, the MCP server, the CLI and the console, and it embeds the web UI. The UI (`web/`) is React + TypeScript + Tailwind + shadcn/ui, built with Vite. At runtime you need `git` (plus `gh` to create GitHub repos), and `claude` for the chat. To build from source you need Rust (cargo); `bin/reqforge` builds the binary on first use. Node is only needed to change the UI: the built `web/dist` is committed and embedded.
 
@@ -32,7 +32,7 @@ The requirement repository is plain JSON in git, one file per record, and every 
 
 | command | what it does |
 |---|---|
-| `/reqforge:init [owner/repo]` | create/connect the GitHub-backed requirements repo |
+| `/reqforge:init [KEY]` | create a project (optionally with a GitHub repo), import one, or switch the default |
 | `/reqforge:elicit <need>` | research → draft → multiple-choice question rounds → MECE review → store |
 | `/reqforge:plan [query]` | epics, stories, typed tasks, evals on every story; trace-gated |
 | `/reqforge:evaluate [fix]` | deterministic trace gate + LLM-judge of each requirement→story→eval link |
@@ -51,6 +51,25 @@ The requirement repository is plain JSON in git, one file per record, and every 
 | `eval-designer` | evals per story (unit … synthetic-monitor), each covering requirement ACs, with runnable commands |
 | `traceability-evaluator` | trace gate plus a semantic judge (realisation / proof / scope); writes `reports/trace-review-<date>.md` |
 | `cicd-engineer` | configures and generates the pipeline, and lists the GitHub secrets and branch protection a human must set |
+
+## Projects
+
+A workspace (`reqforge-workspace.json` in `~/.reqforge`, `$REQFORGE_WORKSPACE`, or any directory you pass with `--workspace`) registers the projects. Each project lives at `<workspace>/<key>/` by default, and existing repositories can be imported from anywhere.
+
+```bash
+reqforge project create PAY --name "Payments" --github acme/pay-requirements
+reqforge project import ../legacy-reqs --key LEGACY
+reqforge project list                     # * marks the default project
+reqforge project default PAY
+reqforge -P PAY list req -q type:quality  # target a project explicitly (or REQFORGE_PROJECT=PAY)
+reqforge project delete PAY --confirm PAY [--delete-remote]
+```
+
+**Deleting a project removes everything it holds**: its directory with all requirements, epics, stories, tasks, changesets, elicitation sessions, reports and the git history. The key must be typed to confirm. `--delete-remote` (an unchecked box in the UI) also runs `gh repo delete` on its GitHub repo; that is irreversible, and the default leaves the remote alone. Agents can list and create projects through MCP but can't delete them.
+
+In the UI, the header has a project switcher (also deep-linkable as `#/p/KEY`) and a Projects page with create, import, rename, make-default and delete. Chat history and view state are kept per project. In the API, every route is project-scoped as `/api/p/{KEY}/…`; unscoped `/api/…` uses the default project.
+
+`reqforge serve` runs the workspace. `reqforge serve --repo <dir>` serves a single repository; in that mode project management is disabled.
 
 ## Web UI at scale, and chat with Claude
 
@@ -120,10 +139,20 @@ The repo is found from `--repo`, then `$REQFORGE_REPO`, then by walking up from 
 
 ## REST API
 
+Projects: `GET /api/projects` · `POST /api/projects {key, name, github?, private?}` · `POST /api/projects/import {path, key?}` · `PATCH /api/projects/{key} {name?, default?}` · `DELETE /api/projects/{key}?confirm=KEY[&delete_remote=1]`. All routes below also exist as `/api/p/{KEY}/…`.
+
 `GET /api/meta` · `GET|POST /api/{requirements|epics|stories|tasks}` (`?q=` plus `field=value` filters; add `limit/offset/sort/order` for `{total, items}` pages with link counts; pseudo-filter `covered=yes|no`) · `GET /api/{kind}/facets` (facet counts and the category tree) · `GET /api/context/{id}` · `GET /api/changesets` · `POST /api/changesets[/simulate]` · `POST /api/changesets/{id}/apply|reject` · `POST /api/chat` (SSE) · `POST /api/chat/cancel` · `GET|PATCH|DELETE /api/{kind}/{id}` (send `_version` for optimistic concurrency → 409 on conflict) · `POST /api/{kind}/bulk` `{ids|q|where, set, add, remove, dry_run}` · `POST /api/{kind}/import` (JSON rows or `text/csv`) · `GET /api/{kind}/export.csv` · `GET /api/lint` · `GET /api/trace` · `GET /api/evals?stage=` · `GET|POST /api/sessions` · `POST /api/sync` · `PATCH /api/config`.
 Set `REQFORGE_TOKEN` to require `Authorization: Bearer <token>`.
 
-## Repository layout (the requirements repo)
+## Layout
+
+```
+~/.reqforge/                       workspace
+  reqforge-workspace.json          project registry {default, projects:[{key, name, path, created}]}
+  pay/                             one project = one requirements repo (below)
+```
+
+Each requirements repo looks like this:
 
 ```
 reqforge.json              key, gates, coverage_waivers, cicd settings
@@ -138,6 +167,7 @@ reports/                   traceability reviews
 ```
 server/   Rust crate `reqforge`
   src/model.rs     kinds, MECE taxonomy, schemas, validation
+  src/workspace.rs projects: registry, create/import/rename/default/delete, project resolution
   src/store.rs     JSON-file store (mtime cache, write lock + flock), git/GitHub sync
   src/lint.rs      MECE + ISO 29148 quality lint (inverted-index overlap detection)
   src/trace.rs     traceability gate
@@ -151,7 +181,7 @@ web/      React + TypeScript + Tailwind + shadcn/ui (Vite) → web/dist, embedde
 ```
 
 ```bash
-cargo test --manifest-path server/Cargo.toml           # 28 integration tests
+cargo test --manifest-path server/Cargo.toml           # 36 integration tests
 cargo clippy --manifest-path server/Cargo.toml --all-targets -- -D warnings
 (cd web && npm ci && npm run dev)                      # UI dev server; proxies /api to :8787
 (cd web && npm run build)                              # rebuild web/dist (bin/reqforge then re-embeds it)

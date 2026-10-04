@@ -1,9 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { api } from "@/api/client"
 import { KINDS, type Kind, type Meta, type Tab } from "@/api/types"
-import { ls } from "@/lib/storage"
+import { ls, pkey } from "@/lib/storage"
+import { useApi } from "./project"
 
 export type Filters = Record<string, string>
 
@@ -35,8 +35,8 @@ export interface DrawerState {
 const TABS: Tab[] = [...KINDS, "trace", "lint", "changes"]
 const PAGE_SIZES = [50, 100, 250, 500]
 
-function initialView(): ViewState {
-  const t = ls.get<string>("reqforge.tab", "requirements")
+function initialView(project: string): ViewState {
+  const t = ls.get<string>(pkey("tab", project), "requirements")
   const lim = ls.get<number>("reqforge.limit", 100)
   return {
     tab: (TABS as string[]).includes(t) ? (t as Tab) : "requirements",
@@ -84,22 +84,25 @@ interface AppCtx {
   closeDrawer: () => void
   // data refresh
   refreshAll: () => void
-  showToken: boolean
-  setShowToken: (b: boolean) => void
 }
 
 const Ctx = createContext<AppCtx | null>(null)
 
+/**
+ * View state of the active project. The provider is mounted with `key={project}`, so switching
+ * projects starts from a clean slate (filters, search, selection, paging, drawer, lint).
+ */
 export function AppProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient()
-  const metaQ = useQuery({ queryKey: ["meta"], queryFn: api.meta, staleTime: Infinity, retry: false })
-  const [view, setView] = useState<ViewState>(initialView)
+  const api = useApi()
+  const project = api.key
+  const metaQ = useQuery({ queryKey: ["p", project, "meta"], queryFn: api.meta, staleTime: Infinity, retry: false })
+  const [view, setView] = useState<ViewState>(() => initialView(project))
   const [sel, setSel] = useState<Set<string>>(() => new Set())
   const [selAll, setSelAllState] = useState(false)
-  const [treeOpen, setTreeOpen] = useState<Set<string>>(() => new Set(ls.get<string[]>("reqforge.open", [])))
+  const [treeOpen, setTreeOpen] = useState<Set<string>>(() => new Set(ls.get<string[]>(pkey("open", project), [])))
   const [sideOpen, setSideOpen] = useState(false)
   const [drawer, setDrawer] = useState<DrawerState>({ open: false, kind: "requirements", id: null, nonce: 0 })
-  const [showToken, setShowToken] = useState(false)
 
   const clearSel = useCallback(() => {
     setSel(new Set())
@@ -108,11 +111,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setTab = useCallback(
     (t: Tab) => {
-      ls.set("reqforge.tab", t)
-      setView((v) => ({ ...initialView(), limit: v.limit, tab: t }))
+      ls.set(pkey("tab", project), t)
+      setView((v) => ({ ...initialView(project), limit: v.limit, tab: t }))
       clearSel()
     },
-    [clearSel],
+    [clearSel, project],
   )
 
   const setFilters = useCallback(
@@ -176,11 +179,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
   const goto = useCallback(
     (tab: Tab, filters: Filters) => {
-      ls.set("reqforge.tab", tab)
-      setView((v) => ({ ...initialView(), limit: v.limit, tab, filters }))
+      ls.set(pkey("tab", project), tab)
+      setView((v) => ({ ...initialView(project), limit: v.limit, tab, filters }))
       clearSel()
     },
-    [clearSel],
+    [clearSel, project],
   )
 
   const toggleSel = useCallback((id: string, on: boolean) => {
@@ -206,10 +209,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const n = new Set(s)
       if (n.has(type)) n.delete(type)
       else n.add(type)
-      ls.set("reqforge.open", [...n])
+      ls.set(pkey("open", project), [...n])
       return n
     })
-  }, [])
+  }, [project])
 
   const openDrawer = useCallback((kind: Kind | undefined, id: string | null) => {
     if (!kind) return
@@ -218,8 +221,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const closeDrawer = useCallback(() => setDrawer((d) => ({ ...d, open: false })), [])
 
   const refreshAll = useCallback(() => {
-    void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== "meta" })
-  }, [qc])
+    void qc.invalidateQueries({
+      predicate: (q) => q.queryKey[0] === "p" && q.queryKey[1] === project && q.queryKey[2] !== "meta",
+    })
+    // artifact counts in the project switcher / projects page
+    void qc.invalidateQueries({ queryKey: ["projects"] })
+  }, [qc, project])
 
   const listKind: Kind | null = (KINDS as string[]).includes(view.tab)
     ? (view.tab as Kind)
@@ -257,12 +264,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       openDrawer,
       closeDrawer,
       refreshAll,
-      showToken,
-      setShowToken,
     }),
     [metaQ.data, metaQ.error, view, listKind, setTab, setFilter, setFilters, toggleFacet, setQuery, toggleSort,
       setOffset, setLimit, setLint, goto, sel, selAll, toggleSel, selectPage, clearSel, treeOpen, toggleTree,
-      sideOpen, drawer, openDrawer, closeDrawer, refreshAll, showToken],
+      sideOpen, drawer, openDrawer, closeDrawer, refreshAll],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

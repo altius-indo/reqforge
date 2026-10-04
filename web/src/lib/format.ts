@@ -1,4 +1,4 @@
-import type { Kind } from "@/api/types"
+import type { ArtifactCounts, Kind } from "@/api/types"
 
 export const fmt = (n: number | null | undefined) => Number(n || 0).toLocaleString("en-US")
 const compactFmt = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 })
@@ -37,4 +37,21 @@ export const statusTone = (s: string) =>
 export function viewPrompt(filters: Record<string, string>, q: string) {
   const parts = [filters.type, filters.category].filter(Boolean)
   return `Review the ${parts.join(" › ") || "requirements"} in this view${q ? ` matching “${q}”` : ""}: check MECE (overlaps, gaps, vague or unmeasurable statements) and traceability, then propose a changeset for what should change.`
+}
+
+const NOUNS: [keyof ArtifactCounts, string, string][] = [
+  ["requirements", "requirement", "requirements"],
+  ["epics", "epic", "epics"],
+  ["stories", "story", "stories"],
+  ["tasks", "task", "tasks"],
+  ["changesets", "changeset", "changesets"],
+  ["sessions", "session", "sessions"],
+  ["reports", "report", "reports"],
+]
+
+/** "3,040 requirements, 15 epics, …, 1 session" — the four record kinds always, the rest when present. */
+export function describeCounts(a: ArtifactCounts): string {
+  return NOUNS.filter(([k], i) => i < 4 || a[k] > 0)
+    .map(([k, one, many]) => `${fmt(a[k])} ${a[k] === 1 ? one : many}`)
+    .join(", ")
 }

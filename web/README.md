@@ -24,25 +24,39 @@ does not match its Host (CSRF guard).
 `dist/` contains `index.html` and hashed files under `dist/assets/`. The favicon is inlined, so there
 are no other root-level files. Serve `index.html` at `/` (and for unknown non-API paths, if you want
 SPA fallback), `/assets/*` with long-lived caching, and the API under `/api/*` on the same origin.
-`dist/` is git-ignored, so run `npm ci && npm run build` before building anything that embeds it.
+`dist/` is committed because the Rust server embeds it: run `npm ci && npm run build` and commit `dist/` with any UI
+change. (`src/index.css` excludes `dist/` from Tailwind's class scan, so builds are reproducible.)
 
 ## Layout
 
 ```
 src/
   api/types.ts        wire types for every endpoint and SSE event
-  api/client.ts       fetch wrapper (auth, JSON/CSV content types, ApiError) + SSE chat stream
-  state/app.tsx       view state (tab, filters, query, sort, paging, selection, drawer, tree)
-  state/chat.tsx      chat log/session (persisted in localStorage), streaming send, cancel
-  state/queries.ts    TanStack Query hooks
+  api/client.ts       fetch wrapper (auth, JSON/CSV content types, ApiError), projectsApi (workspace),
+                      projectApi(key) (every route as /api/p/<KEY>/…) + SSE chat stream
+  state/project.tsx   project list, active project + hash routing (#/p/<KEY>, #/projects), useApi()
+  state/app.tsx       view state of the active project (tab, filters, query, sort, paging, selection, drawer, tree)
+  state/chat.tsx      chat log/session per project (persisted in localStorage), streaming send, cancel
+  state/queries.ts    TanStack Query hooks; keys start with ["p", <KEY>, …]
   components/         Header, Sidebar, Crumbs, RecordDrawer, ChangesetCard, chat/*, ui/* (shadcn)
-  views/              ListView, TraceView, LintView, ChangesView
+  views/              ListView, TraceView, LintView, ChangesView, ProjectsView (+ onboarding; code-split)
 ```
+
+## Projects
+
+The server hosts a workspace of projects (or one repository with `--repo`: `single: true`, read-only project
+management). The active project comes from the URL hash `#/p/<KEY>` (deep links, back/forward), else the last-used
+project, else the server default; with no projects the UI shows onboarding. `#/projects` is the projects page
+(create, import, rename, make default, delete). The project app (`AppProvider` + `ChatProvider`) is mounted with
+`key={project}`, so a switch resets filters, search, selection, paging, drawer and lint state, and aborts an
+in-flight chat stream instead of rendering it into the next project.
 
 ## localStorage keys
 
-`reqforge.token`, `reqforge.tab`, `reqforge.limit`, `reqforge.open` (expanded tree types),
-`reqforge.chat.log` (200 entries max), `reqforge.chat.session`, `reqforge.chat.open`.
+Global: `reqforge.token`, `reqforge.limit`, `reqforge.chat.open`, `reqforge.project` (last-used project).
+Per project: `reqforge.tab.<KEY>`, `reqforge.open.<KEY>` (expanded tree types), `reqforge.chat.log.<KEY>`
+(200 entries max), `reqforge.chat.session.<KEY>`; deleting a project clears them. The pre-projects unscoped
+`reqforge.tab|open|chat.log|chat.session` keys are migrated once to the default project.
 
 ## Tests
 
