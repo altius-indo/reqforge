@@ -1,0 +1,495 @@
+{
+  "id": "CS-0015",
+  "title": "Link the last 2 uncovered evals to their criteria",
+  "summary": "STORY-0001/E2 (claude plugin validate) now covers REQ-0036#AC1, and STORY-0004/E3 (cicd_includes test) now covers REQ-0012#AC2. After this, every eval covers at least one criterion.",
+  "rationale": "Both evals run but covered no criteria, so their results never counted as evidence. STORY-0001/E2 validates the plugin manifests that REQ-0036#AC1 requires. STORY-0004/E3 runs cicd_includes_impact_and_verification, which is tagged REQ-0012#AC2 (server/tests/codetrace.rs:311).",
+  "status": "pending",
+  "created": "2026-10-04T06:46:46+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "STORY-0001",
+      "patch": {
+        "evals": [
+          {
+            "id": "E1",
+            "name": "plugin contract tests",
+            "kind": "unit",
+            "command": "cargo test --manifest-path server/Cargo.toml --test plugin",
+            "covers": [
+              "REQ-0001#AC1",
+              "REQ-0001#AC2",
+              "REQ-0002#AC1",
+              "REQ-0036#AC1",
+              "REQ-0036#AC2"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "plugin manifest validates",
+            "kind": "static",
+            "command": "claude plugin validate .",
+            "covers": [
+              "REQ-0036#AC1"
+            ]
+          },
+          {
+            "id": "E3",
+            "name": "chat runs the claude CLI",
+            "kind": "unit",
+            "command": "cargo test --manifest-path server/Cargo.toml --test integration -- sse_chat_bridge",
+            "covers": [
+              "REQ-0047#AC1"
+            ]
+          }
+        ]
+      },
+      "reason": "E2 validates the manifests REQ-0036#AC1 requires"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0004",
+      "patch": {
+        "evals": [
+          {
+            "id": "E1",
+            "name": "evals and cicd tests",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
+            "covers": [
+              "REQ-0011#AC1",
+              "REQ-0012#AC1",
+              "REQ-0012#AC2",
+              "REQ-0044#AC1"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "clippy clean",
+            "kind": "static",
+            "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+            "covers": [
+              "REQ-0043#AC1"
+            ]
+          },
+          {
+            "id": "E3",
+            "name": "verification pipeline jobs",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
+            "covers": [
+              "REQ-0012#AC2"
+            ]
+          },
+          {
+            "id": "E4",
+            "name": "repo CI workflow contract",
+            "kind": "unit",
+            "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
+            "covers": [
+              "REQ-0043#AC2",
+              "REQ-0043#AC3"
+            ]
+          }
+        ]
+      },
+      "reason": "E3 runs cicd_includes_impact_and_verification, tagged REQ-0012#AC2 (codetrace.rs:311)"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "STORY-0001 and STORY-0004: eval metadata only; scope and status (done) unchanged."
+    ],
+    "code": [
+      "None. The test is already tagged REQ-0012#AC2; claude plugin validate needs no tag."
+    ],
+    "evals": [
+      "STORY-0001/E2 becomes evidence for REQ-0036#AC1 and STORY-0004/E3 for REQ-0012#AC2. 0 evals remain with empty coverage."
+    ],
+    "risks": []
+  },
+  "base_versions": {
+    "STORY-0001": 6,
+    "STORY-0004": 7
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0001",
+        "title": "Plugin agents and skills",
+        "reason": "E2 validates the manifests REQ-0036#AC1 requires",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "plugin contract tests",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test plugin",
+                "covers": [
+                  "REQ-0001#AC1",
+                  "REQ-0001#AC2",
+                  "REQ-0002#AC1",
+                  "REQ-0036#AC1",
+                  "REQ-0036#AC2"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "plugin manifest validates",
+                "kind": "static",
+                "command": "claude plugin validate .",
+                "covers": []
+              },
+              {
+                "id": "E3",
+                "name": "chat runs the claude CLI",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- sse_chat_bridge",
+                "covers": [
+                  "REQ-0047#AC1"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "plugin contract tests",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test plugin",
+                "covers": [
+                  "REQ-0001#AC1",
+                  "REQ-0001#AC2",
+                  "REQ-0002#AC1",
+                  "REQ-0036#AC1",
+                  "REQ-0036#AC2"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "plugin manifest validates",
+                "kind": "static",
+                "command": "claude plugin validate .",
+                "covers": [
+                  "REQ-0036#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "chat runs the claude CLI",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- sse_chat_bridge",
+                "covers": [
+                  "REQ-0047#AC1"
+                ]
+              }
+            ]
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0004",
+        "title": "Eval runner and pipeline generator",
+        "reason": "E3 runs cicd_includes_impact_and_verification, tagged REQ-0012#AC2 (codetrace.rs:311)",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "evals and cicd tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
+                "covers": [
+                  "REQ-0011#AC1",
+                  "REQ-0012#AC1",
+                  "REQ-0012#AC2",
+                  "REQ-0044#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "clippy clean",
+                "kind": "static",
+                "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+                "covers": [
+                  "REQ-0043#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "verification pipeline jobs",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
+                "covers": []
+              },
+              {
+                "id": "E4",
+                "name": "repo CI workflow contract",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
+                "covers": [
+                  "REQ-0043#AC2",
+                  "REQ-0043#AC3"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "evals and cicd tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
+                "covers": [
+                  "REQ-0011#AC1",
+                  "REQ-0012#AC1",
+                  "REQ-0012#AC2",
+                  "REQ-0044#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "clippy clean",
+                "kind": "static",
+                "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+                "covers": [
+                  "REQ-0043#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "verification pipeline jobs",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
+                "covers": [
+                  "REQ-0012#AC2"
+                ]
+              },
+              {
+                "id": "E4",
+                "name": "repo CI workflow contract",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
+                "covers": [
+                  "REQ-0043#AC2",
+                  "REQ-0043#AC3"
+                ]
+              }
+            ]
+          ]
+        },
+        "base_version": 7
+      }
+    ],
+    "refmap": {},
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 55,
+        "active": 55,
+        "epics": 10,
+        "stories": 15,
+        "tasks": 37,
+        "evals": 38,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 55,
+        "active": 55,
+        "epics": 10,
+        "stories": 15,
+        "tasks": 37,
+        "evals": 38,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0001",
+          "title": "Plugin agents and skills",
+          "status": "done",
+          "component": "plugin",
+          "via": []
+        },
+        {
+          "id": "STORY-0004",
+          "title": "Eval runner and pipeline generator",
+          "status": "done",
+          "component": "server",
+          "via": []
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0001",
+          "title": "Agent and skill contracts",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0001"
+        },
+        {
+          "id": "TASK-0002",
+          "title": "Agents, skills, MCP wiring",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0001"
+        },
+        {
+          "id": "TASK-0003",
+          "title": "Local marketplace + plugin install",
+          "kind": "deployment",
+          "status": "done",
+          "story": "STORY-0001"
+        },
+        {
+          "id": "TASK-0007",
+          "title": "Eval runner and workflow generator",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0004"
+        },
+        {
+          "id": "TASK-0008",
+          "title": "Release build via bin/reqforge",
+          "kind": "deployment",
+          "status": "done",
+          "story": "STORY-0004"
+        },
+        {
+          "id": "TASK-0009",
+          "title": "Verification gate in CI",
+          "kind": "monitoring",
+          "status": "done",
+          "story": "STORY-0004"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0001",
+          "id": "E1",
+          "name": "plugin contract tests",
+          "kind": "unit",
+          "command": "cargo test --manifest-path server/Cargo.toml --test plugin",
+          "covers": [
+            "REQ-0001#AC1",
+            "REQ-0001#AC2",
+            "REQ-0002#AC1",
+            "REQ-0036#AC1",
+            "REQ-0036#AC2"
+          ]
+        },
+        {
+          "story": "STORY-0001",
+          "id": "E2",
+          "name": "plugin manifest validates",
+          "kind": "static",
+          "command": "claude plugin validate .",
+          "covers": [
+            "REQ-0036#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0001",
+          "id": "E3",
+          "name": "chat runs the claude CLI",
+          "kind": "unit",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- sse_chat_bridge",
+          "covers": [
+            "REQ-0047#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0004",
+          "id": "E1",
+          "name": "evals and cicd tests",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
+          "covers": [
+            "REQ-0011#AC1",
+            "REQ-0012#AC1",
+            "REQ-0012#AC2",
+            "REQ-0044#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0004",
+          "id": "E2",
+          "name": "clippy clean",
+          "kind": "static",
+          "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+          "covers": [
+            "REQ-0043#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0004",
+          "id": "E3",
+          "name": "verification pipeline jobs",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
+          "covers": [
+            "REQ-0012#AC2"
+          ]
+        },
+        {
+          "story": "STORY-0004",
+          "id": "E4",
+          "name": "repo CI workflow contract",
+          "kind": "unit",
+          "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
+          "covers": [
+            "REQ-0043#AC2",
+            "REQ-0043#AC3"
+          ]
+        }
+      ],
+      "components": [
+        "plugin",
+        "server"
+      ],
+      "in_progress_work": [
+        "TASK-0001",
+        "TASK-0002",
+        "TASK-0003",
+        "TASK-0007",
+        "TASK-0008",
+        "TASK-0009",
+        "STORY-0001",
+        "STORY-0004"
+      ]
+    }
+  }
+}
