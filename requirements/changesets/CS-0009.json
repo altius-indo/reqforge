@@ -1,0 +1,721 @@
+{
+  "id": "CS-0009",
+  "title": "Specify the two monitoring tasks",
+  "summary": "Give TASK-0009 and TASK-0019 descriptions and done_when, add the criteria they deliver (REQ-0043#AC3, REQ-0034#AC5) and cover them with evals.",
+  "rationale": "Monitoring tasks had no description or criteria, so their completion could not be verified.",
+  "status": "pending",
+  "created": "2026-10-04T02:24:52+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "REQ-0034",
+      "patch": {
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "Verification column and facet filter"
+          },
+          {
+            "id": "AC2",
+            "text": "Dashboard gate, counts, components and Scan now"
+          },
+          {
+            "id": "AC3",
+            "text": "The ingest dialog updates statuses"
+          },
+          {
+            "id": "AC4",
+            "text": "The impact panel lists touched requirements and tests to re-run"
+          },
+          {
+            "id": "AC5",
+            "text": "The dashboard charts the verified-criteria ratio across the last 30 evidence ingests"
+          }
+        ]
+      },
+      "reason": "TASK-0019 needs a criterion"
+    },
+    {
+      "op": "update",
+      "id": "REQ-0043",
+      "patch": {
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "cargo clippy --all-targets -D warnings reports 0 warnings"
+          },
+          {
+            "id": "AC2",
+            "text": "The CI workflow runs clippy -D warnings and cargo test on push and pull_request"
+          },
+          {
+            "id": "AC3",
+            "text": "The CI workflow ingests test evidence and runs reqforge verify --gate on 100% of pushes"
+          }
+        ]
+      },
+      "reason": "TASK-0009 needs a criterion"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0004",
+      "patch": {
+        "evals": [
+          {
+            "id": "E1",
+            "name": "evals and cicd tests",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
+            "covers": [
+              "REQ-0011#AC1",
+              "REQ-0012#AC1",
+              "REQ-0012#AC2",
+              "REQ-0044#AC1"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "clippy clean",
+            "kind": "static",
+            "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+            "covers": [
+              "REQ-0043#AC1"
+            ]
+          },
+          {
+            "id": "E3",
+            "name": "verification pipeline jobs",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
+            "covers": []
+          },
+          {
+            "id": "E4",
+            "name": "repo CI workflow contract",
+            "kind": "unit",
+            "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
+            "covers": [
+              "REQ-0043#AC2",
+              "REQ-0043#AC3"
+            ]
+          }
+        ]
+      },
+      "reason": "cover REQ-0043#AC3"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0009",
+      "patch": {
+        "evals": [
+          {
+            "id": "E1",
+            "name": "code-trace tests",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test codetrace",
+            "covers": [
+              "REQ-0021#AC1",
+              "REQ-0021#AC2",
+              "REQ-0021#AC3",
+              "REQ-0021#AC4",
+              "REQ-0022#AC1",
+              "REQ-0022#AC2",
+              "REQ-0023#AC1",
+              "REQ-0024#AC1",
+              "REQ-0025#AC1",
+              "REQ-0034#AC5",
+              "REQ-0038#AC1"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "scale test",
+            "kind": "performance",
+            "command": "cargo test --manifest-path server/Cargo.toml --release --test integration -- thousands_of_requirements",
+            "covers": [
+              "REQ-0039#AC1"
+            ]
+          },
+          {
+            "id": "E3",
+            "name": "UI e2e: code traceability",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-code.xml --suite code",
+            "covers": [
+              "REQ-0034#AC1",
+              "REQ-0034#AC2",
+              "REQ-0034#AC3",
+              "REQ-0034#AC4"
+            ]
+          }
+        ]
+      },
+      "reason": "cover REQ-0034#AC5"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0009",
+      "patch": {
+        "description": "CI self-verification: on every push, ingest the cargo test output as evidence and run reqforge verify --gate (.github/workflows/test.yml).",
+        "done_when": "tests/plugin.rs ci_workflow test asserts the gate; REQ-0043#AC3 verified"
+      },
+      "reason": "specify"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0019",
+      "patch": {
+        "description": "Record a verification snapshot (time, commit, counts, verified ratio) on every evidence ingest; expose GET /verification/history; chart the trend of the last 30 snapshots on the Verification dashboard.",
+        "done_when": "verification_history test and the dashboard trend check pass; REQ-0034#AC5 verified"
+      },
+      "reason": "specify"
+    }
+  ],
+  "impact_notes": {
+    "code": "server: evidence history + API; web: trend chart; CI workflow assertion",
+    "risks": []
+  },
+  "base_versions": {
+    "REQ-0034": 6,
+    "REQ-0043": 6,
+    "STORY-0004": 6,
+    "STORY-0009": 6,
+    "TASK-0009": 7,
+    "TASK-0019": 7
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0034",
+        "title": "Verification UI",
+        "reason": "TASK-0019 needs a criterion",
+        "changes": {
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "Verification column and facet filter"
+              },
+              {
+                "id": "AC2",
+                "text": "Dashboard gate, counts, components and Scan now"
+              },
+              {
+                "id": "AC3",
+                "text": "The ingest dialog updates statuses"
+              },
+              {
+                "id": "AC4",
+                "text": "The impact panel lists touched requirements and tests to re-run"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "Verification column and facet filter"
+              },
+              {
+                "id": "AC2",
+                "text": "Dashboard gate, counts, components and Scan now"
+              },
+              {
+                "id": "AC3",
+                "text": "The ingest dialog updates statuses"
+              },
+              {
+                "id": "AC4",
+                "text": "The impact panel lists touched requirements and tests to re-run"
+              },
+              {
+                "id": "AC5",
+                "text": "The dashboard charts the verified-criteria ratio across the last 30 evidence ingests"
+              }
+            ]
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0043",
+        "title": "Lint-clean, tested codebase",
+        "reason": "TASK-0009 needs a criterion",
+        "changes": {
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "cargo clippy --all-targets -D warnings reports 0 warnings"
+              },
+              {
+                "id": "AC2",
+                "text": "The CI workflow runs clippy -D warnings and cargo test on push and pull_request"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "cargo clippy --all-targets -D warnings reports 0 warnings"
+              },
+              {
+                "id": "AC2",
+                "text": "The CI workflow runs clippy -D warnings and cargo test on push and pull_request"
+              },
+              {
+                "id": "AC3",
+                "text": "The CI workflow ingests test evidence and runs reqforge verify --gate on 100% of pushes"
+              }
+            ]
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0004",
+        "title": "Eval runner and pipeline generator",
+        "reason": "cover REQ-0043#AC3",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "evals and cicd tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
+                "covers": [
+                  "REQ-0011#AC1",
+                  "REQ-0012#AC1",
+                  "REQ-0012#AC2",
+                  "REQ-0044#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "clippy clean",
+                "kind": "static",
+                "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+                "covers": [
+                  "REQ-0043#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "verification pipeline jobs",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
+                "covers": []
+              },
+              {
+                "id": "E4",
+                "name": "repo CI workflow contract",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
+                "covers": [
+                  "REQ-0043#AC2"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "evals and cicd tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
+                "covers": [
+                  "REQ-0011#AC1",
+                  "REQ-0012#AC1",
+                  "REQ-0012#AC2",
+                  "REQ-0044#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "clippy clean",
+                "kind": "static",
+                "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+                "covers": [
+                  "REQ-0043#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "verification pipeline jobs",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
+                "covers": []
+              },
+              {
+                "id": "E4",
+                "name": "repo CI workflow contract",
+                "kind": "unit",
+                "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
+                "covers": [
+                  "REQ-0043#AC2",
+                  "REQ-0043#AC3"
+                ]
+              }
+            ]
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 3,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0009",
+        "title": "Trace tags, evidence, verification and impact",
+        "reason": "cover REQ-0034#AC5",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "code-trace tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace",
+                "covers": [
+                  "REQ-0021#AC1",
+                  "REQ-0021#AC2",
+                  "REQ-0021#AC3",
+                  "REQ-0021#AC4",
+                  "REQ-0022#AC1",
+                  "REQ-0022#AC2",
+                  "REQ-0023#AC1",
+                  "REQ-0024#AC1",
+                  "REQ-0025#AC1",
+                  "REQ-0038#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "scale test",
+                "kind": "performance",
+                "command": "cargo test --manifest-path server/Cargo.toml --release --test integration -- thousands_of_requirements",
+                "covers": [
+                  "REQ-0039#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "UI e2e: code traceability",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-code.xml --suite code",
+                "covers": [
+                  "REQ-0034#AC1",
+                  "REQ-0034#AC2",
+                  "REQ-0034#AC3",
+                  "REQ-0034#AC4"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "code-trace tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace",
+                "covers": [
+                  "REQ-0021#AC1",
+                  "REQ-0021#AC2",
+                  "REQ-0021#AC3",
+                  "REQ-0021#AC4",
+                  "REQ-0022#AC1",
+                  "REQ-0022#AC2",
+                  "REQ-0023#AC1",
+                  "REQ-0024#AC1",
+                  "REQ-0025#AC1",
+                  "REQ-0034#AC5",
+                  "REQ-0038#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "scale test",
+                "kind": "performance",
+                "command": "cargo test --manifest-path server/Cargo.toml --release --test integration -- thousands_of_requirements",
+                "covers": [
+                  "REQ-0039#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "UI e2e: code traceability",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-code.xml --suite code",
+                "covers": [
+                  "REQ-0034#AC1",
+                  "REQ-0034#AC2",
+                  "REQ-0034#AC3",
+                  "REQ-0034#AC4"
+                ]
+              }
+            ]
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 4,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0009",
+        "title": "Verification gate in CI",
+        "reason": "specify",
+        "changes": {
+          "done_when": [
+            "merged with its evals green",
+            "tests/plugin.rs ci_workflow test asserts the gate; REQ-0043#AC3 verified"
+          ],
+          "description": [
+            null,
+            "CI self-verification: on every push, ingest the cargo test output as evidence and run reqforge verify --gate (.github/workflows/test.yml)."
+          ]
+        },
+        "base_version": 7
+      },
+      {
+        "i": 5,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0019",
+        "title": "Track verified ratio on the Verification dashboard",
+        "reason": "specify",
+        "changes": {
+          "done_when": [
+            "merged with its evals green",
+            "verification_history test and the dashboard trend check pass; REQ-0034#AC5 verified"
+          ],
+          "description": [
+            null,
+            "Record a verification snapshot (time, commit, counts, verified ratio) on every evidence ingest; expose GET /verification/history; chart the trend of the last 30 snapshots on the Verification dashboard."
+          ]
+        },
+        "base_version": 7
+      }
+    ],
+    "refmap": {},
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 52,
+        "active": 52,
+        "epics": 10,
+        "stories": 13,
+        "tasks": 29,
+        "evals": 31,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 52,
+        "active": 52,
+        "epics": 10,
+        "stories": 13,
+        "tasks": 29,
+        "evals": 31,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0034",
+        "REQ-0043"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0004",
+          "title": "Eval runner and pipeline generator",
+          "status": "done",
+          "component": "server",
+          "via": [
+            "REQ-0043"
+          ]
+        },
+        {
+          "id": "STORY-0009",
+          "title": "Trace tags, evidence, verification and impact",
+          "status": "done",
+          "component": "server",
+          "via": [
+            "REQ-0034"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0007",
+          "title": "Eval runner and workflow generator",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0004"
+        },
+        {
+          "id": "TASK-0008",
+          "title": "Release build via bin/reqforge",
+          "kind": "deployment",
+          "status": "done",
+          "story": "STORY-0004"
+        },
+        {
+          "id": "TASK-0009",
+          "title": "Verification gate in CI",
+          "kind": "monitoring",
+          "status": "todo",
+          "story": "STORY-0004"
+        },
+        {
+          "id": "TASK-0017",
+          "title": "Tag grammar and verification states",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0009"
+        },
+        {
+          "id": "TASK-0018",
+          "title": "Scanner, evidence, verify, impact, UI",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0009"
+        },
+        {
+          "id": "TASK-0019",
+          "title": "Track verified ratio on the Verification dashboard",
+          "kind": "monitoring",
+          "status": "todo",
+          "story": "STORY-0009"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0004",
+          "id": "E1",
+          "name": "evals and cicd tests",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- eval_runner cicd_generation",
+          "covers": [
+            "REQ-0011#AC1",
+            "REQ-0012#AC1",
+            "REQ-0012#AC2",
+            "REQ-0044#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0004",
+          "id": "E2",
+          "name": "clippy clean",
+          "kind": "static",
+          "command": "cargo clippy --manifest-path server/Cargo.toml --all-targets -q -- -D warnings",
+          "covers": [
+            "REQ-0043#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0004",
+          "id": "E3",
+          "name": "verification pipeline jobs",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- cicd_includes",
+          "covers": []
+        },
+        {
+          "story": "STORY-0004",
+          "id": "E4",
+          "name": "repo CI workflow contract",
+          "kind": "unit",
+          "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
+          "covers": [
+            "REQ-0043#AC2",
+            "REQ-0043#AC3"
+          ]
+        },
+        {
+          "story": "STORY-0009",
+          "id": "E1",
+          "name": "code-trace tests",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test codetrace",
+          "covers": [
+            "REQ-0021#AC1",
+            "REQ-0021#AC2",
+            "REQ-0021#AC3",
+            "REQ-0021#AC4",
+            "REQ-0022#AC1",
+            "REQ-0022#AC2",
+            "REQ-0023#AC1",
+            "REQ-0024#AC1",
+            "REQ-0025#AC1",
+            "REQ-0034#AC5",
+            "REQ-0038#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0009",
+          "id": "E2",
+          "name": "scale test",
+          "kind": "performance",
+          "command": "cargo test --manifest-path server/Cargo.toml --release --test integration -- thousands_of_requirements",
+          "covers": [
+            "REQ-0039#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0009",
+          "id": "E3",
+          "name": "UI e2e: code traceability",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-code.xml --suite code",
+          "covers": [
+            "REQ-0034#AC1",
+            "REQ-0034#AC2",
+            "REQ-0034#AC3",
+            "REQ-0034#AC4"
+          ]
+        }
+      ],
+      "components": [
+        "server"
+      ],
+      "in_progress_work": [
+        "TASK-0007",
+        "TASK-0008",
+        "TASK-0017",
+        "TASK-0018",
+        "STORY-0004",
+        "STORY-0009"
+      ]
+    }
+  }
+}
