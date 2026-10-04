@@ -5,9 +5,9 @@
   "kind": "design",
   "description": "Define the brief template, worktree and branch lifecycle, the agent's allowed and denied tools, cancellation and the run log format.",
   "done_when": "Design reviewed; tool policy denies reqforge write tools and default-branch pushes.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:12:08+00:00"
+  "updated": "2026-10-04T02:27:51+00:00"
 }
