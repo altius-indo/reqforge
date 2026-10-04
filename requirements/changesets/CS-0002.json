@@ -3,7 +3,7 @@
   "title": "Close criteria-coverage gaps: REQ-0035#AC2, REQ-0045#AC2",
   "summary": "Add evals and test-writing tasks for GitHub init/sync and dark-mode contrast, the two acceptance criteria with no eval.",
   "rationale": "After CS-0001, the trace criteria-coverage check still fails on REQ-0035#AC2 and REQ-0045#AC2. Both gaps existed before CS-0001. No tests for either exist in server/tests or web/e2e, so each new eval comes with a task to write its test.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T01:57:03+00:00",
   "valid": true,
   "ops": [
@@ -559,5 +559,8 @@
         "STORY-0007"
       ]
     }
-  }
+  },
+  "applied_at": "2026-10-04T01:58:19+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }

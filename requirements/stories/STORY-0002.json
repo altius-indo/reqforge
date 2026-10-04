@@ -45,11 +45,20 @@
       "covers": [
         "REQ-0035#AC1"
       ]
+    },
+    {
+      "id": "E3",
+      "name": "GitHub init and sync",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- init_github_attaches_and_sync_pushes",
+      "covers": [
+        "REQ-0035#AC2"
+      ]
     }
   ],
-  "status": "done",
+  "status": "in-progress",
   "tags": [],
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T01:58:19+00:00"
 }

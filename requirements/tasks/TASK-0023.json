@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0023",
+  "title": "Integration test: init --github attaches remote and sync pushes",
+  "story": "STORY-0002",
+  "kind": "code",
+  "description": "Add init_github_attaches_and_sync_pushes in server/tests/codetrace.rs using a local bare repo as the remote (no network), tagged REQ-0035#AC2.",
+  "done_when": "Test passes in CI and REQ-0035#AC2 reports verified.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:58:19+00:00",
+  "updated": "2026-10-04T01:58:19+00:00"
+}

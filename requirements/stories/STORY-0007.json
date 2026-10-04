@@ -46,11 +46,20 @@
         "REQ-0032#AC4",
         "REQ-0045#AC1"
       ]
+    },
+    {
+      "id": "E3",
+      "name": "Theme and dark-mode contrast",
+      "kind": "accessibility",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-theme.xml --suite theme",
+      "covers": [
+        "REQ-0045#AC2"
+      ]
     }
   ],
-  "status": "done",
+  "status": "in-progress",
   "tags": [],
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T01:58:19+00:00"
 }

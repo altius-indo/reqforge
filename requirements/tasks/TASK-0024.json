@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0024",
+  "title": "E2E suite: prefers-color-scheme and dark-mode contrast",
+  "story": "STORY-0007",
+  "kind": "code",
+  "description": "Add web/e2e/suites/theme.js emulating light and dark prefers-color-scheme and asserting WCAG 2.2 AA text contrast (4.5:1) on list, drawer and chat; tag REQ-0045#AC2; register in run.mjs.",
+  "done_when": "Suite passes for both schemes and REQ-0045#AC2 reports verified.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:58:19+00:00",
+  "updated": "2026-10-04T01:58:19+00:00"
+}
