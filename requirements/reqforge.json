@@ -1,0 +1,19 @@
+{
+  "key": "REQFORGE",
+  "name": "reqforge",
+  "autocommit": true,
+  "gates": {
+    "min_requirement_coverage": 1.0,
+    "min_criteria_coverage": 0.8,
+    "require_evals_for_code": true
+  },
+  "coverage_waivers": {},
+  "components": {},
+  "cicd": {
+    "requirements_repo": "",
+    "reqforge_git": "",
+    "setup_steps": [],
+    "deploy_command": "",
+    "monitor_cron": "*/30 * * * *"
+  }
+}
