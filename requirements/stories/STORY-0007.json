@@ -29,7 +29,7 @@
       "id": "E2",
       "name": "UI e2e: core",
       "kind": "e2e",
-      "command": "node web/e2e/run.mjs --suite core",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-core.xml --suite core",
       "covers": [
         "REQ-0030#AC1",
         "REQ-0030#AC2",
@@ -51,7 +51,7 @@
   ],
   "status": "done",
   "tags": [],
-  "version": 3,
+  "version": 4,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:04:50+00:00"
+  "updated": "2026-10-04T01:27:37+00:00"
 }
