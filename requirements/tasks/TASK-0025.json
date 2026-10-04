@@ -5,9 +5,9 @@
   "kind": "code",
   "description": "Add depends_on (reflist of tasks) to the task schema; validate existence, self-reference and cycles; include it in reference-protected deletes, CSV and the drawer form.",
   "done_when": "task_depends_on tests pass.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:25:13+00:00"
+  "updated": "2026-10-04T02:26:54+00:00"
 }
