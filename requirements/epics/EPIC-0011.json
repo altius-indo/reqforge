@@ -1,0 +1,15 @@
+{
+  "id": "EPIC-0011",
+  "title": "Task execution from the UI",
+  "description": "Start planned tasks from the web UI, manually or with a sandboxed coding agent.",
+  "requirements": [
+    "REQ-0053",
+    "REQ-0054",
+    "REQ-0055"
+  ],
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:15:10+00:00",
+  "updated": "2026-10-04T02:15:10+00:00"
+}

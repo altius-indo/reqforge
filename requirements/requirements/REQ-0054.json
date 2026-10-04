@@ -1,0 +1,46 @@
+{
+  "id": "REQ-0054",
+  "title": "Start task with coding agent",
+  "statement": "The system shall, after user confirmation, launch a Claude Code coding agent for a task in its story's component repository on a dedicated branch, briefed with the task, story, requirements and acceptance criteria, and stream its progress to the UI.",
+  "type": "functional",
+  "category": "task-execution",
+  "priority": "could",
+  "status": "proposed",
+  "rationale": "Lets a product owner hand a planned task straight to an agent while keeping the work traceable to requirements.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "A confirmation dialog shows the component path, the branch name reqforge/TASK-NNNN and the full brief; nothing runs until the user confirms"
+    },
+    {
+      "id": "AC2",
+      "text": "The agent runs via the local claude CLI in a git worktree of the component on branch reqforge/TASK-NNNN"
+    },
+    {
+      "id": "AC3",
+      "text": "The brief contains the task description and done_when, the story narrative, each linked requirement statement and acceptance criteria, and the trace tag convention"
+    },
+    {
+      "id": "AC4",
+      "text": "Agent progress streams to the task drawer and the user can cancel the run"
+    },
+    {
+      "id": "AC5",
+      "text": "When the run ends, the task shows its branch, commits and exit status, and the task status is never set to done automatically"
+    },
+    {
+      "id": "AC6",
+      "text": "Start with agent is disabled, with the reason shown, when the story has no component or the component has no path"
+    }
+  ],
+  "tags": [
+    "tasks",
+    "agent"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-03",
+  "version": 1,
+  "created": "2026-10-04T02:15:10+00:00",
+  "updated": "2026-10-04T02:15:10+00:00"
+}

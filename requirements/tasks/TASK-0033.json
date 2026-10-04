@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0033",
+  "title": "Start with agent dialog and run view",
+  "story": "STORY-0015",
+  "kind": "code",
+  "description": "Confirmation dialog with brief preview, disabled state with reason, live progress and cancel in the task drawer, run result summary.",
+  "done_when": "agent-start e2e suite passes.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:15:10+00:00",
+  "updated": "2026-10-04T02:15:10+00:00"
+}

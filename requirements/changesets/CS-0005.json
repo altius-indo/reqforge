@@ -3,7 +3,7 @@
   "title": "Start tasks from the UI, with an optional coding agent",
   "summary": "Add a one-click Start action on tasks and an optional 'Start with agent' action that runs a sandboxed Claude Code coding agent on a task branch.",
   "rationale": "Product owner asked to start tasks from the UI and chose both a Start button and an optional agent launch. The coding agent needs its own security requirement because, unlike the chat agent (REQ-0041), it edits code and runs commands. The dependency-check question was not answered, so no dependency rule is included (tasks have no dependency field today).",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T02:09:08+00:00",
   "valid": true,
   "ops": [
@@ -799,5 +799,15 @@
       ],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-04T02:15:10+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "r1": "REQ-0053",
+    "r2": "REQ-0054",
+    "r3": "REQ-0055",
+    "e1": "EPIC-0011",
+    "s1": "STORY-0014",
+    "s2": "STORY-0015"
   }
 }

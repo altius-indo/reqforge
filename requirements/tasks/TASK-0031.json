@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0031",
+  "title": "Agent run design: brief, worktree, tool policy, run log",
+  "story": "STORY-0015",
+  "kind": "design",
+  "description": "Define the brief template, worktree and branch lifecycle, the agent's allowed and denied tools, cancellation and the run log format.",
+  "done_when": "Design reviewed; tool policy denies reqforge write tools and default-branch pushes.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T02:15:10+00:00",
+  "updated": "2026-10-04T02:15:10+00:00"
+}
