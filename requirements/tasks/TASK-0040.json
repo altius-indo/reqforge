@@ -8,9 +8,9 @@
   ],
   "description": "Branch review (commits, files, diff), Complete button with refusal reasons and eval output, parallel-task warning in the agent confirmation dialog.",
   "done_when": "task-complete e2e suite passes.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T17:20:21+00:00",
-  "updated": "2026-10-04T18:25:23+00:00"
+  "updated": "2026-10-04T18:52:56+00:00"
 }
