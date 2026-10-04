@@ -5,7 +5,7 @@
   "type": "interface",
   "category": "user-interface",
   "priority": "should",
-  "status": "approved",
+  "status": "implemented",
   "rationale": "Starting work today means opening the drawer and editing the status field.",
   "acceptance_criteria": [
     {
@@ -38,7 +38,7 @@
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
   "notes": null,
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:30:17+00:00"
+  "updated": "2026-10-04T05:32:30+00:00"
 }
