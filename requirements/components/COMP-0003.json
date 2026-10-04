@@ -1,6 +1,6 @@
 {
   "id": "COMP-0003",
-  "title": "Claude Code plugin",
+  "title": "Claude Code plugin and repo tooling",
   "key": "plugin",
   "path": "..",
   "repo_url": "",
@@ -9,7 +9,9 @@
     "skills/**",
     ".claude-plugin/**",
     ".mcp.json",
-    "bin/**"
+    "bin/**",
+    ".github/**",
+    "scripts/**"
   ],
   "language": "markdown",
   "tag_mode": "explicit",
@@ -18,7 +20,7 @@
   ],
   "description": "Agents, skills, MCP wiring and the bin/reqforge entry point.",
   "tags": [],
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:37:08+00:00"
+  "updated": "2026-10-04T01:47:40+00:00"
 }
