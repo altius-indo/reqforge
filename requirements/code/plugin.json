@@ -1,10 +1,11 @@
 {
   "component": "plugin",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "ccdad3785cb55a152e1f469aaf45e1e974c62c14",
-  "scanned_at": "2026-10-04T01:47:10+00:00",
-  "files_scanned": 20,
+  "commit": "08d8b0ddbcb7ab12a99f4fd2675620d6f886d2e2",
+  "scanned_at": "2026-10-04T01:47:40+00:00",
+  "files_scanned": 22,
   "files": {
+    ".github/workflows/test.yml": "63696f63a1e351b3642c372e2ca4a0a1d14a150e0ddb38c1b07da2adb316313c",
     "agents/cicd-engineer.md": "484e6d0d27f50debca06e1517e4b60a5544084157039d971513bacf20b89966f",
     "agents/delivery-planner.md": "f4f6897d919634ba7a2e4d08fb6b62e673f092f33ffcd4cc9b14f8294433dced",
     "agents/eval-designer.md": "cc3995ced9f8fad43eac057105f5f6be031bb900cf0df5d111ec884ee3be7743",
@@ -17,6 +18,14 @@
     "skills/elicit/SKILL.md": "357f1e884d220acc94cd5b4a84d4974fe1a836f9d8b482a21fa166c516763a9c"
   },
   "tags": [
+    {
+      "req": "REQ-0043",
+      "kind": "implements",
+      "file": ".github/workflows/test.yml",
+      "line": 1,
+      "text": "# reqforge: implements REQ-0043",
+      "component": "plugin"
+    },
     {
       "req": "REQ-0002",
       "kind": "implements",
