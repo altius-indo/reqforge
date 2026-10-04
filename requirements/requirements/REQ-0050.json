@@ -5,7 +5,7 @@
   "type": "interface",
   "category": "user-interface",
   "priority": "should",
-  "status": "proposed",
+  "status": "approved",
   "rationale": "Starting work today means opening the drawer and editing the status field.",
   "acceptance_criteria": [
     {
@@ -29,6 +29,7 @@
       "text": "While any task in depends_on is not done, Start is disabled and lists the unfinished tasks, and the start route refuses the request with the status unchanged"
     }
   ],
+  "parent": null,
   "tags": [
     "tasks",
     "workflow"
@@ -36,7 +37,8 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
-  "version": 1,
+  "notes": null,
+  "version": 2,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T02:12:08+00:00"
+  "updated": "2026-10-04T02:30:17+00:00"
 }
