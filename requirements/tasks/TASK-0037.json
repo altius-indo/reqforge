@@ -6,9 +6,9 @@
   "depends_on": [],
   "description": "Canonicalise and check paths for POST /api/projects/import {path}, POST /api/code/scan {root} and GET /api/impact?root= (server/src/api.rs:381-383, 461-465, 481-484). Tag tests REQ-0040#AC3.",
   "done_when": "STORY-0006/E4 passes and REQ-0040 reports verified.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T06:45:40+00:00",
-  "updated": "2026-10-04T06:45:40+00:00"
+  "updated": "2026-10-04T06:50:04+00:00"
 }
