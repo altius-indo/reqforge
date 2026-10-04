@@ -1,0 +1,154 @@
+{
+  "run_id": "RUN-TASK-0036-20261004T065501188",
+  "task": "TASK-0036",
+  "story": "STORY-0005",
+  "component": "server",
+  "branch": "reqforge/TASK-0036",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0036",
+  "base": "7110fb1238a05a16701ced9360cd089518560a82",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-04T06:55:01+00:00",
+  "ended": "2026-10-04T06:57:11+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "580a7df",
+      "message": "TASK-0036: pin chat MCP calls to the chat's project and enforce the deny list server-side"
+    }
+  ],
+  "violations": [
+    "the component's checked-out branch moved from 7110fb1238 to f05cc97106"
+  ],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "d3027691-9f88-4037-8f9f-172ac353d420"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Implementing: the chat runner will pass a chat role plus its project to the MCP server, and the server will enforce the pin and the deny list. Checking a couple of helpers first."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the workspace helper."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now the chat runner side."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Adding the tests."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "E3 passes. Running E1, E2 and the rest of the server tests for regressions."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "All green (the full integration suite includes E1 and E2). Committing."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Chat sessions now start the MCP server pinned to the chat's project with a \"chat\" role. In that role the server itself refuses calls to other projects and every deny-listed tool. All three evals pass. It's committed on `reqforge/TASK-0036` as `580a7df`.\n\n**What changed**\n- **`server/src/chat.rs`**: the chat runner now reads its project key from the config. A new `mcp_env()` sets `REQFORGE_REPO`, `REQFORGE_MCP_ROLE=chat` and `REQFORGE_MCP_PROJECT=<key>` when starting `claude`. It still clears `REQFORGE_PROJECT`.\n- **`server/src/mcp.rs`**: in the chat role:\n  - `tools/list` shows only the chat's allowed tools.\n  - Any tool not on that list is refused with a 403, including everything on the write/deny list. This happens before any project or store work.\n  - Every project-level call goes to the chat's own repo, never through the normal project lookup.\n- **`server/src/workspace.rs`**: new `resolve_pinned()`. It opens the pinned repo and refuses (403, \"this chat is pinned to project X…\") any `project` argument naming a different project. The match ignores case.\n- **`server/tests/integration.rs`**: two new tests:\n  - `chat_project_pinned_refuses_other_projects` (tagged REQ-0041#AC2) sets up a workspace with SHOP and PAY. A chat pinned to SHOP gets errors for `search`, `get` and `propose_changeset` on PAY, and no changeset appears in PAY. Calls with no project, or with `shop` in lowercase, read SHOP's records.\n  - `mcp_chat_role_refuses_writes` (tagged REQ-0041#AC3) calls every deny-listed tool directly against the server. Each one is hidden and refused, and nothing changes: same records, config, git log and changeset status, and no new repo created.\n\n**Tests and evals run**\n- E3: `cargo test … --test integration -- chat_project_pinned mcp_chat_role_refuses_writes` → 2 passed.\n- E1 and E2: covered by the full `cargo test --manifest-path server/Cargo.toml` run, where all suites passed (integration 36/36, others all ok).\n\n**Left open**\n- The pinning depends on the `claude` CLI passing its environment on to the MCP server it starts. I believe Claude Code does this, but I only tested the server directly; I didn't run a real `claude` session.\n- In the chat role, `list_projects` is still allowed and lists the other projects' keys. It doesn't read any of their records.\n- I couldn't check REQ-0041's \"verified\" status because the reqforge MCP server failed to connect (the `bin/reqforge` path it uses doesn't exist). Running `/reqforge:verify` once it's fixed would confirm it."
+    },
+    {
+      "type": "done",
+      "session_id": "d3027691-9f88-4037-8f9f-172ac353d420",
+      "cost": 0.7165092000000001,
+      "turns": 16,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
