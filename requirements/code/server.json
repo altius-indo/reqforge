@@ -1,12 +1,13 @@
 {
   "component": "server",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "08d8b0ddbcb7ab12a99f4fd2675620d6f886d2e2",
-  "scanned_at": "2026-10-04T01:47:40+00:00",
-  "files_scanned": 26,
+  "commit": "d5a2befa2c5f8fd0a7db1f027fb74096f456555a",
+  "scanned_at": "2026-10-04T02:32:05+00:00",
+  "files_scanned": 33,
   "files": {
-    "server/src/api.rs": "aa862b61e68ae2a73b9bf7b7aec33691c2e1230170e88c5ed8d0efbbefadfbe3",
-    "server/src/changes.rs": "8743b6d4f50a4d84774051f2c1402bb83856a6e3b7a1aedca565b49b185e151c",
+    "server/src/agent.rs": "4429cbfc879c9a11fb7d32ef448d4172a3b7a578cc63d6877c2403f0d8734c3f",
+    "server/src/api.rs": "ede067b567ad954f045a2723d75ac8bdcf4867c9c97d110b46f804c2b63b2821",
+    "server/src/changes.rs": "1a5b49c7a0d889f31010d5bc0b77e98ad36a850ddcc6f35acbc148d1b1fe1c82",
     "server/src/chat.rs": "bef971dfcc914457c230da2bcf80c170bcf9553288fcbcdc03486fb6f6eb2da4",
     "server/src/cicd.rs": "cf32485e3c038414daae292fb157add03d0ba708024c45e959ad58a2303e275c",
     "server/src/cli.rs": "7fbc9a8ef6c3f6576f8f67a0526e9abf4244f2e14d1812861117d5254862a48e",
@@ -14,27 +15,84 @@
     "server/src/console.rs": "25389b0c8bcdc0f5de4705b5da31b91826a1464f1c247802cab411f71fe6bf43",
     "server/src/csvio.rs": "1c74e1ab3ac5f8db42d1f224ff7c9f477ed40522a3237d59af77d9205238a0de",
     "server/src/evals.rs": "296f1adfcab0565bb76e44e120b1f39004dc44e9cdaa9ceece118c9d34201830",
-    "server/src/evidence.rs": "bba38a9046a08d55bad80e1bd164d13fb5974f5f2e809948bfa8dbc4112673bf",
+    "server/src/evidence.rs": "2ebeec77376f4c79a4340bbbd5b28c15ce48ffa5be829897c1f34257fe86c984",
     "server/src/impact.rs": "eb522d445e049803bfa456d683be7fff16eaf8e7d264bb5ee40b73a116efda20",
     "server/src/lint.rs": "bbf653b62a48605be90d9ba6474ae8e44e8160395bb62dd58c91e7c029e2ac38",
     "server/src/mcp.rs": "54833f89652567c7e89849b91f3d36635d245a1d933ebcbd0659a76e84dbbaa2",
-    "server/src/model.rs": "16192e4f78f75bc26b83fedbcee7d555cd93ca93094ec6579ab107705580d56a",
+    "server/src/model.rs": "2468673e2320c577fdcf953af2d2ad43f42642a1f58c09ae2fd0b546e98c247b",
     "server/src/query.rs": "29fdf2c1f01324be684e275c632b4b1f5ee9538eff54285e666642cbbc4c544a",
-    "server/src/store.rs": "47f5b89ced3c8be9d7fe3142d29620739615a8e5c377d77e9e29dfbe91ad7ac4",
+    "server/src/store.rs": "39c48183e684835fed82fe90509da3ecb080339fc2c4134d3c14080c109f7e31",
+    "server/src/taskflow.rs": "27f6e10bb33904d0675b7123b6d57ad49f5c6cb07a4badabb6d4684e24e5511c",
     "server/src/trace.rs": "6ed110bb8f9d12e529db24f749c69d6f0dc6d9641397f9fc006f24e0e7cd3821",
     "server/src/verify.rs": "fa147e48a34db72b8b660bdaffc21bbdeb1dd00cc668780bfec10b127c1ab902",
     "server/src/workspace.rs": "53bdc5132044397de7eabf4b2e18b1709572ab42aed9cdbac69398d3c4653ca5",
-    "server/tests/codetrace.rs": "0eedc925cd654861f4d7f57f04c0569ea289c01fff6b7d07ce3e55d882f6c344",
-    "server/tests/integration.rs": "084004c801c6e2108b2914cfdefdfc846849780ed7616659258f105fb57765c9",
-    "server/tests/plugin.rs": "27b99b80a45905bd8a4f4ed96581341daf06bc11461d9020f284566364a4f952",
+    "server/tests/agent_run.rs": "fc15ccbd30fe71e67cde764084990072ff17b32fd36135730c384882016f9f50",
+    "server/tests/agent_sandbox.rs": "400ee9813c5091a596716084263fd851c5dea01b053bb2165656aa022286629b",
+    "server/tests/codetrace.rs": "b899d20b6c79e539df86f120ca994b3ed61face354cd7f22a5105f1b9cd8974c",
+    "server/tests/integration.rs": "44bf95a981a4a0b0e1ffac99bb1a00e0ce1b73e3c882af633080717e7f6f5c58",
+    "server/tests/plugin.rs": "aa748a07265c1de2b700a9da365beeb9652869c97c3b4277c3abf99a29414f38",
     "server/tests/projects.rs": "a9a7cea85e49e89a9b51696fd47a43c0a0f59b1a40c2a15d40c26f73952c426d"
   },
   "tags": [
     {
+      "req": "REQ-0052",
+      "kind": "implements",
+      "file": "server/src/agent.rs",
+      "line": 42,
+      "symbol": "allowed_tools",
+      "text": "// reqforge: implements REQ-0052",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0051",
+      "kind": "implements",
+      "file": "server/src/agent.rs",
+      "line": 73,
+      "symbol": "brief",
+      "text": "// reqforge: implements REQ-0051",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0051",
+      "kind": "implements",
+      "file": "server/src/agent.rs",
+      "line": 171,
+      "symbol": "prepare_worktree",
+      "text": "// reqforge: implements REQ-0051",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0052",
+      "kind": "implements",
+      "file": "server/src/agent.rs",
+      "line": 199,
+      "symbol": "snapshot",
+      "text": "// reqforge: implements REQ-0052",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0051",
+      "kind": "implements",
+      "file": "server/src/agent.rs",
+      "line": 301,
+      "symbol": "run",
+      "text": "// reqforge: implements REQ-0051",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0052",
+      "kind": "implements",
+      "file": "server/src/agent.rs",
+      "line": 302,
+      "symbol": "run",
+      "text": "// reqforge: implements REQ-0052",
+      "component": "server"
+    },
+    {
       "req": "REQ-0040",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 111,
+      "line": 116,
       "symbol": "same_origin",
       "text": "// reqforge: implements REQ-0040",
       "component": "server"
@@ -43,7 +101,7 @@
       "req": "REQ-0040",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 142,
+      "line": 147,
       "symbol": "authorized",
       "text": "// reqforge: implements REQ-0040",
       "component": "server"
@@ -52,7 +110,7 @@
       "req": "REQ-0046",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 160,
+      "line": 165,
       "symbol": "static_file",
       "text": "// reqforge: implements REQ-0046",
       "component": "server"
@@ -61,7 +119,7 @@
       "req": "REQ-0020",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 282,
+      "line": 306,
       "symbol": "projects_route",
       "text": "// reqforge: implements REQ-0020",
       "component": "server"
@@ -70,7 +128,7 @@
       "req": "REQ-0026",
       "kind": "implements",
       "file": "server/src/api.rs",
-      "line": 322,
+      "line": 346,
       "symbol": "route",
       "text": "// reqforge: implements REQ-0026",
       "component": "server"
@@ -88,7 +146,7 @@
       "req": "REQ-0013",
       "kind": "implements",
       "file": "server/src/changes.rs",
-      "line": 274,
+      "line": 279,
       "symbol": "simulate",
       "text": "// reqforge: implements REQ-0013",
       "component": "server"
@@ -97,7 +155,7 @@
       "req": "REQ-0014",
       "kind": "implements",
       "file": "server/src/changes.rs",
-      "line": 418,
+      "line": 423,
       "symbol": "apply",
       "text": "// reqforge: implements REQ-0014",
       "component": "server"
@@ -211,10 +269,19 @@
       "component": "server"
     },
     {
+      "req": "REQ-0034",
+      "kind": "implements",
+      "file": "server/src/evidence.rs",
+      "line": 52,
+      "symbol": "history",
+      "text": "// reqforge: implements REQ-0034",
+      "component": "server"
+    },
+    {
       "req": "REQ-0022",
       "kind": "implements",
       "file": "server/src/evidence.rs",
-      "line": 126,
+      "line": 138,
       "symbol": "parse_libtest",
       "text": "// reqforge: implements REQ-0022",
       "component": "server"
@@ -223,7 +290,7 @@
       "req": "REQ-0022",
       "kind": "implements",
       "file": "server/src/evidence.rs",
-      "line": 212,
+      "line": 224,
       "symbol": "ingest",
       "text": "// reqforge: implements REQ-0022",
       "component": "server"
@@ -232,7 +299,7 @@
       "req": "REQ-0038",
       "kind": "implements",
       "file": "server/src/evidence.rs",
-      "line": 213,
+      "line": 225,
       "symbol": "ingest",
       "text": "// reqforge: implements REQ-0038",
       "component": "server"
@@ -268,7 +335,7 @@
       "req": "REQ-0004",
       "kind": "implements",
       "file": "server/src/model.rs",
-      "line": 401,
+      "line": 402,
       "symbol": "validate",
       "text": "// reqforge: implements REQ-0004",
       "component": "server"
@@ -277,9 +344,18 @@
       "req": "REQ-0024",
       "kind": "implements",
       "file": "server/src/model.rs",
-      "line": 561,
+      "line": 562,
       "symbol": "component_key_clash",
       "text": "// reqforge: implements REQ-0024",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0049",
+      "kind": "implements",
+      "file": "server/src/model.rs",
+      "line": 573,
+      "symbol": "task_dependency_errors",
+      "text": "// reqforge: implements REQ-0049",
       "component": "server"
     },
     {
@@ -349,7 +425,7 @@
       "req": "REQ-0039",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 374,
+      "line": 377,
       "symbol": "entries",
       "text": "// reqforge: implements REQ-0039",
       "component": "server"
@@ -358,7 +434,7 @@
       "req": "REQ-0006",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 467,
+      "line": 470,
       "symbol": "search",
       "text": "// reqforge: implements REQ-0006",
       "component": "server"
@@ -367,7 +443,7 @@
       "req": "REQ-0003",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 483,
+      "line": 486,
       "symbol": "create_unlocked",
       "text": "// reqforge: implements REQ-0003",
       "component": "server"
@@ -376,7 +452,7 @@
       "req": "REQ-0005",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 516,
+      "line": 519,
       "symbol": "apply_unlocked",
       "text": "// reqforge: implements REQ-0005",
       "component": "server"
@@ -385,7 +461,7 @@
       "req": "REQ-0007",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 562,
+      "line": 565,
       "symbol": "bulk_update",
       "text": "// reqforge: implements REQ-0007",
       "component": "server"
@@ -394,7 +470,7 @@
       "req": "REQ-0035",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 759,
+      "line": 762,
       "symbol": "commit_all",
       "text": "// reqforge: implements REQ-0035",
       "component": "server"
@@ -403,9 +479,27 @@
       "req": "REQ-0035",
       "kind": "implements",
       "file": "server/src/store.rs",
-      "line": 778,
+      "line": 781,
       "symbol": "sync",
       "text": "// reqforge: implements REQ-0035",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0035",
+      "kind": "implements",
+      "file": "server/src/store.rs",
+      "line": 810,
+      "symbol": "create_remote",
+      "text": "// reqforge: implements REQ-0035",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0050",
+      "kind": "implements",
+      "file": "server/src/taskflow.rs",
+      "line": 59,
+      "symbol": "start",
+      "text": "// reqforge: implements REQ-0050",
       "component": "server"
     },
     {
@@ -451,6 +545,96 @@
       "line": 323,
       "symbol": "delete",
       "text": "// reqforge: implements REQ-0019",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "server/tests/agent_run.rs",
+      "line": 7,
+      "symbol": "agent_runs_in_a_task_worktree_and_reports_its_branch",
+      "text": "// reqforge: verifies REQ-0051#AC2",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "server/tests/agent_run.rs",
+      "line": 8,
+      "symbol": "agent_runs_in_a_task_worktree_and_reports_its_branch",
+      "text": "// reqforge: verifies REQ-0051#AC5",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "server/tests/agent_run.rs",
+      "line": 38,
+      "symbol": "brief_contains_task_story_requirements_and_conventions",
+      "text": "// reqforge: verifies REQ-0051#AC3",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC6",
+      "kind": "verifies",
+      "file": "server/tests/agent_run.rs",
+      "line": 53,
+      "symbol": "agent_start_is_disabled_with_reasons",
+      "text": "// reqforge: verifies REQ-0051#AC6",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0051",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "server/tests/agent_run.rs",
+      "line": 77,
+      "symbol": "a_running_agent_can_be_cancelled",
+      "text": "// reqforge: verifies REQ-0051#AC4",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0052",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "server/tests/agent_sandbox.rs",
+      "line": 14,
+      "symbol": "no_push_and_default_branch_untouched",
+      "text": "// reqforge: verifies REQ-0052#AC1",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0052",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "server/tests/agent_sandbox.rs",
+      "line": 31,
+      "symbol": "writes_outside_the_worktree_are_detected_and_editing_is_confined",
+      "text": "// reqforge: verifies REQ-0052#AC2",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0052",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "server/tests/agent_sandbox.rs",
+      "line": 45,
+      "symbol": "coding_agent_has_no_reqforge_write_tools",
+      "text": "// reqforge: verifies REQ-0052#AC3",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0052",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "server/tests/agent_sandbox.rs",
+      "line": 61,
+      "symbol": "every_run_is_logged",
+      "text": "// reqforge: verifies REQ-0052#AC4",
       "component": "server"
     },
     {
@@ -640,6 +824,26 @@
       "line": 447,
       "symbol": "hidden_directories_are_scanned_but_vendored_copies_are_not",
       "text": "for (rel, text) in [(\".github/workflows/ci.yml\", \"# reqforge: implements REQ-0003\\n\"), (\".reqforge/server/src/x.rs\", \"// reqforge: implements REQ-0003\\n\")] {",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0035",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "server/tests/codetrace.rs",
+      "line": 461,
+      "symbol": "init_github_attaches_and_sync_pushes",
+      "text": "// reqforge: verifies REQ-0035#AC2",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0034",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "server/tests/codetrace.rs",
+      "line": 479,
+      "symbol": "verification_history_records_each_ingest",
+      "text": "// reqforge: verifies REQ-0034#AC5",
       "component": "server"
     },
     {
@@ -1003,6 +1207,76 @@
       "component": "server"
     },
     {
+      "req": "REQ-0049",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "server/tests/integration.rs",
+      "line": 619,
+      "symbol": "task_depends_on_validates_ids",
+      "text": "// reqforge: verifies REQ-0049#AC1",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0049",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "server/tests/integration.rs",
+      "line": 633,
+      "symbol": "task_depends_on_rejects_self_and_cycles",
+      "text": "// reqforge: verifies REQ-0049#AC2",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0049",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "server/tests/integration.rs",
+      "line": 650,
+      "symbol": "task_depends_on_blocks_delete",
+      "text": "// reqforge: verifies REQ-0049#AC3",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "server/tests/integration.rs",
+      "line": 662,
+      "symbol": "task_start_cascades_in_one_commit",
+      "text": "// reqforge: verifies REQ-0050#AC2",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "server/tests/integration.rs",
+      "line": 663,
+      "symbol": "task_start_cascades_in_one_commit",
+      "text": "// reqforge: verifies REQ-0050#AC3",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "server/tests/integration.rs",
+      "line": 683,
+      "symbol": "task_start_refuses_stale_and_blocked",
+      "text": "// reqforge: verifies REQ-0050#AC4",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0050",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "server/tests/integration.rs",
+      "line": 684,
+      "symbol": "task_start_refuses_stale_and_blocked",
+      "text": "// reqforge: verifies REQ-0050#AC5",
+      "component": "server"
+    },
+    {
       "req": "REQ-0002",
       "ac": "AC1",
       "kind": "verifies",
@@ -1060,6 +1334,16 @@
       "line": 86,
       "symbol": "ci_workflow_runs_clippy_and_tests",
       "text": "// reqforge: verifies REQ-0043#AC2",
+      "component": "server"
+    },
+    {
+      "req": "REQ-0043",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "server/tests/plugin.rs",
+      "line": 95,
+      "symbol": "ci_workflow_runs_verification_gate",
+      "text": "// reqforge: verifies REQ-0043#AC3",
       "component": "server"
     },
     {
