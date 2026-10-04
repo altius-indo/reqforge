@@ -1,0 +1,663 @@
+{
+  "id": "CS-0013",
+  "title": "Close 3 security gaps found in the design review",
+  "summary": "Adds REQ-0041 AC2 (chat agent pinned to its project) and AC3 (MCP server enforces the chat deny list itself), and REQ-0040 AC3 (validate client-supplied filesystem paths). Reopens STORY-0005 and STORY-0006 with one task and one security eval each.",
+  "rationale": "The reverse-engineered design review found three gaps: (1) the chat agent can pass another project's key to MCP tools (workspace.rs:380-389 gives an explicit project priority); (2) only the Claude Code client-side deny list stops write tools, because the MCP server does not check its caller; (3) POST /api/projects/import, POST /api/code/scan and GET /api/impact accept unvalidated filesystem paths. The existing requirements are extended rather than duplicated.",
+  "status": "pending",
+  "created": "2026-10-04T06:45:25+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "REQ-0041",
+      "patch": {
+        "status": "approved",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "0 write, apply, scan, evidence or shell/file-editing tools are available to the chat agent"
+          },
+          {
+            "id": "AC2",
+            "text": "Every MCP call from a chat session operates on the project the chat was opened in; a call naming another project is refused with an error and reads or proposes 0 records in it"
+          },
+          {
+            "id": "AC3",
+            "text": "The MCP server started for a chat session itself refuses every tool on the chat deny list, so 0 records change even if the client-side deny list is bypassed"
+          }
+        ]
+      },
+      "reason": "Close cross-project access and add server-side enforcement"
+    },
+    {
+      "op": "update",
+      "id": "REQ-0040",
+      "patch": {
+        "status": "approved",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "Cross-origin, text/plain and DNS-rebinding requests are refused with 403"
+          },
+          {
+            "id": "AC2",
+            "text": "With REQFORGE_TOKEN set, every route including chat returns 401 without the token"
+          },
+          {
+            "id": "AC3",
+            "text": "A client-supplied filesystem path is accepted only if, after resolving symlinks, it is a configured component path (code scan root, impact root) or an absolute directory containing reqforge.json (project import); any other path returns 400 and 0 files are read"
+          }
+        ]
+      },
+      "reason": "Validate filesystem paths from the browser"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0005",
+      "patch": {
+        "status": "in-progress"
+      },
+      "add": {
+        "evals": [
+          {
+            "id": "E3",
+            "name": "chat project pinning and server-side tool policy",
+            "kind": "security",
+            "command": "cargo test --manifest-path server/Cargo.toml --test integration -- chat_project_pinned mcp_chat_role_refuses_writes",
+            "covers": [
+              "REQ-0041#AC2",
+              "REQ-0041#AC3"
+            ]
+          }
+        ]
+      },
+      "reason": "New criteria need a security eval; story reopened"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0006",
+      "patch": {
+        "status": "in-progress"
+      },
+      "add": {
+        "evals": [
+          {
+            "id": "E4",
+            "name": "filesystem path validation",
+            "kind": "security",
+            "command": "cargo test --manifest-path server/Cargo.toml --test integration -- client_paths_validated",
+            "covers": [
+              "REQ-0040#AC3"
+            ]
+          }
+        ]
+      },
+      "reason": "New criterion needs a security eval; story reopened"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t1",
+      "data": {
+        "title": "Pin chat MCP calls to the chat's project and enforce the deny list in the MCP server",
+        "story": "STORY-0005",
+        "kind": "code",
+        "description": "Start the chat's MCP server with the chat's project and a chat role; refuse a project argument naming another project, and refuse deny-listed tools server-side. Code: server/src/chat.rs:256-260, server/src/mcp.rs:19-29, server/src/workspace.rs:380-389. Tag tests REQ-0041#AC2 and REQ-0041#AC3.",
+        "done_when": "STORY-0005/E3 passes and REQ-0041 reports verified.",
+        "status": "todo"
+      },
+      "reason": "Implements REQ-0041 AC2-AC3"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t2",
+      "data": {
+        "title": "Validate client-supplied filesystem paths",
+        "story": "STORY-0006",
+        "kind": "code",
+        "description": "Canonicalise and check paths for POST /api/projects/import {path}, POST /api/code/scan {root} and GET /api/impact?root= (server/src/api.rs:381-383, 461-465, 481-484). Tag tests REQ-0040#AC3.",
+        "done_when": "STORY-0006/E4 passes and REQ-0040 reports verified.",
+        "status": "todo"
+      },
+      "reason": "Implements REQ-0040 AC3"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "STORY-0005 (Changesets and chat bridge) and STORY-0006 (REST, MCP, CLI and console) reopen from done to in-progress; their existing done tasks stay done."
+    ],
+    "code": [
+      "server/src/chat.rs (how the chat's MCP server is launched), server/src/mcp.rs (project argument and per-role tool refusal), server/src/workspace.rs (project resolution), server/src/api.rs (path checks on 3 routes).",
+      "Existing trace tags REQ-0041#AC1, REQ-0040#AC1 and REQ-0040#AC2 are unchanged and stay verified. New tests in server/tests/integration.rs must be tagged REQ-0041#AC2, REQ-0041#AC3 and REQ-0040#AC3."
+    ],
+    "evals": [
+      "2 new security evals: STORY-0005/E3 and STORY-0006/E4. Existing evals unchanged."
+    ],
+    "risks": [
+      "REQ-0040 and REQ-0041 drop from implemented to approved, and their new criteria show as untested, until TASK-0036 and TASK-0037 land.",
+      "Path validation could break importing projects from unusual locations; it is limited to directories containing reqforge.json.",
+      "The chat assistant (this agent) loses the ability to read other projects, which it does not need."
+    ]
+  },
+  "base_versions": {
+    "REQ-0041": 6,
+    "REQ-0040": 6,
+    "STORY-0005": 6,
+    "STORY-0006": 6
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0041",
+        "title": "Chat agent cannot write directly",
+        "reason": "Close cross-project access and add server-side enforcement",
+        "changes": {
+          "status": [
+            "implemented",
+            "approved"
+          ],
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "0 write, apply, scan, evidence or shell/file-editing tools are available to the chat agent"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "0 write, apply, scan, evidence or shell/file-editing tools are available to the chat agent"
+              },
+              {
+                "id": "AC2",
+                "text": "Every MCP call from a chat session operates on the project the chat was opened in; a call naming another project is refused with an error and reads or proposes 0 records in it"
+              },
+              {
+                "id": "AC3",
+                "text": "The MCP server started for a chat session itself refuses every tool on the chat deny list, so 0 records change even if the client-side deny list is bypassed"
+              }
+            ]
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0040",
+        "title": "Local server hardening",
+        "reason": "Validate filesystem paths from the browser",
+        "changes": {
+          "status": [
+            "implemented",
+            "approved"
+          ],
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "Cross-origin, text/plain and DNS-rebinding requests are refused with 403"
+              },
+              {
+                "id": "AC2",
+                "text": "With REQFORGE_TOKEN set, every route including chat returns 401 without the token"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "Cross-origin, text/plain and DNS-rebinding requests are refused with 403"
+              },
+              {
+                "id": "AC2",
+                "text": "With REQFORGE_TOKEN set, every route including chat returns 401 without the token"
+              },
+              {
+                "id": "AC3",
+                "text": "A client-supplied filesystem path is accepted only if, after resolving symlinks, it is a configured component path (code scan root, impact root) or an absolute directory containing reqforge.json (project import); any other path returns 400 and 0 files are read"
+              }
+            ]
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0005",
+        "title": "Changesets and chat bridge",
+        "reason": "New criteria need a security eval; story reopened",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "changeset and chat tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- simulate delete_without propose mece_delta sse_chat",
+                "covers": [
+                  "REQ-0013#AC1",
+                  "REQ-0013#AC2",
+                  "REQ-0013#AC3",
+                  "REQ-0014#AC1",
+                  "REQ-0014#AC2",
+                  "REQ-0015#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "chat tool policy",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- chat_tool_policy",
+                "covers": [
+                  "REQ-0041#AC1"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "changeset and chat tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- simulate delete_without propose mece_delta sse_chat",
+                "covers": [
+                  "REQ-0013#AC1",
+                  "REQ-0013#AC2",
+                  "REQ-0013#AC3",
+                  "REQ-0014#AC1",
+                  "REQ-0014#AC2",
+                  "REQ-0015#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "chat tool policy",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- chat_tool_policy",
+                "covers": [
+                  "REQ-0041#AC1"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "chat project pinning and server-side tool policy",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- chat_project_pinned mcp_chat_role_refuses_writes",
+                "covers": [
+                  "REQ-0041#AC2",
+                  "REQ-0041#AC3"
+                ]
+              }
+            ]
+          ],
+          "status": [
+            "done",
+            "in-progress"
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 3,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0006",
+        "title": "REST, MCP, CLI and console",
+        "reason": "New criterion needs a security eval; story reopened",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "interface tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- rest_api mcp_protocol cli console security_guard token_protects",
+                "covers": [
+                  "REQ-0026#AC1",
+                  "REQ-0026#AC2",
+                  "REQ-0027#AC1",
+                  "REQ-0027#AC2",
+                  "REQ-0028#AC1",
+                  "REQ-0028#AC2",
+                  "REQ-0028#AC3",
+                  "REQ-0029#AC1",
+                  "REQ-0040#AC1",
+                  "REQ-0040#AC2",
+                  "REQ-0046#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "code-trace interfaces",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- http_routes cli_scan",
+                "covers": []
+              },
+              {
+                "id": "E3",
+                "name": "security headers and origin checks",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- security_guard token_protects",
+                "covers": [
+                  "REQ-0040#AC1",
+                  "REQ-0040#AC2"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "interface tests",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- rest_api mcp_protocol cli console security_guard token_protects",
+                "covers": [
+                  "REQ-0026#AC1",
+                  "REQ-0026#AC2",
+                  "REQ-0027#AC1",
+                  "REQ-0027#AC2",
+                  "REQ-0028#AC1",
+                  "REQ-0028#AC2",
+                  "REQ-0028#AC3",
+                  "REQ-0029#AC1",
+                  "REQ-0040#AC1",
+                  "REQ-0040#AC2",
+                  "REQ-0046#AC1"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "code-trace interfaces",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- http_routes cli_scan",
+                "covers": []
+              },
+              {
+                "id": "E3",
+                "name": "security headers and origin checks",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- security_guard token_protects",
+                "covers": [
+                  "REQ-0040#AC1",
+                  "REQ-0040#AC2"
+                ]
+              },
+              {
+                "id": "E4",
+                "name": "filesystem path validation",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test integration -- client_paths_validated",
+                "covers": [
+                  "REQ-0040#AC3"
+                ]
+              }
+            ]
+          ],
+          "status": [
+            "done",
+            "in-progress"
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 4,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0036",
+        "ref": "t1",
+        "title": "Pin chat MCP calls to the chat's project and enforce the deny list in the MCP server",
+        "reason": "Implements REQ-0041 AC2-AC3",
+        "data": {
+          "id": "TASK-0036",
+          "status": "todo",
+          "title": "Pin chat MCP calls to the chat's project and enforce the deny list in the MCP server",
+          "story": "STORY-0005",
+          "kind": "code",
+          "description": "Start the chat's MCP server with the chat's project and a chat role; refuse a project argument naming another project, and refuse deny-listed tools server-side. Code: server/src/chat.rs:256-260, server/src/mcp.rs:19-29, server/src/workspace.rs:380-389. Tag tests REQ-0041#AC2 and REQ-0041#AC3.",
+          "done_when": "STORY-0005/E3 passes and REQ-0041 reports verified."
+        }
+      },
+      {
+        "i": 5,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0037",
+        "ref": "t2",
+        "title": "Validate client-supplied filesystem paths",
+        "reason": "Implements REQ-0040 AC3",
+        "data": {
+          "id": "TASK-0037",
+          "status": "todo",
+          "title": "Validate client-supplied filesystem paths",
+          "story": "STORY-0006",
+          "kind": "code",
+          "description": "Canonicalise and check paths for POST /api/projects/import {path}, POST /api/code/scan {root} and GET /api/impact?root= (server/src/api.rs:381-383, 461-465, 481-484). Tag tests REQ-0040#AC3.",
+          "done_when": "STORY-0006/E4 passes and REQ-0040 reports verified."
+        }
+      }
+    ],
+    "refmap": {
+      "t1": "TASK-0036",
+      "t2": "TASK-0037"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 55,
+        "active": 55,
+        "epics": 10,
+        "stories": 15,
+        "tasks": 35,
+        "evals": 36,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 55,
+        "active": 55,
+        "epics": 10,
+        "stories": 15,
+        "tasks": 37,
+        "evals": 38,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0040",
+        "REQ-0041"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0005",
+          "title": "Changesets and chat bridge",
+          "status": "in-progress",
+          "component": "server",
+          "via": [
+            "REQ-0041"
+          ]
+        },
+        {
+          "id": "STORY-0006",
+          "title": "REST, MCP, CLI and console",
+          "status": "in-progress",
+          "component": "server",
+          "via": [
+            "REQ-0040"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0010",
+          "title": "Changeset format and apply semantics",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0005"
+        },
+        {
+          "id": "TASK-0011",
+          "title": "Simulate/propose/apply + chat bridge",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0005"
+        },
+        {
+          "id": "TASK-0012",
+          "title": "axum API, MCP server, CLI, console",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0006"
+        },
+        {
+          "id": "TASK-0013",
+          "title": "Local server threat model (CSRF, rebinding)",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0006"
+        },
+        {
+          "id": "TASK-0036",
+          "title": "Pin chat MCP calls to the chat's project and enforce the deny list in the MCP server",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0005"
+        },
+        {
+          "id": "TASK-0037",
+          "title": "Validate client-supplied filesystem paths",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0006"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0005",
+          "id": "E1",
+          "name": "changeset and chat tests",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- simulate delete_without propose mece_delta sse_chat",
+          "covers": [
+            "REQ-0013#AC1",
+            "REQ-0013#AC2",
+            "REQ-0013#AC3",
+            "REQ-0014#AC1",
+            "REQ-0014#AC2",
+            "REQ-0015#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0005",
+          "id": "E2",
+          "name": "chat tool policy",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- chat_tool_policy",
+          "covers": [
+            "REQ-0041#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0005",
+          "id": "E3",
+          "name": "chat project pinning and server-side tool policy",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- chat_project_pinned mcp_chat_role_refuses_writes",
+          "covers": [
+            "REQ-0041#AC2",
+            "REQ-0041#AC3"
+          ]
+        },
+        {
+          "story": "STORY-0006",
+          "id": "E1",
+          "name": "interface tests",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- rest_api mcp_protocol cli console security_guard token_protects",
+          "covers": [
+            "REQ-0026#AC1",
+            "REQ-0026#AC2",
+            "REQ-0027#AC1",
+            "REQ-0027#AC2",
+            "REQ-0028#AC1",
+            "REQ-0028#AC2",
+            "REQ-0028#AC3",
+            "REQ-0029#AC1",
+            "REQ-0040#AC1",
+            "REQ-0040#AC2",
+            "REQ-0046#AC1"
+          ]
+        },
+        {
+          "story": "STORY-0006",
+          "id": "E2",
+          "name": "code-trace interfaces",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- http_routes cli_scan",
+          "covers": []
+        },
+        {
+          "story": "STORY-0006",
+          "id": "E3",
+          "name": "security headers and origin checks",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- security_guard token_protects",
+          "covers": [
+            "REQ-0040#AC1",
+            "REQ-0040#AC2"
+          ]
+        },
+        {
+          "story": "STORY-0006",
+          "id": "E4",
+          "name": "filesystem path validation",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- client_paths_validated",
+          "covers": [
+            "REQ-0040#AC3"
+          ]
+        }
+      ],
+      "components": [
+        "server"
+      ],
+      "in_progress_work": [
+        "TASK-0010",
+        "TASK-0011",
+        "TASK-0012",
+        "TASK-0013",
+        "STORY-0005",
+        "STORY-0006"
+      ]
+    }
+  }
+}
