@@ -1,0 +1,21 @@
+{
+  "id": "COMP-0002",
+  "title": "Web UI (React)",
+  "key": "web",
+  "path": "..",
+  "repo_url": "",
+  "globs": [
+    "web/src/**",
+    "web/e2e/**"
+  ],
+  "language": "typescript",
+  "tag_mode": "explicit",
+  "owners": [
+    "reqforge"
+  ],
+  "description": "React + TypeScript + Tailwind + shadcn/ui, embedded in the server binary.",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

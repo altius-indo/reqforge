@@ -1,0 +1,21 @@
+{
+  "id": "COMP-0001",
+  "title": "Server (Rust)",
+  "key": "server",
+  "path": "..",
+  "repo_url": "",
+  "globs": [
+    "server/src/**",
+    "server/tests/**"
+  ],
+  "language": "rust",
+  "tag_mode": "explicit",
+  "owners": [
+    "reqforge"
+  ],
+  "description": "Store, analysis, API, chat bridge, MCP server, CLI, console.",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}
