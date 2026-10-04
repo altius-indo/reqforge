@@ -39,7 +39,10 @@
       "name": "code-trace interfaces",
       "kind": "integration",
       "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- http_routes cli_scan",
-      "covers": []
+      "covers": [
+        "REQ-0026#AC2",
+        "REQ-0028#AC3"
+      ]
     },
     {
       "id": "E3",
@@ -63,7 +66,7 @@
   ],
   "status": "in-progress",
   "tags": [],
-  "version": 7,
+  "version": 8,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T06:45:40+00:00"
+  "updated": "2026-10-04T06:46:16+00:00"
 }

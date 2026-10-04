@@ -3,7 +3,7 @@
   "title": "Link STORY-0006/E2 to the criteria its tests prove",
   "summary": "Sets covers on STORY-0006/E2 (code-trace interfaces) to REQ-0026#AC2 and REQ-0028#AC3, matching the trace tags on its tests. The other evals are unchanged.",
   "rationale": "E2 runs http_routes (tagged REQ-0026#AC2, server/tests/codetrace.rs:268) and cli_scan_verify_impact (tagged REQ-0028#AC3, :290) but covered no criteria, so its passing results never counted as evidence.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T06:46:05+00:00",
   "valid": true,
   "ops": [
@@ -336,5 +336,8 @@
         "STORY-0006"
       ]
     }
-  }
+  },
+  "applied_at": "2026-10-04T06:46:16+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }
