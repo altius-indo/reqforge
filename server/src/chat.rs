@@ -181,6 +181,7 @@ pub fn translate(msg: &Value, tool_names: &mut HashMap<String, String>) -> Vec<V
 
 pub struct ChatRunner {
     root: PathBuf,
+    key: String,
     components: Vec<PathBuf>,
     cancels: Mutex<HashMap<String, Arc<Notify>>>,
 }
@@ -197,7 +198,8 @@ impl ChatRunner {
             .filter(|p| p.exists())
             .map(|p| std::fs::canonicalize(&p).unwrap_or(p))
             .collect();
-        ChatRunner { root, components, cancels: Mutex::new(HashMap::new()) }
+        let key = config.get("key").and_then(Value::as_str).unwrap_or("").to_string();
+        ChatRunner { root, key, components, cancels: Mutex::new(HashMap::new()) }
     }
 
     pub fn status(&self) -> Value {
@@ -224,6 +226,17 @@ impl ChatRunner {
             a.extend(["--resume".into(), sid.into()]);
         }
         a
+    }
+
+    // reqforge: implements REQ-0041
+    /// Environment for the claude process and the reqforge MCP server it starts: the chat role
+    /// and the chat's project, so the server refuses deny-listed tools and other projects.
+    pub fn mcp_env(&self) -> Vec<(String, String)> {
+        vec![
+            ("REQFORGE_REPO".into(), self.root.display().to_string()),
+            (crate::mcp::ENV_ROLE.into(), "chat".into()),
+            (crate::mcp::ENV_PROJECT.into(), self.key.clone()),
+        ]
     }
 
     /// Cancel every running turn (project deleted).
@@ -256,7 +269,7 @@ impl ChatRunner {
         let child = Command::new(&bin)
             .args(self.command_args(session_id.as_deref()))
             .current_dir(&self.root)
-            .env("REQFORGE_REPO", &self.root)
+            .envs(self.mcp_env())
             .env_remove("REQFORGE_PROJECT") // pin the agent's MCP calls to this project
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())

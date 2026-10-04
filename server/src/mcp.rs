@@ -16,8 +16,20 @@ fn tool(name: &str, description: &str, props: Value, required: &[&str]) -> Value
     json!({"name": name, "description": description, "inputSchema": {"type": "object", "properties": props, "required": required}})
 }
 
+/// Env var naming the role the server was started for; "chat" restricts it to the chat allowlist.
+pub const ENV_ROLE: &str = "REQFORGE_MCP_ROLE";
+/// Env var naming the project key a chat-role server is pinned to (its repo is REQFORGE_REPO).
+pub const ENV_PROJECT: &str = "REQFORGE_MCP_PROJECT";
+
+fn chat_role() -> bool {
+    std::env::var(ENV_ROLE).map(|r| r == "chat").unwrap_or(false)
+}
+
 pub fn tools() -> Vec<Value> {
     let mut t = base_tools();
+    if chat_role() {
+        t.retain(|x| crate::chat::READ_TOOLS.contains(&x["name"].as_str().unwrap_or("")));
+    }
     // every project-level tool accepts an optional project key
     for tool in t.iter_mut() {
         let name = tool["name"].as_str().unwrap_or("").to_string();
@@ -80,7 +92,20 @@ fn o(a: &Value, k: &str) -> Rec {
     a.get(k).and_then(Value::as_object).cloned().unwrap_or_default()
 }
 
+// reqforge: implements REQ-0041
+/// Chat-role guard: refuse every tool outside the chat allowlist (the deny list included) and
+/// pin every project-level call to the chat's project.
+fn chat_store(name: &str, a: &Value) -> Res<std::sync::Arc<Store>> {
+    if crate::chat::WRITE_TOOLS.contains(&name) || !crate::chat::READ_TOOLS.contains(&name) {
+        return Err(StoreError::new(format!("tool {name} is not available to the chat agent; propose a changeset for the user to apply"), 403));
+    }
+    let root = std::env::var("REQFORGE_REPO").ok().filter(|r| !r.is_empty()).ok_or_else(|| StoreError::new("chat MCP server started without REQFORGE_REPO", 500))?;
+    let pinned = std::env::var(ENV_PROJECT).ok();
+    crate::workspace::resolve_pinned(std::path::Path::new(&root), pinned.as_deref(), a.get("project").and_then(Value::as_str))
+}
+
 pub fn call(name: &str, a: &Value) -> Res<Value> {
+    let pinned = if chat_role() { Some(chat_store(name, a)?) } else { None };
     if name == "init_repo" {
         let st = Store::init(arg(a, "path")?, arg(a, "key")?, arg(a, "name")?, a.get("github").and_then(Value::as_str).filter(|s| !s.is_empty()), a.get("private").and_then(Value::as_bool).unwrap_or(true))?;
         return Ok(json!({"root": st.root.display().to_string(), "config": st.config_value()}));
@@ -93,7 +118,10 @@ pub fn call(name: &str, a: &Value) -> Res<Value> {
             ws.create(arg(a, "key")?, arg(a, "name")?, a.get("github").and_then(Value::as_str), a.get("private").and_then(Value::as_bool).unwrap_or(true))
         };
     }
-    let s = resolve(None, a.get("project").and_then(Value::as_str).filter(|p| !p.is_empty()), None)?;
+    let s = match pinned {
+        Some(s) => s,
+        None => resolve(None, a.get("project").and_then(Value::as_str).filter(|p| !p.is_empty()), None)?,
+    };
     let s: &Store = &s;
     Ok(match name {
         "taxonomy" => crate::api::meta(s),
