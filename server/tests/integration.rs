@@ -451,6 +451,52 @@ fn token_protects_api_including_chat() {
     assert_eq!(ok.status(), 200);
 }
 
+// reqforge: verifies REQ-0040#AC3
+#[test]
+fn client_paths_validated() {
+    let f = fx();
+    let tmp = TempDir::new().unwrap();
+    let code = tmp.path().join("code");
+    let other = tmp.path().join("other");
+    for d in [&code, &other] {
+        std::fs::create_dir_all(d).unwrap();
+        std::fs::write(d.join("a.py"), "# reqforge: implements REQ-0001\ndef f(): pass\n").unwrap();
+    }
+    std::os::unix::fs::symlink(&other, tmp.path().join("evil")).unwrap();
+    std::os::unix::fs::symlink(&code, tmp.path().join("alias")).unwrap();
+    f.store.create(Kind::Components, &rec(json!({"title": "App", "key": "app", "path": code.display().to_string()})), None).unwrap();
+    let (_rt, port) = start(Store::open(f.dir.path()).unwrap());
+    let idx = f.dir.path().join("code/app.json");
+    let scan = |root: &Path| http(port, "POST", "/api/code/scan", Some(json!({"components": ["app"], "root": root.display().to_string()})));
+    // outside paths, symlinks escaping to them, traversal and missing paths: 400 and nothing scanned
+    for bad in [other.clone(), tmp.path().join("evil"), code.join("../other"), tmp.path().join("missing"), "/etc".into()] {
+        assert_eq!(scan(&bad).0, 400, "{}", bad.display());
+        assert!(!idx.exists(), "{} was scanned", bad.display());
+        let q = form_urlencoded::byte_serialize(bad.display().to_string().as_bytes()).collect::<String>();
+        assert_eq!(http(port, "GET", &format!("/api/impact?component=app&root={q}"), None).0, 400, "{}", bad.display());
+    }
+    // the configured path, also via a symlink that resolves to it
+    let (code_, res) = scan(&tmp.path().join("alias"));
+    assert_eq!((code_, res["scanned"][0]["files_scanned"].clone()), (200, json!(1)));
+
+    // project import: absolute directory containing reqforge.json only
+    let wsd = TempDir::new().unwrap();
+    let ws = Arc::new(reqforge::workspace::Workspace::open(wsd.path()).unwrap());
+    let (_rt2, wport) = {
+        let rt = rt();
+        let (addr, _) = rt.block_on(reqforge::api::serve_workspace(ws, "127.0.0.1", 0)).unwrap();
+        (rt, addr.port())
+    };
+    let import = |p: &str| http(wport, "POST", "/api/projects/import", Some(json!({"path": p}))).0;
+    let repo = TempDir::new().unwrap();
+    Store::init(repo.path(), "imp", "Imported", None, true).unwrap();
+    std::os::unix::fs::symlink(&other, tmp.path().join("other-link")).unwrap();
+    for bad in [other.display().to_string(), tmp.path().join("other-link").display().to_string(), "/etc".into(), "relative/dir".into(), repo.path().join("reqforge.json").display().to_string()] {
+        assert_eq!(import(&bad), 400, "{bad}");
+    }
+    assert_eq!(import(&repo.path().display().to_string()), 201);
+}
+
 fn mcp_session(repo: &Path, msgs: &[Value]) -> Vec<Value> {
     let mut child = Command::new(BIN).arg("mcp").env("REQFORGE_REPO", repo).stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().unwrap();
     let input: String = msgs.iter().map(|m| m.to_string() + "\n").collect();

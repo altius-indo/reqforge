@@ -365,6 +365,38 @@ fn num(qs: &HashMap<String, String>, k: &str, d: usize) -> usize {
     qs.get(k).and_then(|v| v.parse().ok()).unwrap_or(d)
 }
 
+/// A client-supplied code root is accepted only if, after resolving symlinks, it is the configured
+/// path of one of the `candidates` components (all components when `candidates` is empty).
+// reqforge: implements REQ-0040
+fn checked_component_root(store: &Store, raw: &str, candidates: &[&str]) -> Res<std::path::PathBuf> {
+    let bad = || StoreError::bad(format!("root {raw} is not a configured component path"));
+    let root = std::fs::canonicalize(raw).map_err(|_| bad())?;
+    let ok = store.records(Kind::Components).iter().filter(|c| candidates.is_empty() || candidates.contains(&crate::model::s(c, "key"))).any(|c| {
+        crate::codetrace::component_root(store, c).and_then(|p| std::fs::canonicalize(p).ok()).is_some_and(|p| p == root)
+    });
+    if ok {
+        Ok(root)
+    } else {
+        Err(bad())
+    }
+}
+
+/// A project import path is accepted only if it is absolute and, after resolving symlinks,
+/// a directory containing reqforge.json.
+// reqforge: implements REQ-0040
+fn checked_import_path(raw: &str) -> Res<std::path::PathBuf> {
+    let bad = || StoreError::bad(format!("path {raw} must be an absolute directory containing {}", crate::store::CONFIG_FILE));
+    if !std::path::Path::new(raw).is_absolute() {
+        return Err(bad());
+    }
+    let p = std::fs::canonicalize(raw).map_err(|_| bad())?;
+    if p.is_dir() && p.join(crate::store::CONFIG_FILE).is_file() {
+        Ok(p)
+    } else {
+        Err(bad())
+    }
+}
+
 // reqforge: implements REQ-0020
 fn projects_route(st: &AppState, method: &Method, p: &[String], qs: &HashMap<String, String>, b: &Value) -> Res<(u16, Value)> {
     let ws = &st.ws;
@@ -380,7 +412,7 @@ fn projects_route(st: &AppState, method: &Method, p: &[String], qs: &HashMap<Str
         }
         (Method::POST, ["import"]) => {
             let path = bs("path").ok_or_else(|| StoreError::bad("path required"))?;
-            Ok((201, ws.import(std::path::Path::new(&path), bs("key").as_deref())?))
+            Ok((201, ws.import(&checked_import_path(&path)?, bs("key").as_deref())?))
         }
         (Method::GET, [key]) => Ok((200, ws.describe(&ws.entry(key)?))),
         (Method::PATCH | Method::PUT, [key]) => {
@@ -460,7 +492,8 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
         }
         ["code", "scan"] if post => {
             let only: Vec<String> = b.get("components").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str).map(String::from).collect();
-            let root = b.get("root").and_then(Value::as_str).map(std::path::PathBuf::from);
+            let cands: Vec<&str> = only.iter().map(String::as_str).collect();
+            let root = b.get("root").and_then(Value::as_str).map(|r| checked_component_root(store, r, &cands)).transpose()?;
             return Ok(Out::Json(200, crate::codetrace::scan(store, &only, root.as_deref(), true)?));
         }
         ["code", key] if get => {
@@ -479,7 +512,8 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
             return Ok(Out::Json(200, crate::evidence::ingest(store, &files, &o)?));
         }
         ["impact"] if get => {
-            let root = qs.get("root").map(std::path::PathBuf::from);
+            let cands: Vec<&str> = qs.get("component").map(String::as_str).into_iter().collect();
+            let root = qs.get("root").map(|r| checked_component_root(store, r, &cands)).transpose()?;
             return Ok(Out::Json(200, crate::impact::impact(store, qs.get("component").map(String::as_str), root.as_deref(), qs.get("base").map(String::as_str))?));
         }
         ["changesets"] if get => return Ok(Out::Json(200, json!(changes::list(store, qs.get("status").map(String::as_str))))),
