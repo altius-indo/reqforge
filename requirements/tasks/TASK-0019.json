@@ -5,9 +5,9 @@
   "kind": "monitoring",
   "description": "Record a verification snapshot (time, commit, counts, verified ratio) on every evidence ingest; expose GET /verification/history; chart the trend of the last 30 snapshots on the Verification dashboard.",
   "done_when": "verification_history test and the dashboard trend check pass; REQ-0034#AC5 verified",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 9,
+  "version": 10,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T02:27:22+00:00"
+  "updated": "2026-10-04T05:32:30+00:00"
 }
