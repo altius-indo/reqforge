@@ -182,6 +182,9 @@ pub fn lint(src: &dyn Source) -> Value {
         }
     }
 
+    // ---- design documents: every realises entry must name an existing requirement
+    findings.extend(crate::design::lint_findings(src));
+
     let mut counts: BTreeMap<&str, usize> = [("error", 0), ("warning", 0), ("info", 0)].into_iter().collect();
     for f in &findings {
         *counts.entry(f["severity"].as_str().unwrap_or("info")).or_default() += 1;

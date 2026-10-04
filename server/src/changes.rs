@@ -26,6 +26,7 @@ static NUM_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[A-Z]+-(\d+)$").
 pub struct View {
     config: Value,
     pub recs: HashMap<Kind, BTreeMap<String, Arc<Rec>>>,
+    design: Vec<crate::design::DesignDoc>,
 }
 
 impl Source for View {
@@ -38,11 +39,14 @@ impl Source for View {
     fn exists(&self, kind: Kind, id: &str) -> bool {
         self.recs.get(&kind).map(|m| m.contains_key(id)).unwrap_or(false)
     }
+    fn design_docs(&self) -> Vec<crate::design::DesignDoc> {
+        self.design.clone()
+    }
 }
 
 pub fn base_view(store: &Store) -> View {
     let recs = KINDS.iter().map(|k| (*k, store.records(*k).into_iter().map(|r| (s(&r, "id").to_string(), r)).collect())).collect();
-    View { config: store.config_value(), recs }
+    View { config: store.config_value(), recs, design: store.design_docs() }
 }
 
 fn resolve(v: &Value, refmap: &Map<String, Value>) -> Value {
@@ -181,7 +185,7 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
             errors.push(format!("op {i} ({kind_op}): {e}"));
         }
     }
-    let view = View { config: store.config_value(), recs };
+    let view = View { config: store.config_value(), recs, design: store.design_docs() };
     for r in &resolved {
         if r["op"] == json!("delete") {
             continue;
@@ -552,6 +556,7 @@ pub fn context(store: &Store, id: &str) -> Res<Value> {
         out["impact"] = blast_radius(&[&base_view(store)], &HashSet::from([id.to_string()]));
         let lr = lint_memo(store);
         out["code"] = crate::verify::report(store)["requirements"][id].clone();
+        out["design"] = crate::design::realising(&store.design_docs(), id);
         out["lint"] = json!(lr["findings"].as_array().into_iter().flatten().filter(|f| f["ids"].as_array().map(|a| a.contains(&json!(id))).unwrap_or(false)).cloned().collect::<Vec<_>>());
     }
     Ok(out)

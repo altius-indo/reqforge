@@ -9,6 +9,7 @@ pub mod codetrace;
 pub mod cli;
 pub mod console;
 pub mod csvio;
+pub mod design;
 pub mod evidence;
 pub mod evals;
 pub mod impact;
