@@ -6,9 +6,9 @@
   "depends_on": [],
   "description": "Extend docs/agent-runs.md with the complete flow: preconditions, merge of main into the task branch, eval run in the worktree, --no-ff merge, status cascade to story/epic, cleanup, and the parallel-task warning.",
   "done_when": "Design covers all 7 acceptance criteria.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T17:20:21+00:00",
-  "updated": "2026-10-04T18:10:15+00:00"
+  "updated": "2026-10-04T18:21:36+00:00"
 }
