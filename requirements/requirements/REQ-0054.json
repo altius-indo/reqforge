@@ -5,7 +5,7 @@
   "type": "data",
   "category": "model",
   "priority": "should",
-  "status": "proposed",
+  "status": "implemented",
   "rationale": "Design specs need to be versioned and reviewed like records and traced to the requirements they realise, without a new record kind.",
   "acceptance_criteria": [
     {
@@ -27,7 +27,7 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T06:40:10+00:00",
-  "updated": "2026-10-04T06:40:10+00:00"
+  "updated": "2026-10-04T16:22:17+00:00"
 }
