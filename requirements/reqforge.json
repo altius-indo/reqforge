@@ -31,9 +31,9 @@
     ]
   },
   "agent_queue": {
-    "enabled": false,
+    "enabled": true,
     "limit": 8,
     "changed_by": "jyoti.sanyal",
-    "changed_at": "2026-10-04T18:09:02+00:00"
+    "changed_at": "2026-10-04T18:09:11+00:00"
   }
 }
