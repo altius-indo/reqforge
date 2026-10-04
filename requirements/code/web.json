@@ -1,9 +1,9 @@
 {
   "component": "web",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "f9b06df8831c3c7876d1e26119cc3770073a5734",
-  "scanned_at": "2026-10-04T16:22:36+00:00",
-  "files_scanned": 75,
+  "commit": "c4cff5951903dce4a3f81c4f16719ff697f7441e",
+  "scanned_at": "2026-10-04T18:53:01+00:00",
+  "files_scanned": 77,
   "files": {
     "web/e2e/suites/agent-queue.js": "3cdc6c6ac55a704534cfeb7f5aad87c8179fc17c814ca1db81375bb400a3f55f",
     "web/e2e/suites/agent-start.js": "99e059eac345a95cd0673f9f03b5c6f74c3e06b6fde3070e97d9fb97caa357a3",
@@ -13,6 +13,7 @@
     "web/e2e/suites/help-a11y.js": "f6ee2faa6e3e5e872a87611271d5364595daaca2003a6e1ba25c935e8e48da9c",
     "web/e2e/suites/help.js": "9b76e8aeeb06c9ce06469cd6e2b8ff7adf1661c02b5eb7a1eb0497073ddb6468",
     "web/e2e/suites/projects.js": "018377a916e2d5d3dc849ba9569eccae082b22b19d39871186fac0d320cde205",
+    "web/e2e/suites/task-complete.js": "2fd62c06a9c1fed5b417e8345726f28846904b38e122d49adce53a673678bd1a",
     "web/e2e/suites/task-start.js": "3f770f1393e987e8fe33aee39dc12e17e405fff9642370d528c5d10cd1d8e605",
     "web/e2e/suites/theme.js": "fdd924cc11441c9d81bb07b6f84ae656601304046d77014481e0b1f1bdab9ca0",
     "web/src/components/AgentQueuePanel.tsx": "5bc270ae13a9020852aa3824e143e5046aba71e18fb766d4879d923253533803",
@@ -20,9 +21,10 @@
     "web/src/components/CodeEvidence.tsx": "02026364e455451d8978acbbe1070ffbc3c3d8c7abea9d4622ed9463264709d4",
     "web/src/components/ProjectDialogs.tsx": "bfb973073fadf85a54e79ad10315ebe64f420dd6cca959ffb4b42bbd2821962d",
     "web/src/components/ProjectSwitcher.tsx": "62d5b4f2caf11aa59e77680a520d43f17767ca8fd44f2179e0fd3362f817355a",
-    "web/src/components/RecordDrawer.tsx": "d08969e396fcaf3214fde0f832ec9cc4cf140464c65827e3323a9ab8128047bd",
+    "web/src/components/RecordDrawer.tsx": "5f4d1bb1c0086a18570a66a7fad9e61b63f14c8e4695afd325b47bc0de84a2a4",
     "web/src/components/Sidebar.tsx": "079daa0c19472400f5b019f53ee3cff8a03d23bc595b1297009531f631d31984",
-    "web/src/components/TaskAgent.tsx": "b0b76963d17717b3bcb956729cff729aa2357d0cfa8bcfbf8cfe925ef1fc2281",
+    "web/src/components/TaskAgent.tsx": "adcbbdf40d1fd6e70daeba2f4d00bf186c465d141d4e4dc815d4c8748b8a2e52",
+    "web/src/components/TaskComplete.tsx": "4da2395f2c5c1d3ba9e65a7969891c5a7cbca2d27dc7f7e12e260f3483712659",
     "web/src/components/TaskStart.tsx": "0e8e5ffd0a09719f30f75b5e7f3806e8cb56fc4eabca757553c2bc8d2932c54b",
     "web/src/components/VerifiedTrend.tsx": "a74bdc30fb44581d01275538db582518a630fd8df70a15f31a8380aafb7eac1e",
     "web/src/components/chat/ChatPanel.tsx": "c5993ef9d2528aead73457db6e587ba7b3c1621874054ba4ebf5f366a1c77672",
@@ -638,6 +640,46 @@
       "component": "web"
     },
     {
+      "req": "REQ-0051",
+      "ac": "AC7",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-complete.js",
+      "line": 42,
+      "symbol": "parallelWarning",
+      "text": "// reqforge: verifies REQ-0051#AC7",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0056",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-complete.js",
+      "line": 73,
+      "symbol": "branchReview",
+      "text": "// reqforge: verifies REQ-0056#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0056",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-complete.js",
+      "line": 99,
+      "symbol": "evalsRefusal",
+      "text": "// reqforge: verifies REQ-0056#AC5",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0056",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "web/e2e/suites/task-complete.js",
+      "line": 134,
+      "symbol": "completeLands",
+      "text": "// reqforge: verifies REQ-0056#AC5",
+      "component": "web"
+    },
+    {
       "req": "REQ-0050",
       "ac": "AC1",
       "kind": "verifies",
@@ -795,7 +837,7 @@
       "req": "REQ-0055",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 337,
+      "line": 347,
       "symbol": "DesignDocsSection",
       "text": "// reqforge: implements REQ-0055",
       "component": "web"
@@ -804,7 +846,7 @@
       "req": "REQ-0050",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 510,
+      "line": 520,
       "symbol": "TaskActions",
       "text": "// reqforge: implements REQ-0050",
       "component": "web"
@@ -813,16 +855,25 @@
       "req": "REQ-0051",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 511,
+      "line": 521,
       "symbol": "TaskActions",
       "text": "// reqforge: implements REQ-0051",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0056",
+      "kind": "implements",
+      "file": "web/src/components/RecordDrawer.tsx",
+      "line": 522,
+      "symbol": "TaskActions",
+      "text": "// reqforge: implements REQ-0056",
       "component": "web"
     },
     {
       "req": "REQ-0031",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 662,
+      "line": 748,
       "symbol": "RecordDrawer",
       "text": "// reqforge: implements REQ-0031",
       "component": "web"
@@ -831,7 +882,7 @@
       "req": "REQ-0045",
       "kind": "implements",
       "file": "web/src/components/RecordDrawer.tsx",
-      "line": 663,
+      "line": 749,
       "symbol": "RecordDrawer",
       "text": "// reqforge: implements REQ-0045",
       "component": "web"
@@ -849,7 +900,16 @@
       "req": "REQ-0051",
       "kind": "implements",
       "file": "web/src/components/TaskAgent.tsx",
-      "line": 143,
+      "line": 147,
+      "symbol": "ParallelWarning",
+      "text": "// reqforge: implements REQ-0051",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0051",
+      "kind": "implements",
+      "file": "web/src/components/TaskAgent.tsx",
+      "line": 194,
       "symbol": "AgentConfirmDialog",
       "text": "// reqforge: implements REQ-0051",
       "component": "web"
@@ -858,9 +918,45 @@
       "req": "REQ-0051",
       "kind": "implements",
       "file": "web/src/components/TaskAgent.tsx",
-      "line": 302,
+      "line": 391,
       "symbol": "AgentRunView",
       "text": "// reqforge: implements REQ-0051",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0056",
+      "kind": "implements",
+      "file": "web/src/components/TaskAgent.tsx",
+      "line": 473,
+      "symbol": "RunsList",
+      "text": "// reqforge: implements REQ-0056",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0056",
+      "kind": "implements",
+      "file": "web/src/components/TaskComplete.tsx",
+      "line": 231,
+      "symbol": "BranchReviewPanel",
+      "text": "// reqforge: implements REQ-0056",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0056",
+      "kind": "implements",
+      "file": "web/src/components/TaskComplete.tsx",
+      "line": 322,
+      "symbol": "CompleteButton",
+      "text": "// reqforge: implements REQ-0056",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0056",
+      "kind": "implements",
+      "file": "web/src/components/TaskComplete.tsx",
+      "line": 551,
+      "symbol": "CompleteOutcome",
+      "text": "// reqforge: implements REQ-0056",
       "component": "web"
     },
     {
