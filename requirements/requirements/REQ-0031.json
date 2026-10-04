@@ -1,0 +1,31 @@
+{
+  "id": "REQ-0031",
+  "title": "Record drawer",
+  "statement": "The system shall show every record in a drawer with a schema-generated form, links and impact, and code and evidence.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The details form is generated from the schema and saves"
+    },
+    {
+      "id": "AC2",
+      "text": "Links & impact shows stories, tasks and evals per criterion"
+    },
+    {
+      "id": "AC3",
+      "text": "Code & evidence shows implementing code, tagged tests and evidence per criterion"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

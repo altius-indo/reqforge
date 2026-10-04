@@ -1,0 +1,43 @@
+{
+  "id": "REQ-0030",
+  "title": "Web UI lists at scale",
+  "statement": "The system shall let a user browse, filter, drill down and bulk-edit thousands of requirements in the web UI.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The first page shows 100 rows and the total"
+    },
+    {
+      "id": "AC2",
+      "text": "The category tree drills down type → category with breadcrumbs"
+    },
+    {
+      "id": "AC3",
+      "text": "Columns sort and page size changes"
+    },
+    {
+      "id": "AC4",
+      "text": "Select-all-matching bulk update applies to every matching record"
+    },
+    {
+      "id": "AC5",
+      "text": "Facet chips filter with removable pills"
+    },
+    {
+      "id": "AC6",
+      "text": "Lint and traceability views render, paged and scoped to the tree selection"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

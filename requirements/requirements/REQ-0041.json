@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0041",
+  "title": "Chat agent cannot write directly",
+  "statement": "The system shall give the chat agent read, simulate and propose tools only, so that no record changes without a user's Apply.",
+  "type": "quality",
+  "category": "security",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Write, apply, scan and evidence tools plus Bash/Write/Edit are denied to the chat agent"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

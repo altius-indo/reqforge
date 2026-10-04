@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0017",
+  "title": "Facets and category tree",
+  "statement": "The system shall return facet counts where each facet ignores its own filter, and a type → category tree with coverage and lint health.",
+  "type": "functional",
+  "category": "query",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Facet counts ignore their own filter and the tree reports count and covered per category"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

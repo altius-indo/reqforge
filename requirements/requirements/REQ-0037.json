@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0037",
+  "title": "One JSON file per record",
+  "statement": "The system shall store each record as a pretty-printed JSON file named by id, with fields ordered id, schema fields, then system fields.",
+  "type": "data",
+  "category": "model",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "A created record's file starts with id followed by the schema fields"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

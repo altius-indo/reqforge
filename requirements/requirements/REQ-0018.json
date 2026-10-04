@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0018",
+  "title": "Project lifecycle",
+  "statement": "The system shall create, list, rename, import and set the default project of a workspace, persisting the registry.",
+  "type": "functional",
+  "category": "projects",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Create, rename and default are persisted in reqforge-workspace.json"
+    },
+    {
+      "id": "AC2",
+      "text": "An existing requirements repository can be imported once"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

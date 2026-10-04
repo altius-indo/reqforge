@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0025",
+  "title": "Verification in lists",
+  "statement": "The system shall annotate requirement lists with verification status and support filtering and faceting by it.",
+  "type": "functional",
+  "category": "code-traceability",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Lists carry _verification, filter by verification status and facet counts ignore their own filter"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

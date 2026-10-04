@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0035",
+  "title": "GitHub-backed persistence",
+  "statement": "The system shall persist every change as a git commit confined to the requirements folder and synchronise it with GitHub.",
+  "type": "interface",
+  "category": "integration",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Each mutation is a commit that contains only files under the requirements folder"
+    },
+    {
+      "id": "AC2",
+      "text": "init --github creates or attaches the GitHub repository and sync pushes"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "REQ-0032",
+  "title": "Chat panel",
+  "statement": "The system shall offer a chat panel where Claude asks multiple-choice questions and proposes changesets that the user applies.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "choices blocks render as buttons and send the answer"
+    },
+    {
+      "id": "AC2",
+      "text": "The changeset card shows operations, diffs and verdicts and Apply writes it"
+    },
+    {
+      "id": "AC3",
+      "text": "A follow-up is sent after Apply and the reply is shown"
+    },
+    {
+      "id": "AC4",
+      "text": "The chat log persists per project"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

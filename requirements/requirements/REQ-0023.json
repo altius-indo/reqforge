@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0023",
+  "title": "PR impact analysis",
+  "statement": "The system shall list the requirements, tests, evals and verified criteria affected by a code change relative to a base ref.",
+  "type": "functional",
+  "category": "code-traceability",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Changed files map to touched requirements, tests to re-run, criteria at risk and untraced changes"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

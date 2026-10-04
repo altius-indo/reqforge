@@ -1,0 +1,31 @@
+{
+  "id": "REQ-0013",
+  "title": "Changeset simulation",
+  "statement": "The system shall simulate a changeset on an in-memory copy and report validation errors, dangling references, the MECE delta, the traceability delta and the blast radius without writing.",
+  "type": "functional",
+  "category": "chat-changesets",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Creates with $refs and story remaps simulate as valid without writing anything"
+    },
+    {
+      "id": "AC2",
+      "text": "Deleting a referenced record without remapping is reported as a dangling reference"
+    },
+    {
+      "id": "AC3",
+      "text": "A new overlapping requirement makes mece_ok false"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0036",
+  "title": "Claude Code plugin packaging",
+  "statement": "The system shall package its agents, skills and MCP server as a Claude Code plugin with a local marketplace.",
+  "type": "interface",
+  "category": "integration",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "plugin.json, marketplace.json and .mcp.json are valid and point at bin/reqforge"
+    },
+    {
+      "id": "AC2",
+      "text": "Every MCP tool is explicitly allowed or denied for the chat agent"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

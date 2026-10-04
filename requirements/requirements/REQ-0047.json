@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0047",
+  "title": "Claude Code as the agent runtime",
+  "statement": "The system shall use the locally installed Claude Code CLI as its agent runtime and never call model APIs directly.",
+  "type": "constraint",
+  "category": "technology",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The chat bridge runs `claude -p` with the plugin and tool policy instead of calling a model API"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

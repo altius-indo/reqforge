@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0015",
+  "title": "Chat bridge to Claude Code",
+  "statement": "The system shall stream a chat turn from the local claude CLI to the browser as server-sent events, resuming the session per conversation.",
+  "type": "functional",
+  "category": "chat-changesets",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "session, tool, changeset, text and done events are streamed in order and --resume is passed for an existing session"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

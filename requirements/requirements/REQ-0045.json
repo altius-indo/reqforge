@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0045",
+  "title": "Keyboard and theme support",
+  "statement": "The system shall support keyboard dismissal of the record drawer and both light and dark colour schemes.",
+  "type": "quality",
+  "category": "interaction-capability",
+  "priority": "should",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Esc closes the record drawer"
+    },
+    {
+      "id": "AC2",
+      "text": "The UI follows prefers-color-scheme with readable contrast in dark mode"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

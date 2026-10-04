@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0001",
+  "title": "Research-backed elicitation",
+  "statement": "The system shall provide an elicit workflow that fans out standards research, asks the user at most 4 rounds of multiple-choice questions and runs an adversarial MECE review before persisting requirements.",
+  "type": "functional",
+  "category": "elicitation",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The elicit skill orchestrates standards-researcher fan-out, requirements-analyst drafting, AskUserQuestion rounds (max 4) and mece-reviewer"
+    },
+    {
+      "id": "AC2",
+      "text": "The elicitation transcript is saved as an ELI session and the requirement set is persisted with upsert_many, linted and synced"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

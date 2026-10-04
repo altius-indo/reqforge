@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0012",
+  "title": "Eval-driven CI/CD generation",
+  "statement": "The system shall generate a GitHub Actions pipeline whose stages run the evals defined on stories.",
+  "type": "functional",
+  "category": "evals-cicd",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The workflow contains traceability, commit, acceptance, security, performance, deploy, post-deploy and monitor jobs"
+    },
+    {
+      "id": "AC2",
+      "text": "With a component, the workflow adds the PR impact comment and the verification gate before deploy"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

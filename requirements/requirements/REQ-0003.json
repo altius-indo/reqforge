@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0003",
+  "title": "Record lifecycle with sequential ids",
+  "statement": "The system shall create, read, update and delete requirements, epics, stories, tasks and components, assigning ids PREFIX-NNNN in sequence.",
+  "type": "functional",
+  "category": "requirements-store",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Creating a record assigns the next sequential id and version 1"
+    },
+    {
+      "id": "AC2",
+      "text": "Deleting a record that other records reference is refused unless forced"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

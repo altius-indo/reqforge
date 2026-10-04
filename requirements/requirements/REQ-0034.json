@@ -1,0 +1,35 @@
+{
+  "id": "REQ-0034",
+  "title": "Verification UI",
+  "statement": "The system shall present verification status, a verification dashboard, evidence ingestion and impact analysis in the web UI.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Verification column and facet filter"
+    },
+    {
+      "id": "AC2",
+      "text": "Dashboard gate, counts, components and Scan now"
+    },
+    {
+      "id": "AC3",
+      "text": "The ingest dialog updates statuses"
+    },
+    {
+      "id": "AC4",
+      "text": "The impact panel lists touched requirements and tests to re-run"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

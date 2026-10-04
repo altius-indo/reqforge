@@ -1,0 +1,31 @@
+{
+  "id": "REQ-0028",
+  "title": "Command-line interface",
+  "statement": "The system shall provide a reqforge CLI covering records, bulk updates, analysis, projects, scanning, evidence, verification and impact.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Record, bulk, trace and config commands work with exit codes for gates"
+    },
+    {
+      "id": "AC2",
+      "text": "project create/list/delete and -P/--project work"
+    },
+    {
+      "id": "AC3",
+      "text": "scan, evidence ingest, verify and impact --select-tests work"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

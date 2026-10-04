@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0020",
+  "title": "Project-scoped API",
+  "statement": "The system shall scope every API route to a project as /api/p/{KEY}/… and keep projects' data isolated.",
+  "type": "functional",
+  "category": "projects",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Records created in one project are invisible in another and unscoped routes use the default project"
+    },
+    {
+      "id": "AC2",
+      "text": "A server started on a single repository refuses project management"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

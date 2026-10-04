@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0038",
+  "title": "Evidence history",
+  "statement": "The system shall keep the latest result per criterion and source and an append-only history of all ingested results.",
+  "type": "data",
+  "category": "lifecycle",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Ingesting appends to evidence/history.jsonl and updates evidence/latest.json"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

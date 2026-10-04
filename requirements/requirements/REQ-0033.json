@@ -1,0 +1,35 @@
+{
+  "id": "REQ-0033",
+  "title": "Projects UI",
+  "statement": "The system shall let a user switch, create and delete projects from the web UI.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The switcher lists projects with counts and switches via #/p/KEY"
+    },
+    {
+      "id": "AC2",
+      "text": "The create dialog validates the key and switches to the new project"
+    },
+    {
+      "id": "AC3",
+      "text": "The delete dialog requires typing the key and removes the project"
+    },
+    {
+      "id": "AC4",
+      "text": "Data and chat are isolated per project"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

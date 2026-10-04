@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0016",
+  "title": "Paged, sorted, annotated lists",
+  "statement": "The system shall return paged, sorted record lists annotated with link counts (stories, children, tasks, evals).",
+  "type": "functional",
+  "category": "query",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "offset/limit/sort/order page the list and requirements carry _stories and _children"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

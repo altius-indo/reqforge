@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0022",
+  "title": "Evidence and verification status",
+  "statement": "The system shall ingest CI results and compute each acceptance criterion's status as verified, pending, untested, suspect or failing.",
+  "type": "functional",
+  "category": "code-traceability",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "JUnit results and code changes drive verified, failing and suspect states"
+    },
+    {
+      "id": "AC2",
+      "text": "Rust cargo test output is accepted as evidence"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

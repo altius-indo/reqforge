@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0006",
+  "title": "Search and filters",
+  "statement": "The system shall search records by free text and field:value tokens (with a|b alternatives).",
+  "type": "functional",
+  "category": "requirements-store",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Free text and field:value tokens select exactly the matching records"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

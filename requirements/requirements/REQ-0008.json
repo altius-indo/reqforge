@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0008",
+  "title": "CSV round trip",
+  "statement": "The system shall export records to CSV and import edited CSV back as an upsert by id.",
+  "type": "functional",
+  "category": "requirements-store",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "An exported CSV edited in a spreadsheet re-imports as updates, keeping list and object fields intact"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

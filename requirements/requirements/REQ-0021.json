@@ -1,0 +1,35 @@
+{
+  "id": "REQ-0021",
+  "title": "Trace tag scanning",
+  "statement": "The system shall scan component sources for reqforge trace tags and store a per-component index with file, line, symbol and file hashes.",
+  "type": "functional",
+  "category": "code-traceability",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "implements/verifies tags and framework markers are extracted and attached to the nearest symbol"
+    },
+    {
+      "id": "AC2",
+      "text": "The index is written and vendor directories are skipped"
+    },
+    {
+      "id": "AC3",
+      "text": "A requirements repo inside the component is never scanned"
+    },
+    {
+      "id": "AC4",
+      "text": "Explicit tag mode, reqforge:off/on regions and reqforge:ignore-file suppress data mentions"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

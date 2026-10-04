@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0005",
+  "title": "Optimistic concurrency",
+  "statement": "The system shall reject an update whose expected version differs from the stored version with HTTP 409.",
+  "type": "functional",
+  "category": "requirements-store",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Updating with a stale version returns 409 and leaves the record unchanged"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

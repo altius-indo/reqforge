@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0039",
+  "title": "Responsive at 3,000 requirements",
+  "statement": "The system shall return a 100-row page plus facets for 3,000 requirements within 2 s in a debug build.",
+  "type": "quality",
+  "category": "performance-efficiency",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Loading 3,000 requirements then paging and faceting completes in under 2 s"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

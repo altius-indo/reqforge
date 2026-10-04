@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0046",
+  "title": "Single Rust binary with embedded UI",
+  "statement": "The system shall ship as one Rust binary that embeds the built web UI and needs only git (plus optional gh and claude) at run time.",
+  "type": "constraint",
+  "category": "technology",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The default build serves the embedded UI at / without a separate web server"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

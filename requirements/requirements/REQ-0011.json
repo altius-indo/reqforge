@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0011",
+  "title": "Stage eval runner",
+  "statement": "The system shall run the evals of a pipeline stage and report the requirements at risk when an eval fails.",
+  "type": "functional",
+  "category": "evals-cicd",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "A failing eval lists the requirements whose criteria it covers and writes a stage report"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

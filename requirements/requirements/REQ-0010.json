@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0010",
+  "title": "Traceability gate",
+  "statement": "The system shall evaluate requirement → story → task → eval coverage and fail the gate when error-level checks fail.",
+  "type": "functional",
+  "category": "quality-gates",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "A complete plan passes every check"
+    },
+    {
+      "id": "AC2",
+      "text": "Missing evals fail story-evals, criteria-coverage and quality-evals"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

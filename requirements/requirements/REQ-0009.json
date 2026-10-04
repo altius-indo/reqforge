@@ -1,0 +1,30 @@
+{
+  "id": "REQ-0009",
+  "title": "MECE and quality lint",
+  "statement": "The system shall lint the requirement set for overlaps, taxonomy coverage gaps and unverifiable statements (ISO/IEC/IEEE 29148).",
+  "type": "functional",
+  "category": "quality-gates",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Overlap, ambiguity, unmeasurable quality and coverage-gap findings are reported"
+    },
+    {
+      "id": "AC2",
+      "text": "Waivers in coverage_waivers close the corresponding gaps"
+    }
+  ],
+  "tags": [],
+  "standards": [
+    "ISO/IEC/IEEE 29148:2018",
+    "ISO/IEC 25010:2023"
+  ],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

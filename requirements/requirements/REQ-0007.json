@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0007",
+  "title": "All-or-nothing bulk update",
+  "statement": "The system shall update every record selected by ids or by query in one validated batch, writing none if any record would become invalid.",
+  "type": "functional",
+  "category": "requirements-store",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "set/add/remove apply to every selected record in one commit"
+    },
+    {
+      "id": "AC2",
+      "text": "One invalid record rejects the whole batch and nothing is written"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

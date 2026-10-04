@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0014",
+  "title": "Changeset apply and staleness",
+  "statement": "The system shall apply a pending changeset atomically as one commit and refuse it as stale when a touched record changed after the proposal.",
+  "type": "functional",
+  "category": "chat-changesets",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Apply writes all operations as a single commit"
+    },
+    {
+      "id": "AC2",
+      "text": "A record edited after the proposal makes apply fail with 409 and marks the changeset stale"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

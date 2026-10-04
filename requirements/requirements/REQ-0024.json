@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0024",
+  "title": "Code components",
+  "statement": "The system shall manage code components with unique slug keys and flag stories that reference unknown components.",
+  "type": "functional",
+  "category": "code-traceability",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Invalid and duplicate keys are rejected and unknown story components are reported"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

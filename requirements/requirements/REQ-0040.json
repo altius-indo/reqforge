@@ -1,0 +1,30 @@
+{
+  "id": "REQ-0040",
+  "title": "Local server hardening",
+  "statement": "The system shall refuse cross-origin, non-JSON mutating and non-loopback-Host requests and require a bearer token on every API route when one is configured.",
+  "type": "quality",
+  "category": "security",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Cross-origin, text/plain and DNS-rebinding requests are refused with 403"
+    },
+    {
+      "id": "AC2",
+      "text": "With REQFORGE_TOKEN set, every route including chat returns 401 without the token"
+    }
+  ],
+  "tags": [],
+  "standards": [
+    "OWASP ASVS 4.0.3 V13",
+    "OWASP CSRF Prevention Cheat Sheet"
+  ],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

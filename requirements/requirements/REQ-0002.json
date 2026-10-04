@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0002",
+  "title": "Specialist agent roster",
+  "statement": "The system shall ship eight specialist agents (standards-researcher, requirements-analyst, mece-reviewer, requirements-classifier, delivery-planner, eval-designer, traceability-evaluator, cicd-engineer) as Claude Code subagents.",
+  "type": "functional",
+  "category": "elicitation",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Each agent file has frontmatter whose name matches the file name and a substantive description"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

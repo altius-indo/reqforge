@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0027",
+  "title": "MCP server",
+  "statement": "The system shall run a stdio MCP server exposing the store, analysis, changeset, project and verification tools to agents.",
+  "type": "interface",
+  "category": "api",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "initialize, tools/list and tools/call follow JSON-RPC 2.0 and MCP, with protocol errors for unknown methods"
+    },
+    {
+      "id": "AC2",
+      "text": "Project tools are exposed and project deletion is not"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

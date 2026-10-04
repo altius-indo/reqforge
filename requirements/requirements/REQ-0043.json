@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0043",
+  "title": "Lint-clean, tested codebase",
+  "statement": "The system shall pass clippy with -D warnings and the full test suite on every push.",
+  "type": "quality",
+  "category": "maintainability",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "cargo clippy --all-targets -D warnings reports nothing"
+    },
+    {
+      "id": "AC2",
+      "text": "The CI workflow runs clippy and cargo test on push and pull request"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}

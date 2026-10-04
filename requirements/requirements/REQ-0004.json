@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0004",
+  "title": "Schema validation",
+  "statement": "The system shall reject records that violate the field schema, the taxonomy category rules or referential integrity.",
+  "type": "functional",
+  "category": "requirements-store",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "A category not valid for the requirement type is rejected with a field error"
+    },
+    {
+      "id": "AC2",
+      "text": "A reference to a non-existent record is rejected"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0019",
+  "title": "Project deletion",
+  "statement": "The system shall delete a project and all its artifacts only after the project key is typed to confirm, and never delete a path that is not a reqforge repository or contains the workspace.",
+  "type": "functional",
+  "category": "projects",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Delete requires the matching key and removes the directory with every artifact"
+    },
+    {
+      "id": "AC2",
+      "text": "Paths that are not reqforge repositories or contain the workspace are refused"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

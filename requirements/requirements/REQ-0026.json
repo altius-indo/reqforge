@@ -1,0 +1,27 @@
+{
+  "id": "REQ-0026",
+  "title": "REST API",
+  "statement": "The system shall expose every capability over a JSON REST API under /api, serving the web UI at /.",
+  "type": "interface",
+  "category": "api",
+  "priority": "must",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "CRUD, 409 conflicts, bulk, trace, meta, paging, facets, lint pages, context, CSV export and the UI respond as specified"
+    },
+    {
+      "id": "AC2",
+      "text": "Code, scan, evidence, verification and impact routes respond as specified"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:25+00:00",
+  "updated": "2026-10-04T01:01:25+00:00"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "REQ-0042",
+  "title": "Crash-safe writes",
+  "statement": "The system shall write each record via a temporary file and atomic rename so a crash leaves the old or the new file, never a partial one.",
+  "type": "quality",
+  "category": "reliability",
+  "priority": "should",
+  "status": "implemented",
+  "rationale": "Reverse-engineered from the implemented reqforge 0.2 behaviour.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "A write interrupted before rename leaves the previous version intact"
+    }
+  ],
+  "tags": [],
+  "standards": [],
+  "stakeholders": [],
+  "source": "reverse-engineered from code @ reqforge 0.2",
+  "version": 1,
+  "created": "2026-10-04T01:01:26+00:00",
+  "updated": "2026-10-04T01:01:26+00:00"
+}
