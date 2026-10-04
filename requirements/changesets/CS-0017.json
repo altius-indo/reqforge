@@ -3,7 +3,7 @@
   "title": "Move the parallel-branch warning to REQ-0051 and sandbox Complete's eval run",
   "summary": "Moves REQ-0056 AC7 to REQ-0051 as AC7, and adds REQ-0052 AC5 so the evals that Complete runs on agent-written code stay inside the agent sandbox. STORY-0016 now also realises REQ-0051 and REQ-0052; its evals are remapped and it gains a security eval (E3).",
   "rationale": "AC7 changes 'Start with agent' behaviour, so it belongs to REQ-0051 (one obligation per requirement). REQ-0056 AC4 runs the story's evals in the task worktree. That executes code the agent wrote with the server's privileges, outside the REQ-0052 sandbox, which only constrains the agent session itself.",
-  "status": "pending",
+  "status": "stale",
   "created": "2026-10-04T17:22:36+00:00",
   "valid": true,
   "ops": [
@@ -698,5 +698,8 @@
         "STORY-0013"
       ]
     }
-  }
+  },
+  "stale_reasons": [
+    "STORY-0016 changed (v1 -> v2)"
+  ]
 }
