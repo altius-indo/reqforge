@@ -5,7 +5,7 @@
   "type": "functional",
   "category": "task-execution",
   "priority": "should",
-  "status": "proposed",
+  "status": "implemented",
   "rationale": "Agent work otherwise stays on local branches and tasks never reach done.",
   "acceptance_criteria": [
     {
@@ -38,7 +38,7 @@
   ],
   "standards": [],
   "stakeholders": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T17:20:21+00:00",
-  "updated": "2026-10-04T18:21:36+00:00"
+  "updated": "2026-10-04T19:08:02+00:00"
 }
