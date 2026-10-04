@@ -493,6 +493,8 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
         ["changesets", id, "reject"] if post => {
             return Ok(Out::Json(200, changes::reject(store, id, b.get("reason").and_then(Value::as_str).unwrap_or(""))?))
         }
+        ["design"] if get => return Ok(Out::Json(200, json!(crate::design::list(&store.root)))),
+        ["design", slug] if get => return Ok(Out::Raw(200, crate::design::read(&store.root, slug)?, "text/markdown; charset=utf-8")),
         ["sessions"] if get => return Ok(Out::Json(200, json!(store.sessions()))),
         ["sessions"] if post => {
             let title = b.get("title").and_then(Value::as_str).ok_or_else(|| StoreError::bad("title required"))?;

@@ -147,6 +147,10 @@ pub trait Source {
     fn records(&self, kind: Kind) -> Vec<Arc<Rec>>;
     fn config(&self) -> Value;
     fn exists(&self, kind: Kind, id: &str) -> bool;
+    /// Design documents (design/<slug>.md) in the repository.
+    fn design_docs(&self) -> Vec<crate::design::DesignDoc> {
+        vec![]
+    }
 }
 
 pub struct Entry {
@@ -180,6 +184,9 @@ impl Source for Store {
     }
     fn exists(&self, kind: Kind, id: &str) -> bool {
         self.path(kind, id).exists()
+    }
+    fn design_docs(&self) -> Vec<crate::design::DesignDoc> {
+        crate::design::list(&self.root)
     }
 }
 
@@ -423,9 +430,9 @@ impl Store {
             .map(|d| d.as_nanos() as u64)
             .unwrap_or(0);
         let mut sig = vec![cfg_m];
-        // derived artefacts that verification depends on: code indexes and evidence
+        // derived artefacts that verification and lint depend on: code indexes, evidence, design docs
         let mut h = std::collections::hash_map::DefaultHasher::new();
-        for d in ["code", "evidence"] {
+        for d in ["code", "evidence", crate::design::DIR] {
             for e in fs::read_dir(self.root.join(d)).into_iter().flatten().flatten() {
                 if let Ok(md) = e.metadata() {
                     (e.file_name().to_string_lossy().to_string(), md.len(), md.modified().ok()).hash(&mut h);

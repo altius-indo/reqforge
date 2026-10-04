@@ -700,3 +700,108 @@ fn task_start_refuses_stale_and_blocked() {
     reqforge::taskflow::start(&f.store, "TASK-0002", None).unwrap();
     assert_eq!(reqforge::taskflow::start(&f.store, "TASK-0002", None).unwrap_err().status, 409); // no longer todo
 }
+
+// ============================================================================ design documents
+
+fn write_design(f: &Fx, slug: &str, body: &str) {
+    let d = f.dir.path().join("design");
+    std::fs::create_dir_all(&d).unwrap();
+    std::fs::write(d.join(format!("{slug}.md")), body).unwrap();
+}
+
+fn get_text(port: u16, path: &str) -> (u16, String) {
+    match ureq::get(&format!("http://127.0.0.1:{port}{path}")).call() {
+        Ok(r) => (r.status(), r.into_string().unwrap()),
+        Err(ureq::Error::Status(code, r)) => (code, r.into_string().unwrap_or_default()),
+        Err(e) => panic!("{e}"),
+    }
+}
+
+// reqforge: verifies REQ-0054#AC1
+#[test]
+fn design_docs_front_matter_and_list() {
+    let f = fx();
+    write_design(&f, "login-flow", "---\ntitle: \"Login flow\"\nrealises: [REQ-0001, REQ-0002]\n---\n# Login\n");
+    write_design(&f, "audit", "---\ntitle: Audit trail\nrealises:\n  - REQ-0003\n  - 'REQ-0004'\n---\n\nbody\n");
+    write_design(&f, "Bad_Name", "---\ntitle: skipped\nrealises: []\n---\n");
+    std::fs::write(f.dir.path().join("design/notes.txt"), "not markdown").unwrap();
+    let docs = reqforge::design::list(f.dir.path());
+    let got: Vec<(&str, &str, Vec<&str>)> = docs.iter().map(|d| (d.slug.as_str(), d.title.as_str(), d.realises.iter().map(String::as_str).collect())).collect();
+    assert_eq!(got, vec![("audit", "Audit trail", vec!["REQ-0003", "REQ-0004"]), ("login-flow", "Login flow", vec!["REQ-0001", "REQ-0002"])]);
+    assert!(reqforge::design::valid_slug("a") && reqforge::design::valid_slug(&format!("a{}", "-".repeat(63))));
+    for bad in ["", "-a", "A", "a_b", "a.b", "../x", &"a".repeat(65)] {
+        assert!(!reqforge::design::valid_slug(bad), "{bad}");
+    }
+    let (_rt, port) = start(Store::open(f.dir.path()).unwrap());
+    let (code, list) = http(port, "GET", "/api/design", None);
+    assert_eq!(code, 200);
+    assert_eq!(list, json!([{"slug": "audit", "title": "Audit trail", "realises": ["REQ-0003", "REQ-0004"]},
+                            {"slug": "login-flow", "title": "Login flow", "realises": ["REQ-0001", "REQ-0002"]}]));
+}
+
+// reqforge: verifies REQ-0054#AC2
+#[test]
+fn design_docs_lint_unknown_realises() {
+    let f = fx();
+    let (r1, _, _, _) = f.seed_plan(true);
+    let before = changes::lint_memo(&f.store);
+    assert!(!before["findings"].as_array().unwrap().iter().any(|x| x["rule"] == json!("design-realises")));
+    write_design(&f, "login-flow", &format!("---\ntitle: Login flow\nrealises: [{r1}, REQ-9999, STORY-0001]\n---\n"));
+    let rep = changes::lint_memo(&f.store);
+    let hits: Vec<&Value> = rep["findings"].as_array().unwrap().iter().filter(|x| x["rule"] == json!("design-realises")).collect();
+    assert_eq!(hits.len(), 2, "{hits:?}");
+    for (h, id) in hits.iter().zip(["REQ-9999", "STORY-0001"]) {
+        assert_eq!(h["severity"], json!("error"));
+        assert_eq!(h["ids"], json!([id]));
+        assert_eq!(h["file"], json!("design/login-flow.md"));
+        let m = h["message"].as_str().unwrap();
+        assert!(m.contains("design/login-flow.md") && m.contains(id), "{m}");
+    }
+    assert_eq!(rep["ok"], json!(false));
+    assert!(lint::to_markdown(&rep).contains("design/login-flow.md realises REQ-9999"));
+    // a changeset simulation sees the same design docs, so no spurious lint delta
+    let sim = changes::simulate(&f.store, &json!({"ops": []}));
+    assert!(!sim.to_string().contains("design-realises"), "{sim}");
+}
+
+// reqforge: verifies REQ-0054#AC3
+#[test]
+fn design_docs_served_read_only_by_slug() {
+    let f = fx();
+    let md = "---\ntitle: Login flow\nrealises: [REQ-0001]\n---\n# Login\n\n| a | b |\n|---|---|\n| 1 | 2 |\n";
+    write_design(&f, "login-flow", md);
+    std::fs::write(f.dir.path().join("secret.md"), "TOP SECRET").unwrap();
+    std::os::unix::fs::symlink(f.dir.path().join("secret.md"), f.dir.path().join("design/leak.md")).unwrap();
+    let (_rt, port) = start(Store::open(f.dir.path()).unwrap());
+    let ok = ureq::get(&format!("http://127.0.0.1:{port}/api/design/login-flow")).call().unwrap();
+    assert!(ok.content_type().contains("markdown"));
+    assert_eq!(ok.into_string().unwrap(), md);
+    for bad in ["Login-Flow", "-x", "a_b", "..%2Fsecret", "..%2F..%2Fetc%2Fpasswd", "secret.md", &"a".repeat(65)] {
+        let (code, body) = get_text(port, &format!("/api/design/{bad}"));
+        assert_eq!(code, 400, "{bad}");
+        assert!(!body.contains("TOP SECRET"));
+    }
+    assert_eq!(raw_http(port, "GET /api/design/..%2Fsecret HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"), 400);
+    assert_eq!(get_text(port, "/api/design/missing").0, 404);
+    // a symlink inside design/ pointing outside it is not followed
+    let (code, body) = get_text(port, "/api/design/leak");
+    assert_eq!(code, 404);
+    assert!(!body.contains("TOP SECRET"));
+    // read-only: no write routes
+    assert!(http(port, "PUT", "/api/design/login-flow", Some(json!({}))).0 >= 400);
+    assert_eq!(std::fs::read_to_string(f.dir.path().join("design/login-flow.md")).unwrap(), md);
+}
+
+// reqforge: verifies REQ-0054#AC1
+#[test]
+fn design_docs_in_record_context() {
+    let f = fx();
+    let (r1, r2, _, _) = f.seed_plan(true);
+    write_design(&f, "login-flow", &format!("---\ntitle: Login flow\nrealises: [{r1}]\n---\n"));
+    write_design(&f, "auth", &format!("---\ntitle: Auth\nrealises:\n  - {r1}\n  - {r2}\n---\n"));
+    let c1 = changes::context(&f.store, &r1).unwrap();
+    assert_eq!(c1["design"], json!([{"slug": "auth", "title": "Auth"}, {"slug": "login-flow", "title": "Login flow"}]));
+    assert_eq!(changes::context(&f.store, &r2).unwrap()["design"], json!([{"slug": "auth", "title": "Auth"}]));
+    let (_rt, port) = start(Store::open(f.dir.path()).unwrap());
+    assert_eq!(http(port, "GET", &format!("/api/context/{r2}"), None).1["design"][0]["slug"], json!("auth"));
+}
