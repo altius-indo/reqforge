@@ -5,9 +5,9 @@
   "kind": "monitoring",
   "description": "CI self-verification: on every push, ingest the cargo test output as evidence and run reqforge verify --gate (.github/workflows/test.yml).",
   "done_when": "tests/plugin.rs ci_workflow test asserts the gate; REQ-0043#AC3 verified",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 8,
+  "version": 9,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T02:24:52+00:00"
+  "updated": "2026-10-04T02:27:22+00:00"
 }
