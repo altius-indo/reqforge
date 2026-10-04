@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0021",
+  "title": "Write how-to guides in Markdown",
+  "story": "STORY-0010",
+  "kind": "code",
+  "description": "Author web/help/*.md guides with numbered steps, bundled by the web build.",
+  "done_when": "6 guide files exist and render in the panel.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:56:31+00:00",
+  "updated": "2026-10-04T01:56:31+00:00"
+}

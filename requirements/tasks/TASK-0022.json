@@ -1,0 +1,13 @@
+{
+  "id": "TASK-0022",
+  "title": "HelpPanel component, header button and search",
+  "story": "STORY-0010",
+  "kind": "code",
+  "description": "Slide-out HelpPanel with contextual section, TOC, keyword search, focus management; Help button in Header.tsx.",
+  "done_when": "help and help-a11y e2e suites pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:56:31+00:00",
+  "updated": "2026-10-04T01:56:31+00:00"
+}

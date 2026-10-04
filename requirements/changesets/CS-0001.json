@@ -3,7 +3,7 @@
   "title": "In-app help and how-to panel",
   "summary": "Add a slide-out help panel with contextual how-to guides for every web UI area, plus a story, tasks and evals.",
   "rationale": "No requirement covers in-app help; product owner asked for a detailed help and how-to section delivered as a slide-out panel. Guide topics and Markdown-in-repo content source use the recommended defaults pending confirmation.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T01:55:15+00:00",
   "valid": true,
   "ops": [
@@ -473,5 +473,11 @@
       ],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-04T01:56:31+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "r1": "REQ-0048",
+    "s1": "STORY-0010"
   }
 }

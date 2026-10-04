@@ -1,0 +1,42 @@
+{
+  "id": "STORY-0010",
+  "title": "In-app help and how-to panel",
+  "epic": "EPIC-0007",
+  "narrative": "As a product owner new to reqforge, I want a help panel with how-to guides I can open from any view so that I can learn each workflow without leaving my work.",
+  "requirements": [
+    "REQ-0048"
+  ],
+  "deliverable": "code",
+  "component": "web",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "UI e2e: help panel",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help.xml --suite help",
+      "covers": [
+        "REQ-0048#AC1",
+        "REQ-0048#AC2",
+        "REQ-0048#AC3",
+        "REQ-0048#AC4",
+        "REQ-0048#AC5"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "Help panel keyboard and a11y",
+      "kind": "accessibility",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help-a11y.xml --suite help-a11y",
+      "covers": [
+        "REQ-0048#AC6"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 5,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T01:56:31+00:00",
+  "updated": "2026-10-04T01:56:31+00:00"
+}

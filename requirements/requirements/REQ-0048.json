@@ -1,0 +1,46 @@
+{
+  "id": "REQ-0048",
+  "title": "In-app help and how-to panel",
+  "statement": "The system shall provide a slide-out help panel, openable from every web UI view, containing step-by-step how-to guides for each area of the web UI.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "Product owners and new users need guidance on reqforge workflows without leaving the UI.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "A Help button in the header opens the panel over the current view in 1 click, without changing the route, filters or selection"
+    },
+    {
+      "id": "AC2",
+      "text": "The panel opens on the section matching the active tab and offers a table of contents linking to every section"
+    },
+    {
+      "id": "AC3",
+      "text": "The panel contains numbered how-to guides for at least 6 topics: browse and filter, edit and bulk update, chat and changesets, lint and traceability, verification evidence and impact, and projects"
+    },
+    {
+      "id": "AC4",
+      "text": "A search box in the panel filters sections by keyword and shows a no-results message when nothing matches"
+    },
+    {
+      "id": "AC5",
+      "text": "Help content is authored as Markdown files versioned in the repository and bundled with the web UI"
+    },
+    {
+      "id": "AC6",
+      "text": "The panel is keyboard operable: focus moves into it on open, Esc closes it, and focus returns to the Help button"
+    }
+  ],
+  "tags": [
+    "help",
+    "onboarding"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-03",
+  "version": 1,
+  "created": "2026-10-04T01:56:31+00:00",
+  "updated": "2026-10-04T01:56:31+00:00"
+}
