@@ -22,8 +22,12 @@
   "cicd": {
     "requirements_repo": "",
     "reqforge_git": "",
+    "component": "server",
     "setup_steps": [],
     "deploy_command": "",
-    "monitor_cron": "*/30 * * * *"
+    "monitor_cron": "0 6 * * *",
+    "junit": [
+      "web/e2e/results/*.xml"
+    ]
   }
 }
