@@ -3,7 +3,7 @@
   "title": "Complete a task from its agent branch",
   "summary": "Close the gap after an agent run: review the branch, merge it once the story's evals pass on the merged result, mark the task done and clean up; warn when related tasks run in parallel.",
   "rationale": "TASK-0033..0037 finished their agent runs but stayed in-progress: nothing reviewed, merged or completed them, and three dependent tasks ran in parallel on separate branches.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T16:23:02+00:00",
   "valid": true,
   "ops": [
@@ -481,5 +481,14 @@
       ],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-04T17:20:21+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "req": "REQ-0056",
+    "st": "STORY-0016",
+    "t1": "TASK-0038",
+    "t2": "TASK-0039",
+    "t3": "TASK-0040"
   }
 }

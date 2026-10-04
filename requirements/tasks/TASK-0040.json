@@ -1,0 +1,16 @@
+{
+  "id": "TASK-0040",
+  "title": "Review & complete UI in the task drawer",
+  "story": "STORY-0016",
+  "kind": "code",
+  "depends_on": [
+    "TASK-0039"
+  ],
+  "description": "Branch review (commits, files, diff), Complete button with refusal reasons and eval output, parallel-task warning in the agent confirmation dialog.",
+  "done_when": "task-complete e2e suite passes.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T17:20:21+00:00",
+  "updated": "2026-10-04T17:20:21+00:00"
+}

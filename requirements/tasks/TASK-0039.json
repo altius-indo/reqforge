@@ -1,0 +1,16 @@
+{
+  "id": "TASK-0039",
+  "title": "Complete endpoint in the server",
+  "story": "STORY-0016",
+  "kind": "code",
+  "depends_on": [
+    "TASK-0038"
+  ],
+  "description": "GET tasks/{id}/branch (commits, files, diff) and POST tasks/{id}/complete implementing AC2-AC6; parallel-branch warning in the agent plan (AC7).",
+  "done_when": "task_complete integration tests pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T17:20:21+00:00",
+  "updated": "2026-10-04T17:20:21+00:00"
+}

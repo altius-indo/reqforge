@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0038",
+  "title": "Complete-flow design: merge order, eval run, cleanup, parallel-task warning",
+  "story": "STORY-0016",
+  "kind": "design",
+  "depends_on": [],
+  "description": "Extend docs/agent-runs.md with the complete flow: preconditions, merge of main into the task branch, eval run in the worktree, --no-ff merge, status cascade to story/epic, cleanup, and the parallel-task warning.",
+  "done_when": "Design covers all 7 acceptance criteria.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T17:20:21+00:00",
+  "updated": "2026-10-04T17:20:21+00:00"
+}

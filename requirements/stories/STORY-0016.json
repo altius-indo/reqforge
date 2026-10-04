@@ -1,0 +1,44 @@
+{
+  "id": "STORY-0016",
+  "title": "Complete a task from its agent branch",
+  "epic": "EPIC-0010",
+  "narrative": "As a product owner, I want to review an agent's branch and complete the task in one action so that verified work lands on the main branch and the task is done.",
+  "requirements": [
+    "REQ-0056"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "complete flow",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+      "covers": [
+        "REQ-0056#AC2",
+        "REQ-0056#AC3",
+        "REQ-0056#AC4",
+        "REQ-0056#AC5",
+        "REQ-0056#AC6",
+        "REQ-0056#AC7"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: task complete",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+      "covers": [
+        "REQ-0056#AC1",
+        "REQ-0056#AC5",
+        "REQ-0056#AC7"
+      ]
+    }
+  ],
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-04T17:20:21+00:00",
+  "updated": "2026-10-04T17:20:21+00:00"
+}
