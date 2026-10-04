@@ -40,11 +40,20 @@
       "kind": "integration",
       "command": "cargo test --manifest-path server/Cargo.toml --test codetrace cicd_includes",
       "covers": []
+    },
+    {
+      "id": "E4",
+      "name": "repo CI workflow contract",
+      "kind": "unit",
+      "command": "cargo test --manifest-path server/Cargo.toml --test plugin ci_workflow",
+      "covers": [
+        "REQ-0043#AC2"
+      ]
     }
   ],
   "status": "done",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:01:26+00:00"
+  "updated": "2026-10-04T01:02:15+00:00"
 }

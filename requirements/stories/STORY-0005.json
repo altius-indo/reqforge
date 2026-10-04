@@ -17,21 +17,29 @@
       "id": "E1",
       "name": "changeset and chat tests",
       "kind": "integration",
-      "command": "cargo test --manifest-path server/Cargo.toml --test integration simulate delete_without propose mece_delta sse_chat chat_tool",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration simulate delete_without propose mece_delta sse_chat",
       "covers": [
         "REQ-0013#AC1",
         "REQ-0013#AC2",
         "REQ-0013#AC3",
         "REQ-0014#AC1",
         "REQ-0014#AC2",
-        "REQ-0015#AC1",
+        "REQ-0015#AC1"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "chat tool policy",
+      "kind": "security",
+      "command": "cargo test --manifest-path server/Cargo.toml --test integration chat_tool_policy",
+      "covers": [
         "REQ-0041#AC1"
       ]
     }
   ],
   "status": "done",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:01:26+00:00"
+  "updated": "2026-10-04T01:02:15+00:00"
 }
