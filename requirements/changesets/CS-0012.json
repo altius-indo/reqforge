@@ -1,0 +1,541 @@
+{
+  "id": "CS-0012",
+  "title": "Design tab and design documents",
+  "summary": "Adds REQ-0054 (design/*.md format with a 'realises' list) and REQ-0055 (read-only Design tab), STORY-0015 under EPIC-0007 with 3 tasks and 2 evals, including a task to commit the 5 reverse-engineered design specs.",
+  "rationale": "The app has no design artifacts. Decisions: specs are Markdown files in the requirements repo, versioned in git, each listing the REQ ids it realises; they cover architecture, data model, API contracts, UI flows, and agent integration/security. The specs were drafted from code on 2026-10-03.",
+  "status": "pending",
+  "created": "2026-10-04T06:39:49+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r1",
+      "data": {
+        "title": "Design document format",
+        "statement": "The system shall read design documents from design/<slug>.md files in the requirements repository, each with front matter giving a title and the list of requirement ids it realises.",
+        "type": "data",
+        "category": "model",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "Design specs need to be versioned and reviewed like records and traced to the requirements they realise, without a new record kind.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "A design document is a file design/<slug>.md where slug matches ^[a-z0-9][a-z0-9-]{0,63}$, with front matter fields title (string) and realises (list of REQ ids)"
+          },
+          {
+            "id": "AC2",
+            "text": "Lint reports an error naming the file and id for every realises entry that is not an existing requirement id"
+          },
+          {
+            "id": "AC3",
+            "text": "Design documents are served read-only by slug; a slug that does not match the pattern returns 400 and 0 files outside design/ are read"
+          }
+        ],
+        "tags": [
+          "design"
+        ],
+        "source": "product owner request 2026-10-03"
+      },
+      "reason": "Storage format for design specs"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r2",
+      "data": {
+        "title": "Design tab",
+        "statement": "The system shall provide a Design tab that lists the project's design documents and renders the selected document as Markdown with its realised requirements linked.",
+        "type": "interface",
+        "category": "user-interface",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "Gives product owners and developers one place in the UI to read how the system is built and which requirements each part realises.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "The Design tab lists every design document by title, sorted by slug, and shows an empty state with the expected design/ path when there are none"
+          },
+          {
+            "id": "AC2",
+            "text": "The selected document renders GitHub-flavoured Markdown, including tables and code blocks"
+          },
+          {
+            "id": "AC3",
+            "text": "Each document shows its realises list, and every REQ-, STORY- or TASK- id in the list or body opens that record in the drawer in 1 click"
+          },
+          {
+            "id": "AC4",
+            "text": "The Links & impact tab of a requirement lists the design documents that realise it"
+          }
+        ],
+        "tags": [
+          "design"
+        ],
+        "source": "product owner request 2026-10-03"
+      },
+      "reason": "UI to show design specs"
+    },
+    {
+      "op": "update",
+      "id": "EPIC-0007",
+      "add": {
+        "requirements": [
+          "$r1",
+          "$r2"
+        ]
+      },
+      "reason": "Design tab belongs to the web UI epic"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s1",
+      "data": {
+        "title": "Design tab with reverse-engineered design specs",
+        "epic": "EPIC-0007",
+        "narrative": "As a product owner, I want to read the system's design specs in a Design tab, linked to the requirements they realise, so that I understand how each requirement is built without reading code.",
+        "requirements": [
+          "$r1",
+          "$r2"
+        ],
+        "deliverable": "code",
+        "component": "web",
+        "status": "todo",
+        "points": 5,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "design document store and lint",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test integration -- design_docs",
+            "covers": [
+              "$r1#AC1",
+              "$r1#AC2",
+              "$r1#AC3"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: design tab",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-design.xml --suite design",
+            "covers": [
+              "$r2#AC1",
+              "$r2#AC2",
+              "$r2#AC3",
+              "$r2#AC4"
+            ]
+          }
+        ]
+      },
+      "reason": "Delivers both requirements"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t1",
+      "data": {
+        "title": "Commit the 5 reverse-engineered design specs",
+        "story": "$s1",
+        "kind": "design",
+        "description": "Commit the specs drafted from code on 2026-10-03 as design/architecture.md (realises REQ-0026..0029, REQ-0036, REQ-0046, REQ-0047), design/data-model.md (REQ-0003..0008, REQ-0035, REQ-0037, REQ-0042, REQ-0049), design/api.md (REQ-0013, REQ-0014, REQ-0020, REQ-0026, REQ-0027), design/ui.md (REQ-0030..0034, REQ-0045, REQ-0048, REQ-0050, REQ-0053) and design/agents-security.md (REQ-0015, REQ-0040, REQ-0041, REQ-0047, REQ-0051, REQ-0052), with front matter per the design document format.",
+        "done_when": "5 files are committed in design/ and lint reports 0 unknown realises ids.",
+        "status": "todo"
+      },
+      "reason": "Puts the reverse-engineered specs in the repo"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t2",
+      "data": {
+        "title": "Design document endpoints and lint rule",
+        "story": "$s1",
+        "kind": "code",
+        "description": "GET /api/design (list: slug, title, realises) and GET /api/design/{slug} (raw Markdown) with slug validation; lint rule for unknown realises ids; realising documents in record context.",
+        "done_when": "design_docs integration tests pass.",
+        "status": "todo"
+      },
+      "reason": "Server work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t3",
+      "data": {
+        "title": "Design tab and drawer links",
+        "story": "$s1",
+        "kind": "code",
+        "description": "Design tab in the header nav with a document list and Markdown viewer; linkified record ids; design documents section in the requirement drawer's Links & impact tab; help guide section for the tab.",
+        "done_when": "design e2e suite passes.",
+        "status": "todo"
+      },
+      "reason": "UI work"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "New STORY-0015 (web, 5 points) under EPIC-0007. No existing story changes scope."
+    ],
+    "code": [
+      "Server: new design-document endpoints in server/src/api.rs, a reader module, a lint rule in server/src/lint.rs, and realising docs added to record context (server/src/changes.rs).",
+      "Web: new Design tab in web/src/components/Header.tsx, a view in web/src/views/, and a section in web/src/components/RecordDrawer.tsx. The help guides (web/src/components/help) need a Design section.",
+      "New tests: design_docs in server/tests/integration.rs and web/e2e/suites/design.js, registered in web/e2e/run.mjs.",
+      "No existing trace tags change."
+    ],
+    "evals": [
+      "2 new evals: STORY-0015/E1 (integration) and E2 (e2e)."
+    ],
+    "risks": [
+      "The design docs are written outside changesets (git/PR), so the chat agent can't edit them; TASK-0033 is the hand-off.",
+      "The specs describe code as of 2026-10-03 and go stale unless updated when code changes; the realises lint rule only catches deleted requirement ids."
+    ]
+  },
+  "base_versions": {
+    "EPIC-0007": 8
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0054",
+        "ref": "r1",
+        "title": "Design document format",
+        "reason": "Storage format for design specs",
+        "data": {
+          "id": "REQ-0054",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "A design document is a file design/<slug>.md where slug matches ^[a-z0-9][a-z0-9-]{0,63}$, with front matter fields title (string) and realises (list of REQ ids)"
+            },
+            {
+              "id": "AC2",
+              "text": "Lint reports an error naming the file and id for every realises entry that is not an existing requirement id"
+            },
+            {
+              "id": "AC3",
+              "text": "Design documents are served read-only by slug; a slug that does not match the pattern returns 400 and 0 files outside design/ are read"
+            }
+          ],
+          "tags": [
+            "design"
+          ],
+          "title": "Design document format",
+          "statement": "The system shall read design documents from design/<slug>.md files in the requirements repository, each with front matter giving a title and the list of requirement ids it realises.",
+          "type": "data",
+          "category": "model",
+          "rationale": "Design specs need to be versioned and reviewed like records and traced to the requirements they realise, without a new record kind.",
+          "source": "product owner request 2026-10-03"
+        }
+      },
+      {
+        "i": 1,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0055",
+        "ref": "r2",
+        "title": "Design tab",
+        "reason": "UI to show design specs",
+        "data": {
+          "id": "REQ-0055",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "The Design tab lists every design document by title, sorted by slug, and shows an empty state with the expected design/ path when there are none"
+            },
+            {
+              "id": "AC2",
+              "text": "The selected document renders GitHub-flavoured Markdown, including tables and code blocks"
+            },
+            {
+              "id": "AC3",
+              "text": "Each document shows its realises list, and every REQ-, STORY- or TASK- id in the list or body opens that record in the drawer in 1 click"
+            },
+            {
+              "id": "AC4",
+              "text": "The Links & impact tab of a requirement lists the design documents that realise it"
+            }
+          ],
+          "tags": [
+            "design"
+          ],
+          "title": "Design tab",
+          "statement": "The system shall provide a Design tab that lists the project's design documents and renders the selected document as Markdown with its realised requirements linked.",
+          "type": "interface",
+          "category": "user-interface",
+          "rationale": "Gives product owners and developers one place in the UI to read how the system is built and which requirements each part realises.",
+          "source": "product owner request 2026-10-03"
+        }
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "epics",
+        "id": "EPIC-0007",
+        "title": "Web UI at scale",
+        "reason": "Design tab belongs to the web UI epic",
+        "changes": {
+          "requirements": [
+            [
+              "REQ-0016",
+              "REQ-0017",
+              "REQ-0030",
+              "REQ-0031",
+              "REQ-0032",
+              "REQ-0045",
+              "REQ-0048"
+            ],
+            [
+              "REQ-0016",
+              "REQ-0017",
+              "REQ-0030",
+              "REQ-0031",
+              "REQ-0032",
+              "REQ-0045",
+              "REQ-0048",
+              "REQ-0054",
+              "REQ-0055"
+            ]
+          ]
+        },
+        "base_version": 8
+      },
+      {
+        "i": 3,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0015",
+        "ref": "s1",
+        "title": "Design tab with reverse-engineered design specs",
+        "reason": "Delivers both requirements",
+        "data": {
+          "id": "STORY-0015",
+          "requirements": [
+            "REQ-0054",
+            "REQ-0055"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "design document store and lint",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test integration -- design_docs",
+              "covers": [
+                "REQ-0054#AC1",
+                "REQ-0054#AC2",
+                "REQ-0054#AC3"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "UI e2e: design tab",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-design.xml --suite design",
+              "covers": [
+                "REQ-0055#AC1",
+                "REQ-0055#AC2",
+                "REQ-0055#AC3",
+                "REQ-0055#AC4"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Design tab with reverse-engineered design specs",
+          "epic": "EPIC-0007",
+          "narrative": "As a product owner, I want to read the system's design specs in a Design tab, linked to the requirements they realise, so that I understand how each requirement is built without reading code.",
+          "component": "web",
+          "points": 5
+        }
+      },
+      {
+        "i": 4,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0033",
+        "ref": "t1",
+        "title": "Commit the 5 reverse-engineered design specs",
+        "reason": "Puts the reverse-engineered specs in the repo",
+        "data": {
+          "id": "TASK-0033",
+          "status": "todo",
+          "title": "Commit the 5 reverse-engineered design specs",
+          "story": "STORY-0015",
+          "kind": "design",
+          "description": "Commit the specs drafted from code on 2026-10-03 as design/architecture.md (realises REQ-0026..0029, REQ-0036, REQ-0046, REQ-0047), design/data-model.md (REQ-0003..0008, REQ-0035, REQ-0037, REQ-0042, REQ-0049), design/api.md (REQ-0013, REQ-0014, REQ-0020, REQ-0026, REQ-0027), design/ui.md (REQ-0030..0034, REQ-0045, REQ-0048, REQ-0050, REQ-0053) and design/agents-security.md (REQ-0015, REQ-0040, REQ-0041, REQ-0047, REQ-0051, REQ-0052), with front matter per the design document format.",
+          "done_when": "5 files are committed in design/ and lint reports 0 unknown realises ids."
+        }
+      },
+      {
+        "i": 5,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0034",
+        "ref": "t2",
+        "title": "Design document endpoints and lint rule",
+        "reason": "Server work",
+        "data": {
+          "id": "TASK-0034",
+          "status": "todo",
+          "title": "Design document endpoints and lint rule",
+          "story": "STORY-0015",
+          "kind": "code",
+          "description": "GET /api/design (list: slug, title, realises) and GET /api/design/{slug} (raw Markdown) with slug validation; lint rule for unknown realises ids; realising documents in record context.",
+          "done_when": "design_docs integration tests pass."
+        }
+      },
+      {
+        "i": 6,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0035",
+        "ref": "t3",
+        "title": "Design tab and drawer links",
+        "reason": "UI work",
+        "data": {
+          "id": "TASK-0035",
+          "status": "todo",
+          "title": "Design tab and drawer links",
+          "story": "STORY-0015",
+          "kind": "code",
+          "description": "Design tab in the header nav with a document list and Markdown viewer; linkified record ids; design documents section in the requirement drawer's Links & impact tab; help guide section for the tab.",
+          "done_when": "design e2e suite passes."
+        }
+      }
+    ],
+    "refmap": {
+      "r1": "REQ-0054",
+      "r2": "REQ-0055",
+      "s1": "STORY-0015",
+      "t1": "TASK-0033",
+      "t2": "TASK-0034",
+      "t3": "TASK-0035"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 53,
+        "active": 53,
+        "epics": 10,
+        "stories": 14,
+        "tasks": 32,
+        "evals": 34,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 55,
+        "active": 55,
+        "epics": 10,
+        "stories": 15,
+        "tasks": 35,
+        "evals": 36,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0054",
+        "REQ-0055"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0015",
+          "title": "Design tab with reverse-engineered design specs",
+          "status": "todo",
+          "component": "web",
+          "via": [
+            "REQ-0054",
+            "REQ-0055"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0033",
+          "title": "Commit the 5 reverse-engineered design specs",
+          "kind": "design",
+          "status": "todo",
+          "story": "STORY-0015"
+        },
+        {
+          "id": "TASK-0034",
+          "title": "Design document endpoints and lint rule",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0015"
+        },
+        {
+          "id": "TASK-0035",
+          "title": "Design tab and drawer links",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0015"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0015",
+          "id": "E1",
+          "name": "design document store and lint",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test integration -- design_docs",
+          "covers": [
+            "REQ-0054#AC1",
+            "REQ-0054#AC2",
+            "REQ-0054#AC3"
+          ]
+        },
+        {
+          "story": "STORY-0015",
+          "id": "E2",
+          "name": "UI e2e: design tab",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-design.xml --suite design",
+          "covers": [
+            "REQ-0055#AC1",
+            "REQ-0055#AC2",
+            "REQ-0055#AC3",
+            "REQ-0055#AC4"
+          ]
+        }
+      ],
+      "components": [
+        "web"
+      ],
+      "in_progress_work": []
+    }
+  }
+}
