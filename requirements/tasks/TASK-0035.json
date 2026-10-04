@@ -6,9 +6,9 @@
   "depends_on": [],
   "description": "Design tab in the header nav with a document list and Markdown viewer; linkified record ids; design documents section in the requirement drawer's Links & impact tab; help guide section for the tab.",
   "done_when": "design e2e suite passes.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T06:40:10+00:00",
-  "updated": "2026-10-04T06:50:00+00:00"
+  "updated": "2026-10-04T16:22:17+00:00"
 }
