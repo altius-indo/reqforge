@@ -76,3 +76,111 @@ The run log is written to `requirements/agent-runs/RUN-<TASK>-<yyyymmddThhmmss>.
 - the setting and who changed it;
 - the running tasks;
 - the eligible waiting tasks, in start order.
+
+## Completing a task from its agent branch (STORY-0016, REQ-0056, TASK-0038)
+
+Terms used below:
+- **checkout**: the component's main checkout (`git rev-parse --show-toplevel` of the component path).
+- **target**: the branch currently checked out there. This is usually `main`, but Complete does not assume it.
+- **task branch** and **worktree**: `reqforge/TASK-NNNN` and its worktree, as created by Start with agent.
+
+Complete is one request, `POST /api/p/{K}/tasks/{id}/complete {_version}`. The steps below run in order. A failure at any step before step 5 leaves the target and the requirements unchanged and returns `409` with `{step, reason, …}` for the drawer to show.
+
+### Review (AC1)
+
+`GET /api/p/{K}/tasks/{id}/branch` returns:
+- `branch`, `worktree`, `target`, and `base` = `git merge-base <target> <task branch>`;
+- `commits`: `git log --format=%h%x09%an%x09%aI%x09%s <base>..<task branch>`;
+- `files`: `git diff --name-status <base>...<task branch>` (status and path);
+- `diff`: `git diff <base>...<task branch>`, cut at 512 KiB with `truncated: true`;
+- `ahead` and `behind`: commit counts relative to the target;
+- `complete`: `{ready, reasons}`, the step-1 checks, so the drawer can disable Complete and show why before it is clicked.
+
+If the branch doesn't exist, the endpoint returns `404`. The drawer shows this section only when the task has a branch.
+
+### 1. Preconditions (AC2)
+
+Complete is refused, with the reason, when any of these holds:
+- the task is not `in-progress`;
+- an agent run for the task is active (`AgentRunner::running`);
+- another Complete is running in the same project. A per-project mutex makes this a `409`, not a queued request;
+- the worktree is missing or not on the task branch;
+- the worktree has uncommitted changes (`git status --porcelain` is not empty). Only committed work is merged;
+- the task branch has no commits ahead of `base`;
+- **the checkout has uncommitted changes outside the requirements folder.** This reuses `agent::snapshot(...).component_status`, which already excludes the requirements folder when it lives inside the checkout. Untracked files count, because they can block the final merge. The reason lists the first 20 paths.
+
+`_version` is checked as for `start`, so a stale drawer gets `409`.
+
+### 2. Bring the target into the task branch (AC3)
+
+- Record `H` = `git -C <checkout> rev-parse HEAD`, the target head the evals will be checked against.
+- Record `T` = the task branch head.
+- In the worktree run `git merge --no-edit <H>`. If it is already up to date, this is a no-op.
+
+On conflict:
+- read the conflicting files from `git diff --name-only --diff-filter=U`;
+- run `git merge --abort`, which leaves the task branch at `T` (verify with `rev-parse`);
+- refuse with `{step: "merge", conflicts: [...]}`.
+
+The target is never touched in this step, so both branches stay unchanged.
+
+The merge runs in the worktree, not the checkout. Conflicts are then never visible in the user's checkout, and the evals in step 3 test exactly the tree that will land.
+
+### 3. Run the story's evals on the merged tree (AC4)
+
+- Select the evals of the task's story that have a `command`, from `evals::registry` filtered by story, in eval-id order. Stage is ignored: every eval of the story must pass. Evals without a command are reported as `skipped` and do not block.
+- Run each one with `evals::run_one` in the worktree, using the eval's `timeout` (default 1800 s), with `REQFORGE_STORY` and `REQFORGE_EVAL` set.
+- No report is written into the worktree. The `reqforge-reports` default of `evals::run` would leave it dirty.
+- If any eval fails or times out, Complete is refused with `{step: "evals", failed: [{id, name, command, seconds, output_tail}]}`. `output_tail` is the last 4000 characters, as captured by `run_one`; the drawer shows its last 40 lines, expandable.
+- The merge commit from step 2 stays on the task branch. A follow-up agent run or manual fix then builds on the integrated tree, and re-running Complete makes step 2 a no-op.
+
+Each attempt, passed or refused, is logged in `requirements/agent-runs/COMPLETE-<TASK>-<yyyymmddThhmmss>.json` and committed with the run logs. The log holds: user, start and end time, H, T, the merge result, the per-eval results, and the outcome. `GET …/runs` returns these entries with `kind: "complete"`.
+
+### 4. Land on the target with --no-ff (AC5)
+
+- Check that the target hasn't moved since step 2:
+  - if `HEAD` ≠ `H`, look at `git diff --name-only H HEAD`;
+  - if every changed path is under the requirements folder (reqforge's own commits, e.g. a run log), proceed;
+  - otherwise refuse with `{step: "target-moved"}`, because the evals did not test that tree. The user retries.
+- Check step 1's checkout-cleanliness again.
+- Run `git -C <checkout> merge --no-ff --no-edit -m "TASK-NNNN: complete — <task title>" <task branch>`. The task branch already contains `H`, so this cannot conflict on code. If it fails anyway, run `git merge --abort` and refuse with `{step: "land"}`.
+- The resulting merge commit is the `merge_commit` in the response and the log.
+
+### 5. Status cascade (AC5, AC6)
+
+Under the store lock, in one versioned commit `TASK-NNNN: complete (<ids> -> done)`:
+- the task becomes `done`;
+- the story becomes `done` when every task with `story == <story>` is `done` after this change;
+- the epic becomes `done` when every story of the epic is `done` after this change.
+
+As with `start`, `blocked` or other parents that don't qualify are left as they are. The response's `changed` lists every id that moved.
+
+Ordering matters. The code merge (step 4) happens before the status commit, so a task is never `done` without its code on the target. If the status commit fails after the merge, the response is `500` with `merge_commit` set. Complete can be re-run: step 1 then sees the branch has no commits ahead of base, and in that case only (task `in-progress`, branch fully merged into the target) Complete skips steps 2–4 and goes straight to 5.
+
+### 6. Cleanup (AC5)
+
+- `git -C <checkout> worktree remove <worktree>`, without `--force`. The worktree is known to be clean.
+- `git -C <checkout> branch -d reqforge/TASK-NNNN`. Use `-d`, not `-D`: git itself confirms the branch is merged.
+- Run logs in `requirements/agent-runs/` are kept.
+
+The status is already `done` at this point, so a cleanup failure does not undo anything. The response carries `cleanup_warnings`, and the drawer shows them with the manual commands.
+
+The response on success is `{task, merge_commit, changed, evals, cleanup_warnings}`. Everything happens in the one user action (AC5): the drawer's Complete button, after a confirmation that names the target branch.
+
+### Parallel-task warning on Start with agent (AC7)
+
+`GET …/tasks/{id}/agent` (the plan) gains `parallel: [{id, title, branch, ahead}]`. These are the other tasks of the same story that meet all of these:
+- the task is `in-progress`;
+- `git rev-parse --verify reqforge/TASK-X` succeeds in the checkout;
+- `git merge-base --is-ancestor reqforge/TASK-X <target>` fails, meaning the branch is unmerged.
+
+When `parallel` is not empty, the confirmation dialog shows a warning before the user confirms: "N other tasks of this story have unmerged agent branches; their changes may conflict with this run." Each task in the list has a checkbox, and the dialog has two actions:
+- **Add to depends_on.** Sends `PATCH /api/p/{K}/tasks/{id} {depends_on: existing ∪ checked, _version}` and does not start. The plan reloads, and Start with agent is disabled by the existing "waiting for …" reason until those tasks are done.
+- **Start anyway.** Starts as before.
+
+The warning is advisory and doesn't change `ready`. The agent queue, which has no confirmation, is not affected.
+
+### Not covered here
+
+- The eval run in step 3 executes agent-written code with the server's privileges. Like the agent run, it could be bracketed with `agent::snapshot`/`violations` to detect writes outside the worktree. CS-0017 proposed this as REQ-0052#AC5 and moving AC7 to REQ-0051, but it is stale and not applied. This design follows REQ-0056 as it stands.
+- Complete does not push. The target stays local, as the agent branch did.
