@@ -1,11 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useCallback, useEffect, useRef, useState } from "react"
-import { AlertTriangle, Bot, GitBranch, GitCommitHorizontal, Loader2, Square, Wrench } from "lucide-react"
+import { AlertTriangle, Bot, GitBranch, GitCommitHorizontal, ListPlus, Loader2, Square, Wrench } from "lucide-react"
 import { toast } from "sonner"
 import { streamAgent } from "@/api/client"
-import type { AgentEvent, AgentExitStatus, AgentPlan, AgentRunLog } from "@/api/types"
+import type { AgentEvent, AgentExitStatus, AgentPlan, CompleteRunLog, RunLog } from "@/api/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Chip, ErrorText, H3 } from "@/components/common"
 import { useApp } from "@/state/app"
@@ -139,6 +140,56 @@ export function useAgentRun(taskId: string | null): AgentRunState {
 const exitLabel = (x: AgentExitStatus) => (typeof x === "number" ? `exit ${x}` : String(x))
 const exitTone = (x: AgentExitStatus) => (x === 0 ? "text-ok" : x === "cancelled" ? "text-warn" : "text-err")
 
+/**
+ * Advisory warning (REQ-0051#AC7): other in-progress tasks of the story have unmerged agent branches. The user can
+ * add the checked ones to depends_on (PATCH with the loaded version; nothing starts) or start anyway.
+ */
+// reqforge: implements REQ-0051
+function ParallelWarning({
+  plan,
+  checked,
+  onToggle,
+}: {
+  plan: AgentPlan
+  checked: Set<string>
+  onToggle: (id: string, on: boolean) => void
+}) {
+  const par = plan.parallel ?? []
+  const n = par.length
+  return (
+    <Alert data-testid="agent-parallel" className="border-warn/50 bg-warn/5">
+      <AlertTriangle className="text-warn" />
+      <AlertTitle data-testid="agent-parallel-text" className="text-warn">
+        {n} other task{n === 1 ? "" : "s"} of this story {n === 1 ? "has an" : "have"} unmerged agent branch{n === 1 ? "" : "es"}; their
+        changes may conflict with this run.
+      </AlertTitle>
+      <AlertDescription>
+        <p>Make {plan.task} wait for them (depends_on), or start anyway. This is a warning only.</p>
+        <ul className="mt-1 w-full space-y-1">
+          {par.map((t) => (
+            <li key={t.id} data-testid="agent-parallel-task" data-id={t.id} className="flex items-center gap-2 text-foreground">
+              <Checkbox
+                id={`par-${t.id}`}
+                data-testid="agent-parallel-check"
+                aria-label={`add ${t.id} to depends_on`}
+                checked={checked.has(t.id)}
+                onCheckedChange={(c) => onToggle(t.id, c === true)}
+              />
+              <label htmlFor={`par-${t.id}`} className="flex min-w-0 flex-1 cursor-pointer flex-wrap items-baseline gap-x-2">
+                <span className="id-mono font-medium">{t.id}</span>
+                <span className="min-w-0">{t.title}</span>
+                <span className="font-mono text-[11.5px] text-muted-foreground">
+                  {t.branch} · {t.ahead} commit{t.ahead === 1 ? "" : "s"} ahead
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </AlertDescription>
+    </Alert>
+  )
+}
+
 /** Confirmation before anything runs: component path, branch, worktree and the full brief. */
 // reqforge: implements REQ-0051
 export function AgentConfirmDialog({
@@ -146,12 +197,31 @@ export function AgentConfirmDialog({
   onOpenChange,
   plan,
   onConfirm,
+  onAddDepends,
 }: {
   open: boolean
   onOpenChange: (b: boolean) => void
   plan: AgentPlan
   onConfirm: () => void
+  /** add these task ids to the task's depends_on (does not start); resolves when saved */
+  onAddDepends?: (ids: string[]) => Promise<boolean>
 }) {
+  const parallel = plan.parallel ?? []
+  // every listed task starts checked; the dialog remembers only what the user unchecked, until it closes
+  const [unchecked, setUnchecked] = useState<Set<string>>(() => new Set())
+  const [saving, setSaving] = useState(false)
+  const checked = new Set(parallel.map((t) => t.id).filter((id) => !unchecked.has(id)))
+  const toggle = (id: string, on: boolean) =>
+    setUnchecked((cur) => {
+      const next = new Set(cur)
+      if (on) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  const setOpen = (b: boolean) => {
+    if (!b) setUnchecked(new Set())
+    onOpenChange(b)
+  }
   const row = (label: string, value: string | undefined, testId: string) => (
     <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-2 py-0.5">
       <span className="text-muted-foreground">{label}</span>
@@ -161,7 +231,7 @@ export function AgentConfirmDialog({
     </div>
   )
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent data-testid="agent-dialog" className="flex max-h-[90vh] flex-col sm:max-w-[760px]">
         <DialogHeader>
           <DialogTitle>Start {plan.task} with a coding agent?</DialogTitle>
@@ -175,6 +245,7 @@ export function AgentConfirmDialog({
           {row("branch", plan.branch, "agent-dialog-branch")}
           {row("worktree", plan.worktree, "agent-dialog-worktree")}
         </div>
+        {parallel.length > 0 && <ParallelWarning plan={plan} checked={checked} onToggle={toggle} />}
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="mb-1 text-[12px] font-medium text-muted-foreground">Brief (sent to the agent as its prompt)</div>
           <pre
@@ -187,18 +258,36 @@ export function AgentConfirmDialog({
           </pre>
         </div>
         <DialogFooter>
-          <Button variant="outline" size="sm" data-testid="agent-dialog-cancel" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" size="sm" data-testid="agent-dialog-cancel" onClick={() => setOpen(false)}>
             Cancel
           </Button>
+          {parallel.length > 0 && onAddDepends && (
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="agent-add-depends"
+              disabled={!checked.size || saving}
+              onClick={async () => {
+                setSaving(true)
+                const done = await onAddDepends(parallel.map((t) => t.id).filter((id) => checked.has(id)))
+                setSaving(false)
+                if (done) setOpen(false)
+              }}
+            >
+              {saving ? <Loader2 className="animate-spin" /> : <ListPlus />} Add to depends_on
+            </Button>
+          )}
           <Button
             size="sm"
             data-testid="agent-confirm"
+            variant={parallel.length ? "secondary" : "default"}
+            disabled={saving}
             onClick={() => {
-              onOpenChange(false)
+              setOpen(false)
               onConfirm()
             }}
           >
-            <Bot /> Confirm and start agent
+            <Bot /> {parallel.length ? "Start anyway" : "Confirm and start agent"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -292,7 +381,7 @@ function RunResult({ r }: { r: ResultEvent }) {
       )}
       <p data-testid="agent-not-done" className="mt-2 text-muted-foreground">
         The task is not marked done automatically{r.task_status ? ` (status: ${r.task_status})` : ""}. Review the branch, then
-        set the status yourself.
+        use <b>Complete</b> to land it and mark the task done.
       </p>
     </div>
   )
@@ -356,7 +445,32 @@ export function AgentRunView({ taskId, agent }: { taskId: string; agent: AgentRu
   )
 }
 
-/** Past runs of the task (run logs in agent-runs/, newest first). */
+const outcomeTone = (o: string) => (o === "completed" ? "text-ok" : o.startsWith("refused") ? "text-warn" : "text-err")
+
+function CompleteRunCells({ r }: { r: CompleteRunLog }) {
+  const failed = (r.evals ?? []).filter((e) => e.status === "failed").map((e) => e.id)
+  const detail = [
+    ...(r.reasons ?? []),
+    ...(r.conflicts?.length ? [`conflicts: ${r.conflicts.join(", ")}`] : []),
+    ...(failed.length ? [`failed evals: ${failed.join(", ")}`] : []),
+    ...(r.violations ?? []),
+  ].join("\n")
+  return (
+    <>
+      <td className="px-2 py-1" title={detail || undefined}>
+        <span data-testid="run-outcome" className={cn("font-medium whitespace-nowrap", outcomeTone(r.outcome))}>
+          {r.outcome}
+        </span>
+      </td>
+      <td className="px-2 py-1 font-mono text-[11.5px]" title={r.merge_commit ? `merge commit ${r.merge_commit}` : undefined}>
+        {r.merge_commit ? shortSha(r.merge_commit) : "—"}
+      </td>
+    </>
+  )
+}
+
+/** Past agent runs and Complete attempts of the task (logs in agent-runs/, newest first). */
+// reqforge: implements REQ-0056
 export function RunsList({ taskId }: { taskId: string }) {
   const q = useRuns(taskId)
   return (
@@ -368,7 +482,7 @@ export function RunsList({ taskId }: { taskId: string }) {
         <p className="text-muted-foreground">Loading…</p>
       ) : !q.data.length ? (
         <p data-testid="runs-empty" className="text-[12.5px] text-muted-foreground">
-          No agent runs yet.
+          No agent runs or Complete attempts yet.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-md border">
@@ -376,31 +490,48 @@ export function RunsList({ taskId }: { taskId: string }) {
             <thead>
               <tr className="border-b text-left text-[12px] text-muted-foreground">
                 <th className="px-2 py-1 font-semibold">started</th>
+                <th className="px-2 py-1 font-semibold">kind</th>
                 <th className="px-2 py-1 font-semibold">by</th>
                 <th className="px-2 py-1 font-semibold">result</th>
-                <th className="px-2 py-1 font-semibold">commits</th>
-                <th className="px-2 py-1 font-semibold">branch</th>
+                <th className="px-2 py-1 font-semibold" title="agent runs: commits; Complete: merge commit">commits</th>
               </tr>
             </thead>
             <tbody>
-              {q.data.map((r: AgentRunLog) => (
-                <tr key={r.run_id} data-testid="run-row" data-run={r.run_id} data-exit={String(r.exit_status)} className="border-b align-top last:border-b-0">
-                  <td className="px-2 py-1 whitespace-nowrap tabular-nums" title={`${r.started} → ${r.ended}`}>
+              {q.data.map((r: RunLog) => (
+                <tr
+                  key={r.run_id}
+                  data-testid="run-row"
+                  data-run={r.run_id}
+                  data-kind={r.kind ?? "agent"}
+                  data-exit={r.kind === "complete" ? undefined : String(r.exit_status)}
+                  data-outcome={r.kind === "complete" ? r.outcome : undefined}
+                  title={r.kind === "complete" ? `${r.run_id}: ${r.branch} → ${r.target}` : `${r.run_id} on ${r.branch}`}
+                  className="border-b align-top last:border-b-0"
+                >
+                  <td className="px-2 py-1 whitespace-nowrap tabular-nums" title={`${r.started} → ${r.ended ?? ""}`}>
                     {shortTime(r.started)}
                   </td>
-                  <td className="px-2 py-1">{r.user}</td>
                   <td className="px-2 py-1">
-                    <span className={cn("font-medium", exitTone(r.exit_status))}>{exitLabel(r.exit_status)}</span>
-                    {r.violations.length > 0 && (
-                      <Chip className="ml-1 bg-err/10 text-err" title={r.violations.join("\n")}>
-                        {r.violations.length} violation{r.violations.length === 1 ? "" : "s"}
-                      </Chip>
-                    )}
+                    <Chip className={r.kind === "complete" ? "text-primary" : undefined}>{r.kind === "complete" ? "complete" : "agent"}</Chip>
                   </td>
-                  <td className="px-2 py-1" title={r.commits.map((c) => `${c.sha} ${c.message}`).join("\n")}>
-                    {r.commits.length}
-                  </td>
-                  <td className="px-2 py-1 font-mono text-[11.5px]">{r.branch}</td>
+                  <td className="px-2 py-1">{r.user}</td>
+                  {r.kind === "complete" ? (
+                    <CompleteRunCells r={r} />
+                  ) : (
+                    <>
+                      <td className="px-2 py-1">
+                        <span className={cn("font-medium", exitTone(r.exit_status))}>{exitLabel(r.exit_status)}</span>
+                        {r.violations.length > 0 && (
+                          <Chip className="ml-1 bg-err/10 text-err" title={r.violations.join("\n")}>
+                            {r.violations.length} violation{r.violations.length === 1 ? "" : "s"}
+                          </Chip>
+                        )}
+                      </td>
+                      <td className="px-2 py-1" title={r.commits.map((c) => `${c.sha} ${c.message}`).join("\n")}>
+                        {r.commits.length}
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>

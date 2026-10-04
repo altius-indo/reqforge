@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { Bot, Loader2, MessageSquare, X } from "lucide-react"
+import { Bot, GitBranch, Loader2, MessageSquare, X } from "lucide-react"
 import { toast } from "sonner"
 import { ApiError } from "@/api/client"
 import { useApi } from "@/state/project"
@@ -14,10 +14,20 @@ import { Textarea } from "@/components/ui/textarea"
 import { Cards, Chip, ErrorText, H3, IdLink, IdList, StatCard } from "@/components/common"
 import { useApp } from "@/state/app"
 import { useChat } from "@/state/chat"
-import { useAgentPlan, useCode, useRecord, useRecordContext, useTaskOptions } from "@/state/queries"
+import { useAgentPlan, useBranchReview, useCode, useRecord, useRecordContext, useTaskOptions } from "@/state/queries"
 import { CodeEvidencePanel } from "@/components/CodeEvidence"
 import { StartButton } from "@/components/TaskStart"
 import { AgentConfirmDialog, AgentRunView, RunsList, useAgentRun, type AgentRunState } from "@/components/TaskAgent"
+import {
+  BranchReviewPanel,
+  CompleteButton,
+  CompleteOutcome,
+  Elapsed,
+  runComplete,
+  useCompleteAttempt,
+  type CompleteAttempt,
+} from "@/components/TaskComplete"
+import type { BranchReview } from "@/api/types"
 import { severityClass, singular } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -506,12 +516,45 @@ function LinksTab({ kind, id, meta }: { kind: Kind; id: string; meta: Meta }) {
   return <LinksPanel kind={kind} ctx={q.data} meta={meta} />
 }
 
-/** Task drawer actions: Start (REQ-0050) and Start with agent (REQ-0051), with what blocks them. */
+/** Task drawer actions: Start (REQ-0050), Start with agent (REQ-0051) and Complete (REQ-0056), with what blocks them. */
 // reqforge: implements REQ-0050
 // reqforge: implements REQ-0051
-function TaskActions({ rec, agent, onRun }: { rec: RecordBase; agent: AgentRunState; onRun: () => void }) {
+// reqforge: implements REQ-0056
+function TaskActions({
+  rec,
+  agent,
+  review,
+  attempt,
+  onRun,
+  onComplete,
+}: {
+  rec: RecordBase
+  agent: AgentRunState
+  review: BranchReview | null | undefined
+  attempt: CompleteAttempt | undefined
+  onRun: () => void
+  onComplete: () => void
+}) {
+  const api = useApi()
+  const { refreshAll } = useApp()
   const plan = useAgentPlan(rec.id)
   const [confirm, setConfirm] = useState(false)
+  // REQ-0051#AC7: make this task wait for the parallel ones (PATCH depends_on with the loaded version; nothing starts)
+  const addDepends = async (ids: string[]) => {
+    const existing = Array.isArray(rec.depends_on) ? (rec.depends_on as string[]) : []
+    const next = [...existing, ...ids.filter((x) => !existing.includes(x))]
+    try {
+      const r = await api.update("tasks", rec.id, { depends_on: next }, rec.version)
+      toast.success(`${rec.id} now waits for ${ids.join(", ")} (v${r.version})`)
+      return true
+    } catch (e) {
+      const stale = e instanceof ApiError && e.status === 409
+      toast.error(`${(e as Error).message}${stale ? ` — ${rec.id} changed since it was loaded; reopen the dialog and try again` : ""}`)
+      return false
+    } finally {
+      refreshAll()
+    }
+  }
   const p = plan.data
   const reasons = p ? (p.ready ? [] : p.reasons) : []
   const canAgent = !!p?.ready && !agent.running
@@ -547,11 +590,18 @@ function TaskActions({ rec, agent, onRun }: { rec: RecordBase; agent: AgentRunSt
           view progress
         </button>
       )}
+      {review && <CompleteButton rec={rec} review={review} attempt={attempt} onStart={onComplete} />}
+      {!review && attempt?.running && (
+        <span data-testid="complete-running" className="inline-flex items-center gap-1 pt-0.5 text-info">
+          <Loader2 className="size-3.5 animate-spin" /> Completing… <Elapsed from={attempt.startedAt} />
+        </span>
+      )}
       {p?.ready && (
         <AgentConfirmDialog
           open={confirm}
           onOpenChange={setConfirm}
           plan={p}
+          onAddDepends={addDepends}
           onConfirm={() => {
             onRun()
             agent.start()
@@ -571,6 +621,17 @@ function DrawerBody() {
   const rec = id ? (recQ.data ?? null) : null
   const isTask = kind === "tasks" && !!id
   const agent = useAgentRun(isTask ? id : null)
+  const api = useApi()
+  const { refreshAll } = useApp()
+  const reviewQ = useBranchReview(isTask ? id : null)
+  const review = reviewQ.data
+  const attempt = useCompleteAttempt(api.key, isTask ? id : null)
+  const complete = () => {
+    if (!rec) return
+    setTab("branch")
+    void runComplete(api, rec.id, rec.version, refreshAll)
+  }
+  const showBranch = isTask && (!!review || !!attempt)
 
   useEffect(() => {
     if (recQ.error) toast.error((recQ.error as Error).message)
@@ -605,7 +666,9 @@ function DrawerBody() {
           <X />
         </Button>
       </div>
-      {isTask && rec && <TaskActions rec={rec} agent={agent} onRun={() => setTab("agent")} />}
+      {isTask && rec && (
+        <TaskActions rec={rec} agent={agent} review={review} attempt={attempt} onRun={() => setTab("agent")} onComplete={complete} />
+      )}
       {!meta || (id && !rec) ? (
         <div className="p-4">
           {recQ.error ? <ErrorText>{(recQ.error as Error).message}</ErrorText> : <p className="text-muted-foreground">Loading…</p>}
@@ -632,6 +695,11 @@ function DrawerBody() {
                   {agent.running ? <Loader2 className="size-3 animate-spin text-info" /> : <Bot className="size-3.5" />} Agent
                 </TabsTrigger>
               )}
+              {rec && showBranch && (
+                <TabsTrigger value="branch" data-testid="drawer-tab-branch" className="text-[13px]">
+                  {attempt?.running ? <Loader2 className="size-3 animate-spin text-info" /> : <GitBranch className="size-3.5" />} Branch
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
           <TabsContent value="details" className="flex min-h-0 flex-1 flex-col">
@@ -646,6 +714,24 @@ function DrawerBody() {
             <TabsContent value="agent" className="min-h-0 flex-1 overflow-y-auto px-4 py-3" data-testid="agent-panel">
               <AgentRunView taskId={rec.id} agent={agent} />
               <RunsList taskId={rec.id} />
+            </TabsContent>
+          )}
+          {rec && isTask && showBranch && (
+            <TabsContent value="branch" className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3" data-testid="branch-panel">
+              {attempt && <CompleteOutcome task={rec.id} project={api.key} attempt={attempt} onRetry={complete} />}
+              {review && !review.complete.ready && !attempt?.running && (
+                <div data-testid="complete-reasons" className="rounded-md border bg-muted/40 px-3 py-2 text-[12.5px]">
+                  <div className="font-medium">Complete is not available yet:</div>
+                  <ul className="mt-0.5 list-disc pl-5 text-muted-foreground">
+                    {review.complete.reasons.map((x, i) => (
+                      <li key={i} data-testid="complete-reason">
+                        {x}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {review && <BranchReviewPanel review={review} />}
             </TabsContent>
           )}
           {rec && kind === "requirements" && (

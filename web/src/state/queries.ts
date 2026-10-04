@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { ApiError } from "@/api/client"
 import type { Kind, LintParams } from "@/api/types"
 import type { Filters, ViewState } from "./app"
 import { useApi } from "./project"
@@ -137,6 +138,26 @@ export function useAgentPlan(id: string | null, enabled = true) {
 export function useRuns(id: string | null, enabled = true) {
   const api = useApi()
   return useQuery({ queryKey: ["p", api.key, "runs", id], queryFn: () => api.runs(id!), enabled: !!id && enabled })
+}
+
+/** review of a task's agent branch (GET tasks/{id}/branch); `null` when the task has no agent branch (404) */
+export function useBranchReview(id: string | null, enabled = true) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ["p", api.key, "branch", id],
+    queryFn: async () => {
+      try {
+        return await api.branch(id!)
+      } catch (e) {
+        // 404: no agent branch; 400: the story has no usable component (so there cannot be one)
+        if (e instanceof ApiError && (e.status === 404 || e.status === 400)) return null
+        throw e
+      }
+    },
+    enabled: !!id && enabled,
+    staleTime: 0,
+    retry: false,
+  })
 }
 
 /** the project's agent queue; polled while mounted and the page is visible */

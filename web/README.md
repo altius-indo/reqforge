@@ -40,7 +40,8 @@ src/
   state/queries.ts    TanStack Query hooks; keys start with ["p", <KEY>, …]
   components/         Header, Sidebar, Crumbs, RecordDrawer, ChangesetCard, CodeEvidence (drawer "Code & evidence"),
                       verification (status badges, code locations, tag snippets), TaskStart (Start button),
-                      TaskAgent (Start with agent: confirmation dialog, streamed/live run view, runs), AgentQueuePanel
+                      TaskAgent (Start with agent: confirmation dialog with the parallel-branch warning, streamed/live run view, runs),
+                      TaskComplete (Branch tab: agent-branch review, Complete with progress and refusals), AgentQueuePanel
                       (Tasks tab), VerifiedTrend (dashboard sparkline), chat/*, ui/* (shadcn)
   views/              ListView (also Components), TraceView, LintView, ChangesView,
                       VerificationView (gate, scan, ingest, impact; code-split), ProjectsView (+ onboarding; code-split)
@@ -65,5 +66,5 @@ Per project: `reqforge.tab.<KEY>`, `reqforge.open.<KEY>` (expanded tree types), 
 ## Tests
 
 Interactive elements carry stable `data-testid` attributes (`row`, `tree-type`, `tree-cat`,
-`facet-chip`, `verif-badge`, `verif-chip`, `code-panel`, `ac-verif`, `comp-row`, `ingest-*`, `impact-*`, `bulk-*`, `drawer-*`, `changeset-card`, `cs-apply`, `choice-option`, `chat-input`, `start-task`, `agent-*`, `queue-*`, `verif-trend`, …)
+`facet-chip`, `verif-badge`, `verif-chip`, `code-panel`, `ac-verif`, `comp-row`, `ingest-*`, `impact-*`, `bulk-*`, `drawer-*`, `changeset-card`, `cs-apply`, `choice-option`, `chat-input`, `start-task`, `agent-*`, `branch-*`, `task-complete`, `complete-*`, `queue-*`, `verif-trend`, …)
 so a headless-browser script can drive the UI.

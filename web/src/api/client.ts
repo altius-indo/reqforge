@@ -4,7 +4,9 @@ import type {
   AgentPlan,
   AgentQueue,
   AgentQueueUpdate,
-  AgentRunLog,
+  BranchReview,
+  CompleteResult,
+  RunLog,
   StartResult,
   TaskReadiness,
   VerificationSnapshot,
@@ -184,7 +186,10 @@ export function projectApi(key: string) {
     agentPlan: (id: string) => request<AgentPlan>("GET", `${b}/tasks/${id}/agent`),
     agentCancel: (id: string) => request<{ cancelled: boolean }>("POST", `${b}/tasks/${id}/agent/cancel`, {}),
     agentLive: (id: string, since = 0) => request<AgentLive>("GET", `${b}/tasks/${id}/agent/live?${qs({ since })}`),
-    runs: (id: string) => request<AgentRunLog[]>("GET", `${b}/tasks/${id}/runs`),
+    runs: (id: string) => request<RunLog[]>("GET", `${b}/tasks/${id}/runs`),
+    branch: (id: string) => request<BranchReview>("GET", `${b}/tasks/${id}/branch`),
+    complete: (id: string, version: number) =>
+      request<CompleteResult>("POST", `${b}/tasks/${id}/complete`, { _version: version }),
     agentQueue: () => request<AgentQueue>("GET", `${b}/agent-queue`),
     setAgentQueue: (body: AgentQueueUpdate) => request<AgentQueue>("POST", `${b}/agent-queue`, body),
     // design documents (design/<slug>.md), read-only

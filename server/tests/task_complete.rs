@@ -106,6 +106,8 @@ fn complete_refuses_when_story_evals_fail() {
     assert_eq!(d["step"], json!("evals"));
     assert_eq!(d["failed"][0]["id"], json!("E1"));
     assert!(d["failed"][0]["output_tail"].as_str().unwrap().contains("boom"));
+    let log = reqforge::agent::runs(&f.store, "TASK-0001").into_iter().find(|r| r["kind"] == json!("complete")).unwrap();
+    assert!(log["evals"][0]["output_tail"].as_str().unwrap().contains("boom"), "the attempt log keeps the failing output");
     assert_eq!(git(&f.code, &["rev-parse", "main"]), main_before, "nothing lands");
     assert_eq!(status(&f, Kind::Tasks, "TASK-0001"), "in-progress");
 }

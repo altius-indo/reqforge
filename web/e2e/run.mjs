@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|design|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "design"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,7 +36,7 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|design|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
@@ -275,6 +275,41 @@ const SUITES = {
           return [{ name: "[REQ-0051#AC4] agent commit is on branch reqforge/TASK-0001 in a worktree under REQFORGE_WORKTREES",
             ok: /TASK-0001: add agent-task-0001\.txt/.test(msgs) && fs.existsSync(path.join(worktrees, "SHOP", "TASK-0001", "agent-task-0001.txt")),
             detail: `branch: ${branch || "missing"}; commits: ${msgs.trim()}` }];
+        } };
+    },
+  },
+  // Review & Complete (REQ-0056) and the parallel-task warning (REQ-0051#AC7): SHOP demo with its git component; the
+  // fake agent commits agent-task-0001.txt on reqforge/TASK-0001. TASK-0002/0004 done, so completing TASK-0001 (after
+  // the suite sets TASK-0003 done) finishes STORY-0001 and EPIC-0001. STORY-0001's evals: E1 passes only in the task
+  // worktree; E6 always fails with 61 lines of output (the suite drops it to let Complete through).
+  "task-complete": {
+    timeout: 300,
+    setup(ctx, dir) {
+      const shop = seedTasks(ctx, path.join(dir, "shop"), { edits: { "TASK-0002": ["status=done"], "TASK-0004": ["status=done"] } });
+      const story = JSON.parse(ctx.cli(shop, "show", "STORY-0001"));
+      const evals = story.evals.map((e) => (e.id === "E1" ? { ...e, command: "test -f agent-task-0001.txt && echo agent file present" } : e));
+      evals.push({ id: "E6", name: "release gate", kind: "smoke",
+        command: "sleep 2; for i in $(seq 1 60); do echo \"gate line $i\"; done; echo 'E2E-GATE: the release gate is closed'; exit 3" });
+      ctx.cli(shop, "edit", "STORY-0001", "--data", JSON.stringify({ evals }));
+      // the demo leaves shop/psp.py modified in the checkout (for impact analysis); Complete refuses a dirty checkout
+      ctx.git(shop + "-code", "-c", "user.email=e2e@x", "-c", "user.name=e2e", "commit", "-qam", "e2e: commit the demo's pending change");
+      const worktrees = path.join(dir, "worktrees");
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
+        env: { REQFORGE_WORKTREES: worktrees },
+        after: () => {
+          const code = shop + "-code";
+          const head = ctx.git(code, "rev-parse", "--abbrev-ref", "HEAD").trim();
+          const [parents, subject] = ctx.git(code, "log", "-1", "--format=%P%x09%s", "main").trim().split("\t");
+          const landed = ctx.git(code, "ls-tree", "--name-only", "main").split("\n").includes("agent-task-0001.txt");
+          const branch = ctx.git(code, "branch", "--list", "reqforge/TASK-0001").trim();
+          const wt = path.join(worktrees, "SHOP", "TASK-0001");
+          return [
+            { name: "[REQ-0056#AC5] the --no-ff merge commit of TASK-0001 is on the checkout's main",
+              ok: head === "main" && /^TASK-0001: complete/.test(subject || "") && (parents || "").split(" ").length === 2 && landed,
+              detail: `HEAD ${head}; main: ${subject} (parents: ${parents}); agent-task-0001.txt on main: ${landed}` },
+            { name: "[REQ-0056#AC5] branch reqforge/TASK-0001 and its worktree are removed",
+              ok: !branch && !fs.existsSync(wt), detail: `branch: ${branch || "gone"}; worktree exists: ${fs.existsSync(wt)}` },
+          ];
         } };
     },
   },

@@ -321,9 +321,11 @@ pub fn complete(store: &Store, runner: &AgentRunner, task_id: &str, expected_ver
                 finish(&mut log, "refused: sandbox violation");
                 return Err(refused("sandbox", format!("eval {id} broke the sandbox: {}", viol.join("; ")), json!({"eval": id, "violations": viol})));
             }
-            let tail: String = out.lines().rev().take(40).collect::<Vec<_>>().into_iter().rev().collect::<Vec<_>>().join("\n");
-            let r = json!({"id": id, "name": name, "command": cmd, "status": if ok { "passed" } else { "failed" }, "seconds": secs});
+            // the last 4000 characters as captured by run_one; the drawer shows the last 40 lines, expandable
+            let tail = out.trim_end().to_string();
+            let mut r = json!({"id": id, "name": name, "command": cmd, "status": if ok { "passed" } else { "failed" }, "seconds": secs});
             if !ok {
+                r["output_tail"] = json!(tail);
                 failed.push(json!({"id": id, "name": name, "command": cmd, "seconds": secs, "output_tail": tail}));
             }
             results.push(r);

@@ -704,6 +704,15 @@ export interface AgentPlan {
   component_path?: string
   worktree?: string
   brief?: string
+  /** other in-progress tasks of the same story with unmerged agent branches (REQ-0051#AC7; advisory) */
+  parallel?: ParallelTask[]
+}
+
+export interface ParallelTask {
+  id: string
+  title: string
+  branch: string
+  ahead: number
 }
 
 export interface AgentCommit {
@@ -739,8 +748,11 @@ export interface AgentLive {
   events: AgentEvent[]
 }
 
-/** GET tasks/{id}/runs (newest first; events omitted) */
+/** GET tasks/{id}/runs (newest first; events omitted): agent runs and Complete attempts */
+export type RunLog = AgentRunLog | CompleteRunLog
+
 export interface AgentRunLog {
+  kind?: "agent"
   run_id: string
   task: string
   story: string
@@ -755,6 +767,88 @@ export interface AgentRunLog {
   commits: AgentCommit[]
   violations: string[]
 }
+
+/** one Complete attempt (requirements/agent-runs/COMPLETE-<TASK>-<ts>.json) */
+export interface CompleteRunLog {
+  kind: "complete"
+  run_id: string
+  task: string
+  user: string
+  started: string
+  ended?: string
+  branch: string
+  target: string
+  /** "completed", "refused: <why>" or "error: …" */
+  outcome: string
+  reasons?: string[]
+  conflicts?: string[]
+  evals?: CompleteEvalResult[]
+  violations?: string[]
+  merge_commit?: string
+  changed?: string[]
+  cleanup_warnings?: string[]
+}
+
+// ------------------------------------------------------------------ tasks: review & complete (REQ-0056)
+export interface BranchCommit {
+  sha: string
+  author: string
+  at: string
+  message: string
+}
+
+/** GET tasks/{id}/branch (404 when the task has no agent branch) */
+export interface BranchReview {
+  task: string
+  branch: string
+  worktree: string
+  /** the branch checked out in the component's checkout, where Complete lands */
+  target: string
+  base: string
+  commits: BranchCommit[]
+  /** git diff --name-status: A, M, D, R100, … */
+  files: { status: string; path: string }[]
+  diff: string
+  truncated: boolean
+  ahead: number
+  behind: number
+  complete: { ready: boolean; reasons: string[] }
+}
+
+export interface CompleteEvalResult {
+  id: string
+  name: string
+  command?: string
+  status: "passed" | "failed" | "skipped" | "violation" | string
+  seconds?: number
+}
+
+/** POST tasks/{id}/complete */
+export interface CompleteResult {
+  task: string
+  merge_commit: string
+  /** ids that moved to done: the task, then its story and epic when they qualified */
+  changed: string[]
+  evals: CompleteEvalResult[]
+  cleanup_warnings: string[]
+}
+
+export interface FailedEval {
+  id: string
+  name: string
+  command: string
+  seconds: number
+  output_tail: string
+}
+
+/** details[0] of a 409 from POST tasks/{id}/complete */
+export type CompleteRefusal =
+  | { step: "preconditions"; reason: string; reasons?: string[] }
+  | { step: "merge"; reason: string; conflicts: string[]; task_head_restored: boolean }
+  | { step: "evals"; reason: string; failed: FailedEval[] }
+  | { step: "sandbox"; reason: string; eval: string; violations: string[] }
+  | { step: "target-moved"; reason: string }
+  | { step: "land"; reason: string }
 
 /** GET/POST agent-queue */
 export interface AgentQueue {
