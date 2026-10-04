@@ -5,7 +5,7 @@
   "type": "interface",
   "category": "user-interface",
   "priority": "should",
-  "status": "proposed",
+  "status": "implemented",
   "rationale": "Gives product owners and developers one place in the UI to read how the system is built and which requirements each part realises.",
   "acceptance_criteria": [
     {
@@ -31,7 +31,7 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T06:40:10+00:00",
-  "updated": "2026-10-04T06:40:10+00:00"
+  "updated": "2026-10-04T16:22:17+00:00"
 }
