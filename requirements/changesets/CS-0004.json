@@ -1,0 +1,241 @@
+{
+  "id": "CS-0004",
+  "title": "Start open tasks",
+  "summary": "Move the 3 tasks with no dependency on another open task to in-progress, and start STORY-0010.",
+  "rationale": "Product owner asked to get the tasks started. TASK-0021 and TASK-0022 stay todo because they build on the help panel design and guide outline from TASK-0020.",
+  "status": "pending",
+  "created": "2026-10-04T02:04:57+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "TASK-0020",
+      "patch": {
+        "status": "in-progress"
+      },
+      "reason": "Design starts first; TASK-0021/0022 depend on it"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0023",
+      "patch": {
+        "status": "in-progress"
+      },
+      "reason": "Independent test work"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0024",
+      "patch": {
+        "status": "in-progress"
+      },
+      "reason": "Independent test work"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0010",
+      "patch": {
+        "status": "in-progress"
+      },
+      "reason": "First task started"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "STORY-0010 todo -> in-progress. STORY-0002 and STORY-0007 are already in-progress"
+    ],
+    "code": [
+      "No code changes. Work starts in server/tests/codetrace.rs (TASK-0023) and web/e2e/suites/theme.js (TASK-0024)"
+    ],
+    "evals": [
+      "No eval changes"
+    ],
+    "risks": [
+      "TASK-0021/0022 remain todo until the TASK-0020 outline is done"
+    ]
+  },
+  "base_versions": {
+    "TASK-0020": 1,
+    "TASK-0023": 1,
+    "TASK-0024": 1,
+    "STORY-0010": 1
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0020",
+        "title": "Help panel IA and guide outline",
+        "reason": "Design starts first; TASK-0021/0022 depend on it",
+        "changes": {
+          "status": [
+            "todo",
+            "in-progress"
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0023",
+        "title": "Integration test: init --github attaches remote and sync pushes",
+        "reason": "Independent test work",
+        "changes": {
+          "status": [
+            "todo",
+            "in-progress"
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0024",
+        "title": "E2E suite: prefers-color-scheme and dark-mode contrast",
+        "reason": "Independent test work",
+        "changes": {
+          "status": [
+            "todo",
+            "in-progress"
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 3,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0010",
+        "title": "In-app help and how-to panel",
+        "reason": "First task started",
+        "changes": {
+          "status": [
+            "todo",
+            "in-progress"
+          ]
+        },
+        "base_version": 1
+      }
+    ],
+    "refmap": {},
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 48,
+        "active": 48,
+        "epics": 9,
+        "stories": 10,
+        "tasks": 24,
+        "evals": 26,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 48,
+        "active": 48,
+        "epics": 9,
+        "stories": 10,
+        "tasks": 24,
+        "evals": 26,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0010",
+          "title": "In-app help and how-to panel",
+          "status": "in-progress",
+          "component": "web",
+          "via": []
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0020",
+          "title": "Help panel IA and guide outline",
+          "kind": "design",
+          "status": "in-progress",
+          "story": "STORY-0010"
+        },
+        {
+          "id": "TASK-0021",
+          "title": "Write how-to guides in Markdown",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0010"
+        },
+        {
+          "id": "TASK-0022",
+          "title": "HelpPanel component, header button and search",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0010"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0010",
+          "id": "E1",
+          "name": "UI e2e: help panel",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help.xml --suite help",
+          "covers": [
+            "REQ-0048#AC1",
+            "REQ-0048#AC2",
+            "REQ-0048#AC3",
+            "REQ-0048#AC4",
+            "REQ-0048#AC5"
+          ]
+        },
+        {
+          "story": "STORY-0010",
+          "id": "E2",
+          "name": "Help panel keyboard and a11y",
+          "kind": "accessibility",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-help-a11y.xml --suite help-a11y",
+          "covers": [
+            "REQ-0048#AC6"
+          ]
+        }
+      ],
+      "components": [
+        "web"
+      ],
+      "in_progress_work": [
+        "TASK-0020",
+        "STORY-0010"
+      ]
+    }
+  }
+}
