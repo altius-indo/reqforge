@@ -18,7 +18,7 @@
   ],
   "description": "Agents, skills, MCP wiring and the bin/reqforge entry point.",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:01:26+00:00"
+  "updated": "2026-10-04T01:02:15+00:00"
 }
