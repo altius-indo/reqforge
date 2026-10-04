@@ -30,6 +30,7 @@ async function suite() {
   await codeEvidenceDrawer();
   await dashboard();
   await scanAndIngest();
+  await trendChart();
   await impact();
   await componentsAndStories();
   await bigWithoutComponents();
@@ -143,6 +144,40 @@ async function scanAndIngest() {
   await until(() => !$(T("ingest-dialog")), 3000);
   await until(() => cnt("requirements", "failing") === "0", 8000);
   ok("[REQ-0034#AC3] dashboard refreshed (no failing requirements)", cnt("requirements", "failing") === "0", cnt("requirements", "failing"));
+}
+
+// reqforge: verifies REQ-0034#AC5
+async function trendChart() {
+  // ---------------------------------------------------------------- 6b. verified-ratio trend (after the ingest above)
+  const hist = await getJ("/api/p/SHOP/verification/history?limit=30");
+  const last = hist[hist.length - 1], prev = hist[hist.length - 2];
+  const pctOf = (r) => `${Math.round(r * 100)}%`;
+  ok("[REQ-0034#AC5] history has a snapshot per ingest (seeded + this run)", hist.length >= 2 && hist.length <= 30 && hist.every((h) => typeof h.verified_ratio === "number"), JSON.stringify(hist).slice(0, 300));
+  ok("[REQ-0034#AC5] trend chart plots every snapshot", await until(() => +$(T("verif-trend"))?.dataset.points === hist.length && $$(T("verif-trend-point")).length === hist.length, 8000), $(T("verif-trend"))?.dataset.points + " vs " + hist.length);
+  const svg = $(`${T("verif-trend")} svg[role="img"]`);
+  const label = svg?.getAttribute("aria-label") || "";
+  ok("[REQ-0034#AC5] accessible name gives the latest value and its change", label.includes(`latest ${pctOf(last.verified_ratio)}`) && label.includes(`since the previous ingest (${pctOf(prev.verified_ratio)})`) && svg.querySelector("title")?.textContent === label, label);
+  ok("[REQ-0034#AC5] latest value and delta shown as text", txt(T("verif-trend-latest")) === pctOf(last.verified_ratio) && /pts|no change/.test(txt(T("verif-trend-delta"))), txt(T("verif-trend")));
+  const pts = $$(T("verif-trend-point"));
+  pts[pts.length - 1].dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  ok("[REQ-0034#AC5] hovering a snapshot shows its value and time", await until(() => txt(T("verif-trend-tip")).startsWith(pctOf(last.verified_ratio)), 3000), txt(T("verif-trend-tip")));
+  // light and dark: the line is drawn in a theme token that differs from the card surface in both schemes
+  const colours = () => {
+    const line = $$(`${T("verif-trend")} svg path`).pop();
+    return { stroke: getComputedStyle(line).stroke, card: getComputedStyle($(T("verif-trend"))).backgroundColor };
+  };
+  const scheme = async (value) => {
+    await cdp("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value }] });
+    if (value) await until(() => document.documentElement.classList.contains("dark") === (value === "dark"), 3000);
+    await sleep(200);
+  };
+  await cdpReady();
+  await scheme("light");
+  const light = colours();
+  await scheme("dark");
+  const dark = colours();
+  await scheme(""); // back to the browser default
+  ok("[REQ-0034#AC5] chart follows light and dark mode", light.stroke !== light.card && dark.stroke !== dark.card && light.card !== dark.card, JSON.stringify({ light, dark }));
 }
 
 // reqforge: verifies REQ-0034#AC4

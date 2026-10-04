@@ -90,9 +90,10 @@ fn failed_runs_are_not_retried_and_off_starts_nothing() {
     let rt = tokio::runtime::Runtime::new().unwrap();
     let _g = rt.enter();
     let runner = Arc::new(AgentRunner::default());
-    assert_eq!(queue::tick(&f.store, &runner, "alice"), vec!["TASK-0001"]);
+    assert_eq!(queue::tick(&f.store, &runner, "server-user"), vec!["TASK-0001"]);
     assert!(wait_until(|| !runner.running("TASK-0001") && !reqforge::agent::runs(&f.store, "TASK-0001").is_empty(), 15));
     assert_eq!(reqforge::agent::runs(&f.store, "TASK-0001")[0]["exit_status"], json!(1));
+    assert_eq!(reqforge::agent::runs(&f.store, "TASK-0001")[0]["user"], json!("alice (queue)"), "attributed to who turned the queue on");
     // even if someone resets the task to todo, the queue does not retry it
     f.store.update(Kind::Tasks, "TASK-0001", &common::agentfx::rec(json!({"status": "todo"})), None, None).unwrap();
     assert!(queue::tick(&f.store, &runner, "alice").is_empty());

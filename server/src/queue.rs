@@ -97,7 +97,9 @@ pub fn tick(store: &Arc<Store>, runner: &Arc<AgentRunner>, user: &str) -> Vec<St
         if !runner.reserve(task) {
             continue;
         }
-        let (r, s2, t, u) = (runner.clone(), store.clone(), task.clone(), format!("{user} (queue)"));
+        // queued runs act on behalf of whoever turned the queue on
+        let owner = st["changed_by"].as_str().unwrap_or(user).to_string();
+        let (r, s2, t, u) = (runner.clone(), store.clone(), task.clone(), format!("{owner} (queue)"));
         let (tx, mut rx) = tokio::sync::mpsc::channel(256);
         tokio::spawn(async move { while rx.recv().await.is_some() {} }); // events are kept in the live buffer
         tokio::spawn(async move { r.run(s2, t, u, tx).await });

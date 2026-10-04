@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,7 +36,7 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
@@ -158,7 +158,26 @@ function makeCtx(bin, tmp) {
     seedLarge: (dir) => { seed("seed_large.py", dir, "3000"); return dir },
     seedDemo: (dir, ...flags) => { seed("seed_demo.py", dir, ...flags); return dir },
     importProject: (ws, dir) => run(bin, ["--workspace", ws, "project", "import", dir], { env }),
+    /** `reqforge --repo <dir> <args…>` (add/edit records before serving) */
+    cli: (dir, ...args) => run(bin, ["--repo", dir, ...args], { env }),
+    git: (dir, ...args) => run("git", ["-C", dir, ...args], { env }),
   };
+}
+
+// Task-flow data on top of the SHOP demo (examples/seed_demo.py: REQ-0001..4, EPIC-0001, STORY-0001 with component
+// `web` = the git repo <dir>-code, TASK-0001..4 todo): dependencies, a second epic/story, and task descriptions that
+// steer web/e2e/fake-claude.py in coding-agent mode ("SLOW" runs until cancelled, "QWAIT" takes 6 s).
+function seedTasks(ctx, dir, { deps = {}, edits = {}, extra = true } = {}) {
+  ctx.seedDemo(dir);
+  for (const [t, d] of Object.entries(deps)) ctx.cli(dir, "edit", t, "-s", `depends_on=${d}`);
+  for (const [id, sets] of Object.entries(edits)) ctx.cli(dir, "edit", id, ...sets.flatMap((x) => ["-s", x]));
+  if (extra) {
+    // EPIC-0002 (blocked) > STORY-0002 (done, no component) > TASK-0005 (todo)
+    ctx.cli(dir, "add", "epics", "-s", "title=Parked epic", "-s", "status=blocked", "-s", "requirements=REQ-0001");
+    ctx.cli(dir, "add", "stories", "-s", "title=Finished story", "-s", "epic=EPIC-0002", "-s", "status=done", "-s", "requirements=REQ-0001", "-s", "deliverable=code");
+    ctx.cli(dir, "add", "tasks", "-s", "title=Follow-up without a component", "-s", "story=STORY-0002", "-s", "kind=code");
+  }
+  return dir;
 }
 
 // Each suite: build its data under `dir`, return how to serve it and where the result session lands.
@@ -198,6 +217,53 @@ const SUITES = {
       ctx.importProject(ws, path.join(ws, "big"));
       return { serve: ["--workspace", ws], sessionsDir: path.join(ws, "shop", "sessions"), sessionsUrl: "/api/p/SHOP/sessions", route: "/#/p/SHOP",
         workspaceName: "ws" };
+    },
+  },
+  // Start button (REQ-0050): single repository, SHOP demo + task dependencies
+  "task-start": {
+    timeout: 180,
+    setup(ctx, dir) {
+      const shop = seedTasks(ctx, path.join(dir, "shop"), { deps: { "TASK-0002": "TASK-0001" }, edits: { "TASK-0004": ["status=done"] } });
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
+        after: () => {
+          // AC2/AC3: one commit moved the task, its story and its epic
+          const log = ctx.git(shop, "log", "--format=%H%x09%s").split("\n").map((l) => l.split("\t"));
+          const c = log.find(([, msg]) => /^TASK-0001: start/.test(msg || ""));
+          const files = c ? ctx.git(shop, "show", "--name-only", "--format=", c[0]).trim().split("\n").sort() : [];
+          const want = ["epics/EPIC-0001", "stories/STORY-0001", "tasks/TASK-0001"];
+          return [{ name: "[REQ-0050#AC2] [REQ-0050#AC3] Start was one git commit touching the task, its story and its epic",
+            ok: !!c && files.length === 3 && want.every((w) => files.some((f) => f.startsWith(w))), detail: `${c ? c[1] : "no 'TASK-0001: start' commit"}: ${files.join(", ")}` }];
+        } };
+    },
+  },
+  // Start with agent (REQ-0051): SHOP demo with its git component; fake-claude.py acts as the coding agent
+  "agent-start": {
+    timeout: 240,
+    setup(ctx, dir) {
+      const shop = seedTasks(ctx, path.join(dir, "shop"), { deps: { "TASK-0002": "TASK-0001" },
+        edits: { "TASK-0003": ["description=SLOW: a long-running agent task (cancelled by the suite)"],
+                 "TASK-0004": ["description=SLOW: a run started outside the drawer"] } });
+      const worktrees = path.join(dir, "worktrees");
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
+        env: { REQFORGE_WORKTREES: worktrees },
+        after: () => {
+          const code = shop + "-code";
+          const branch = ctx.git(code, "branch", "--list", "reqforge/TASK-0001").trim();
+          const msgs = branch ? ctx.git(code, "log", "--format=%s", "main..reqforge/TASK-0001") : "";
+          return [{ name: "[REQ-0051#AC4] agent commit is on branch reqforge/TASK-0001 in a worktree under REQFORGE_WORKTREES",
+            ok: /TASK-0001: add agent-task-0001\.txt/.test(msgs) && fs.existsSync(path.join(worktrees, "SHOP", "TASK-0001", "agent-task-0001.txt")),
+            detail: `branch: ${branch || "missing"}; commits: ${msgs.trim()}` }];
+        } };
+    },
+  },
+  // Agent queue (REQ-0053): every SHOP requirement approved, so STORY-0001's tasks are eligible; runs take 6 s
+  "agent-queue": {
+    timeout: 240,
+    setup(ctx, dir) {
+      const shop = seedTasks(ctx, path.join(dir, "shop"), { deps: { "TASK-0002": "TASK-0001" },
+        edits: { "REQ-0004": ["status=approved"], ...Object.fromEntries(["TASK-0001", "TASK-0003", "TASK-0004"].map((t) => [t, ["description=QWAIT: queued agent run"]])) } });
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
+        env: { REQFORGE_WORKTREES: path.join(dir, "worktrees"), REQFORGE_QUEUE_TICK_MS: "500" } };
     },
   },
   // help panel, its keyboard behaviour, and colour schemes: same BIG repository as core
@@ -311,7 +377,7 @@ async function runSuite(name, ctx, opts) {
     const port = await freePort();
     const serverLog = path.join(dir, "server.log");
     server = start(ctx.bin, [...s.serve, "serve", "--port", String(port)], serverLog,
-      { ...ctx.env, REQFORGE_UI_DIR: dist, REQFORGE_CLAUDE_BIN: fakeClaude });
+      { ...ctx.env, REQFORGE_UI_DIR: dist, REQFORGE_CLAUDE_BIN: fakeClaude, ...(s.env || {}) });
     const base = `http://127.0.0.1:${port}`;
     let up = false;
     for (const until = Date.now() + 20000; !up && Date.now() < until && server.exitCode === null;) {

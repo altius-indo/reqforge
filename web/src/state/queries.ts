@@ -108,3 +108,55 @@ export function useCodeImpact(component: string, base: string, nonce: number) {
     retry: false,
   })
 }
+
+/** verified-ratio snapshots, oldest first (GET /verification/history) */
+export function useVerificationHistory(limit = 30) {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "verification-history", limit], queryFn: () => api.verificationHistory(limit) })
+}
+
+/** whether a task can start (by hand / with an agent) and what blocks it */
+export function useReadiness(id: string | null, enabled = true) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ["p", api.key, "readiness", id],
+    queryFn: () => api.readiness(id!),
+    enabled: !!id && enabled,
+    // dependencies change elsewhere (other tabs, the agent queue): re-check whenever a Start button mounts
+    staleTime: 0,
+  })
+}
+
+/** agent readiness, branch, worktree and brief of a task (GET tasks/{id}/agent) */
+export function useAgentPlan(id: string | null, enabled = true) {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "agent-plan", id], queryFn: () => api.agentPlan(id!), enabled: !!id && enabled, staleTime: 0 })
+}
+
+/** a task's agent run logs, newest first */
+export function useRuns(id: string | null, enabled = true) {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "runs", id], queryFn: () => api.runs(id!), enabled: !!id && enabled })
+}
+
+/** the project's agent queue; polled while mounted and the page is visible */
+export function useAgentQueue(pollMs = 3000) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ["p", api.key, "agent-queue"],
+    queryFn: api.agentQueue,
+    refetchInterval: pollMs,
+    refetchIntervalInBackground: false,
+  })
+}
+
+/** every task id + title + status, for pickers (depends_on) */
+export function useTaskOptions(enabled = true) {
+  const api = useApi()
+  return useQuery({
+    queryKey: ["p", api.key, "task-options"],
+    queryFn: async () => (await api.list("tasks", { sort: "id", order: "asc", limit: 5000, offset: 0 })).items,
+    enabled,
+    staleTime: 30_000,
+  })
+}

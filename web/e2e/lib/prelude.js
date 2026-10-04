@@ -37,6 +37,12 @@ const rowIds = () => rows().map((r) => r.dataset.id).join(",");
 const pagerTotal = () => +(txt(T("pager-range")).match(/of ([\d,]+)/) || [0, "-1"])[1].replace(/,/g, "");
 const getJ = async (u) => (await fetch(u)).json();
 const project = () => txt(T("project"));
+const toasts = () => $$("[data-sonner-toast]").map((t) => t.textContent).join(" | ");
+/** JSON request from the page (same origin, so the server's CSRF guard accepts it): {status, body} */
+const sendJ = async (method, u, body) => {
+  const r = await fetch(u, { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+  return { status: r.status, body: await r.json().catch(() => null) };
+};
 // Chrome DevTools bridge (run.mjs binds window.__e2eCdp once it has attached): Emulation.* / Input.* commands only.
 // `cdp` resolves when Chrome has executed the command (false after 5s); `pressKey` sends a trusted key press to
 // the focused element.

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Cards, ErrorText, H3, IdLink, Linkify, StatCard } from "@/components/common"
 import { VERIF, VerifBadge } from "@/components/verification"
+import { VerifiedTrend } from "@/components/VerifiedTrend"
 import { useApp } from "@/state/app"
 import { useChat } from "@/state/chat"
 import { useApi } from "@/state/project"
@@ -417,6 +418,9 @@ export function VerificationView() {
         <StatCard value={fmt(S.implemented)} label="requirements with tagged code" />
         <StatCard value={fmt(S.evidence)} label="evidence results" />
       </Cards>
+      <div className="mb-3">
+        <VerifiedTrend />
+      </div>
 
       <div className="mb-3 grid gap-3 md:grid-cols-2">
         {(

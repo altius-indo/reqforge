@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { MessageSquare, X } from "lucide-react"
+import { Bot, Loader2, MessageSquare, X } from "lucide-react"
 import { toast } from "sonner"
 import { ApiError } from "@/api/client"
 import { useApi } from "@/state/project"
@@ -14,8 +14,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Cards, Chip, ErrorText, H3, IdLink, IdList, StatCard } from "@/components/common"
 import { useApp } from "@/state/app"
 import { useChat } from "@/state/chat"
-import { useCode, useRecord, useRecordContext } from "@/state/queries"
+import { useAgentPlan, useCode, useRecord, useRecordContext, useTaskOptions } from "@/state/queries"
 import { CodeEvidencePanel } from "@/components/CodeEvidence"
+import { StartButton } from "@/components/TaskStart"
+import { AgentConfirmDialog, AgentRunView, RunsList, useAgentRun, type AgentRunState } from "@/components/TaskAgent"
 import { severityClass, singular } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -64,8 +66,10 @@ function Field({
   onChange,
   meta,
   values,
+  recId,
 }: {
   kind: Kind
+  recId?: string
   name: string
   s: FieldSchema
   value: string
@@ -106,6 +110,8 @@ function Field({
     )
   } else if (kind === "stories" && name === "component") {
     input = <ComponentKeyInput id={id} value={value} onChange={onChange} />
+  } else if (kind === "tasks" && name === "depends_on") {
+    input = <TaskIdsInput id={id} value={value} onChange={onChange} self={recId} />
   } else if (s.type === "text")
     input = <Textarea id={id} data-testid={id} className="min-h-16 text-[13px]" value={value} onChange={(e) => onChange(e.target.value)} />
   else if (s.type === "objlist")
@@ -173,6 +179,65 @@ function ComponentKeyInput({ id, value, onChange }: { id: string; value: string;
   )
 }
 
+const splitIds = (v: string) =>
+  v
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean)
+
+/** Task `depends_on`: comma-separated task ids, with the project's tasks offered to add (and unknown ids flagged). */
+function TaskIdsInput({ id, value, onChange, self }: { id: string; value: string; onChange: (v: string) => void; self?: string }) {
+  const tasks = useTaskOptions()
+  const all = tasks.data ?? []
+  const ids = splitIds(value)
+  const byId = Object.fromEntries(all.map((t) => [t.id, t]))
+  const unknown = tasks.data ? ids.filter((x) => !byId[x]) : []
+  const offer = all.filter((t) => t.id !== self && !ids.includes(t.id))
+  return (
+    <>
+      <div className="flex gap-1.5">
+        <Input
+          id={id}
+          data-testid={id}
+          className="h-8 flex-1 text-[13px]"
+          placeholder="task ids this task waits for"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <NativeSelect
+          size="sm"
+          className="w-36 shrink-0 [&_select]:h-8"
+          aria-label="add a dependency"
+          data-testid="depends-add"
+          value=""
+          onChange={(e) => e.target.value && onChange([...ids, e.target.value].join(", "))}
+        >
+          <NativeSelectOption value="">add task…</NativeSelectOption>
+          {offer.map((t) => (
+            <NativeSelectOption key={t.id} value={t.id}>
+              {t.id} · {String(t.title ?? "").slice(0, 48)} ({t.status})
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </div>
+      {ids.length > 0 && tasks.data && (
+        <div data-testid="depends-list" className="mt-1 flex flex-wrap gap-1">
+          {ids.filter((x) => byId[x]).map((x) => (
+            <Chip key={x} className={byId[x].status === "done" ? "text-ok" : "text-warn"} title={String(byId[x].title ?? "")}>
+              {x} · {byId[x].status}
+            </Chip>
+          ))}
+        </div>
+      )}
+      {unknown.length > 0 && (
+        <p data-testid="depends-unknown" className="mt-0.5 text-[12px] text-warn">
+          Unknown task id{unknown.length > 1 ? "s" : ""}: {unknown.join(", ")}.
+        </p>
+      )}
+    </>
+  )
+}
+
 function DetailsForm({ kind, rec, meta }: { kind: Kind; rec: RecordBase | null; meta: Meta }) {
   const { closeDrawer, refreshAll } = useApp()
   const api = useApi()
@@ -234,6 +299,7 @@ function DetailsForm({ kind, rec, meta }: { kind: Kind; rec: RecordBase | null; 
           <Field
             key={f}
             kind={kind}
+            recId={rec?.id}
             name={f}
             s={s}
             meta={meta}
@@ -403,13 +469,71 @@ function LinksTab({ kind, id, meta }: { kind: Kind; id: string; meta: Meta }) {
   return <LinksPanel kind={kind} ctx={q.data} meta={meta} />
 }
 
+/** Task drawer actions: Start (REQ-0050) and Start with agent (REQ-0051), with what blocks them. */
+// reqforge: implements REQ-0050
+// reqforge: implements REQ-0051
+function TaskActions({ rec, agent, onRun }: { rec: RecordBase; agent: AgentRunState; onRun: () => void }) {
+  const plan = useAgentPlan(rec.id)
+  const [confirm, setConfirm] = useState(false)
+  const p = plan.data
+  const reasons = p ? (p.ready ? [] : p.reasons) : []
+  const canAgent = !!p?.ready && !agent.running
+  return (
+    <div data-testid="task-actions" className="flex flex-wrap items-start gap-x-3 gap-y-1.5 border-b bg-muted/30 px-4 py-2 text-[12.5px]">
+      <span className="inline-flex items-center gap-1 pt-0.5">
+        <span className="text-muted-foreground">status</span>
+        <Chip>
+          <span data-testid="task-status">{String(rec.status ?? "")}</span>
+        </Chip>
+      </span>
+      <StartButton id={rec.id} version={rec.version} status={rec.status} layout="drawer" />
+      <span className="inline-flex flex-col items-start gap-0.5">
+        <Button
+          size="xs"
+          variant="outline"
+          data-testid="agent-start"
+          data-ready={p?.ready ? "true" : "false"}
+          disabled={!canAgent}
+          title={reasons.length ? `Unavailable: ${reasons.join("; ")}` : agent.running ? "an agent run is in progress" : undefined}
+          onClick={() => setConfirm(true)}
+        >
+          {agent.running ? <Loader2 className="animate-spin" /> : <Bot />} {agent.running ? "Agent running…" : "Start with agent"}
+        </Button>
+        {reasons.length > 0 && (
+          <span data-testid="agent-reasons" className="max-w-[340px] text-[11.5px] leading-tight text-muted-foreground">
+            {reasons.join("; ")}
+          </span>
+        )}
+      </span>
+      {agent.running && (
+        <button type="button" data-testid="agent-progress-link" className="pt-0.5 text-primary hover:underline" onClick={onRun}>
+          view progress
+        </button>
+      )}
+      {p?.ready && (
+        <AgentConfirmDialog
+          open={confirm}
+          onOpenChange={setConfirm}
+          plan={p}
+          onConfirm={() => {
+            onRun()
+            agent.start()
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
 function DrawerBody() {
   const { drawer, meta, closeDrawer } = useApp()
   const chat = useChat()
   const { kind, id } = drawer
   const recQ = useRecord(kind, id)
-  const [tab, setTab] = useState("details")
+  const [tab, setTab] = useState(drawer.tab ?? "details")
   const rec = id ? (recQ.data ?? null) : null
+  const isTask = kind === "tasks" && !!id
+  const agent = useAgentRun(isTask ? id : null)
 
   useEffect(() => {
     if (recQ.error) toast.error((recQ.error as Error).message)
@@ -444,6 +568,7 @@ function DrawerBody() {
           <X />
         </Button>
       </div>
+      {isTask && rec && <TaskActions rec={rec} agent={agent} onRun={() => setTab("agent")} />}
       {!meta || (id && !rec) ? (
         <div className="p-4">
           {recQ.error ? <ErrorText>{(recQ.error as Error).message}</ErrorText> : <p className="text-muted-foreground">Loading…</p>}
@@ -465,6 +590,11 @@ function DrawerBody() {
                   Code &amp; evidence
                 </TabsTrigger>
               )}
+              {rec && isTask && (
+                <TabsTrigger value="agent" data-testid="drawer-tab-agent" className="text-[13px]">
+                  {agent.running ? <Loader2 className="size-3 animate-spin text-info" /> : <Bot className="size-3.5" />} Agent
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
           <TabsContent value="details" className="flex min-h-0 flex-1 flex-col">
@@ -473,6 +603,12 @@ function DrawerBody() {
           {rec && (
             <TabsContent value="links" className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
               <LinksTab kind={kind} id={rec.id} meta={meta} />
+            </TabsContent>
+          )}
+          {rec && isTask && (
+            <TabsContent value="agent" className="min-h-0 flex-1 overflow-y-auto px-4 py-3" data-testid="agent-panel">
+              <AgentRunView taskId={rec.id} agent={agent} />
+              <RunsList taskId={rec.id} />
             </TabsContent>
           )}
           {rec && kind === "requirements" && (

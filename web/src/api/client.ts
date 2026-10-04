@@ -1,4 +1,13 @@
 import type {
+  AgentEvent,
+  AgentLive,
+  AgentPlan,
+  AgentQueue,
+  AgentQueueUpdate,
+  AgentRunLog,
+  StartResult,
+  TaskReadiness,
+  VerificationSnapshot,
   ApplyResult,
   BulkRequest,
   BulkResult,
@@ -166,21 +175,32 @@ export function projectApi(key: string) {
     codeImpact: (component: string, base: string) =>
       request<CodeImpact>("GET", `${b}/impact?${qs({ component, base })}`),
     chatCancel: (chatId: string) => request<{ cancelled: boolean }>("POST", `${b}/chat/cancel`, { chat_id: chatId }),
+    verificationHistory: (limit = 30) =>
+      request<VerificationSnapshot[]>("GET", `${b}/verification/history?${qs({ limit })}`),
+    // tasks: start, coding-agent runs, agent queue
+    readiness: (id: string) => request<TaskReadiness>("GET", `${b}/tasks/${id}/readiness`),
+    start: (id: string, version: number) => request<StartResult>("POST", `${b}/tasks/${id}/start`, { _version: version }),
+    agentPlan: (id: string) => request<AgentPlan>("GET", `${b}/tasks/${id}/agent`),
+    agentCancel: (id: string) => request<{ cancelled: boolean }>("POST", `${b}/tasks/${id}/agent/cancel`, {}),
+    agentLive: (id: string, since = 0) => request<AgentLive>("GET", `${b}/tasks/${id}/agent/live?${qs({ since })}`),
+    runs: (id: string) => request<AgentRunLog[]>("GET", `${b}/tasks/${id}/runs`),
+    agentQueue: () => request<AgentQueue>("GET", `${b}/agent-queue`),
+    setAgentQueue: (body: AgentQueueUpdate) => request<AgentQueue>("POST", `${b}/agent-queue`, body),
   }
 }
 
 export type ProjectApi = ReturnType<typeof projectApi>
 
-// ------------------------------------------------------------------ chat stream
+// ------------------------------------------------------------------ server-sent event streams
 /**
- * POST /api/p/{key}/chat and yield the server-sent events from the `text/event-stream` body.
+ * POST `body` to `path` and yield the server-sent events from the `text/event-stream` body.
  * Each event is a `data: {json}` line; events are separated by a blank line.
  */
-export async function* streamChat(key: string, req: ChatRequest, signal?: AbortSignal): AsyncGenerator<ChatEvent> {
-  const r = await fetch(`${projectBase(key)}/chat`, {
+async function* streamSse<T>(path: string, body: unknown, signal?: AbortSignal): AsyncGenerator<T> {
+  const r = await fetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify(req),
+    body: JSON.stringify(body),
     signal,
   })
   if (r.status === 401) unauthorizedListeners.forEach((fn) => fn())
@@ -188,11 +208,11 @@ export async function* streamChat(key: string, req: ChatRequest, signal?: AbortS
   const reader = r.body.getReader()
   const dec = new TextDecoder()
   let buf = ""
-  const parse = function* (chunk: string): Generator<ChatEvent> {
+  const parse = function* (chunk: string): Generator<T> {
     for (const line of chunk.split("\n")) {
       if (!line.startsWith("data:")) continue
       try {
-        yield JSON.parse(line.slice(5).trim()) as ChatEvent
+        yield JSON.parse(line.slice(5).trim()) as T
       } catch {
         /* ignore malformed line */
       }
@@ -210,4 +230,17 @@ export async function* streamChat(key: string, req: ChatRequest, signal?: AbortS
     }
   }
   if (buf.trim()) yield* parse(buf)
+}
+
+/** POST /api/p/{key}/chat: the chat turn's events. */
+export function streamChat(key: string, req: ChatRequest, signal?: AbortSignal): AsyncGenerator<ChatEvent> {
+  return streamSse<ChatEvent>(`${projectBase(key)}/chat`, req, signal)
+}
+
+/**
+ * POST /api/p/{key}/tasks/{id}/agent: run the coding agent and yield its progress events, ending with `result`.
+ * Aborting the stream does not stop the run (use agentCancel); its progress stays readable via agent/live.
+ */
+export function streamAgent(key: string, task: string, signal?: AbortSignal): AsyncGenerator<AgentEvent> {
+  return streamSse<AgentEvent>(`${projectBase(key)}/tasks/${task}/agent`, {}, signal)
 }

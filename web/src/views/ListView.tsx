@@ -11,6 +11,8 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Chip, ErrorText } from "@/components/common"
 import { Crumbs } from "@/components/Crumbs"
 import { VerifBadge } from "@/components/verification"
+import { StartButton } from "@/components/TaskStart"
+import { AgentQueuePanel } from "@/components/AgentQueuePanel"
 import { PAGE_SIZE_OPTIONS, useApp } from "@/state/app"
 import { useChat } from "@/state/chat"
 import { useListPage } from "@/state/queries"
@@ -21,7 +23,7 @@ const COLS: Record<Kind, string[]> = {
   requirements: ["title", "category", "priority", "status", "_verification", "_stories", "_children", "tags"],
   epics: ["title", "requirements", "status", "tags"],
   stories: ["title", "epic", "requirements", "component", "_evals", "_tasks", "status"],
-  tasks: ["title", "story", "kind", "status", "estimate"],
+  tasks: ["title", "story", "kind", "status", "depends_on", "estimate", "_start"],
   components: ["key", "title", "language", "path", "owners"],
 }
 const LABEL: Record<string, string> = {
@@ -30,10 +32,12 @@ const LABEL: Record<string, string> = {
   _evals: "evals",
   _tasks: "tasks",
   _verification: "verification",
+  _start: "",
+  depends_on: "depends on",
 }
 /** columns the server cannot sort by */
-const NO_SORT = ["_verification"]
-const HIDE_MOBILE = ["tags", "requirements", "story", "epic", "component", "_children", "path", "owners"]
+const NO_SORT = ["_verification", "_start"]
+const HIDE_MOBILE = ["depends_on", "tags", "requirements", "story", "epic", "component", "_children", "path", "owners"]
 const NUMERIC = ["_stories", "_children", "_evals", "_tasks"]
 
 function Cell({ kind, row, field }: { kind: Kind; row: ListRow; field: string }) {
@@ -76,6 +80,15 @@ function Cell({ kind, row, field }: { kind: Kind; row: ListRow; field: string })
       </button>
     ) : null
   if (field === "_verification") return <VerifBadge status={row._verification} />
+  if (field === "_start")
+    return (
+      <StartButton
+        id={row.id}
+        version={row.version}
+        status={row.status}
+        checkDeps={Array.isArray(row.depends_on) && row.depends_on.length > 0}
+      />
+    )
   if (field === "key") return <span className="id-mono font-medium">{String(v ?? "")}</span>
   if (field === "path")
     return <span className="id-mono text-[12px] break-all text-muted-foreground">{String(v ?? "")}</span>
@@ -393,6 +406,7 @@ export function ListView({ kind }: { kind: Kind }) {
           <MessageSquare /> Ask Claude about this view
         </Button>
       </div>
+      {kind === "tasks" && <AgentQueuePanel />}
       {(sel.size > 0 || selAll) && <BulkBar key={kind} kind={kind} allOnPage={allOnPage} total={total} />}
       {page.error ? (
         <ErrorText testId="list-error">{(page.error as Error).message}</ErrorText>
@@ -414,7 +428,7 @@ export function ListView({ kind }: { kind: Kind }) {
                   <Th col="id">id</Th>
                   {cols.map((c) => (
                     <Th key={c} col={NO_SORT.includes(c) ? undefined : c} className={HIDE_MOBILE.includes(c) ? "hidden md:table-cell" : undefined}>
-                      {LABEL[c] || c}
+                      {c in LABEL ? LABEL[c] : c}
                     </Th>
                   ))}
                 </tr>
@@ -427,6 +441,7 @@ export function ListView({ kind }: { kind: Kind }) {
                       key={r.id}
                       data-testid="row"
                       data-id={r.id}
+                      data-version={r.version}
                       data-selected={checked ? "true" : undefined}
                       onClick={() => openDrawer(kind, r.id)}
                       className={cn(

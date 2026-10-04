@@ -256,8 +256,8 @@ pub fn runs(store: &Store, task_id: &str) -> Vec<Value> {
 pub struct AgentRunner {
     /// running (or starting) runs by task id; also the cancel signal
     cancels: Mutex<HashMap<String, Arc<Notify>>>,
-    /// live progress per task (the last run's events), for viewers that didn't start the run
-    live: Mutex<HashMap<String, Vec<Value>>>,
+    /// live progress per task (the last run's events, newest 500) and how many were dropped before them
+    live: Mutex<HashMap<String, (usize, Vec<Value>)>>,
     /// tasks a scheduler has committed to start but whose run hasn't taken its slot yet
     pending: Mutex<std::collections::HashSet<String>>,
 }
@@ -329,17 +329,20 @@ impl AgentRunner {
     }
 
     /// Live events of the task's current or last run in this server process.
+    /// `total` counts every event of the run, so `since` keeps advancing past the buffer cap.
     pub fn live(&self, task_id: &str, since: usize) -> Value {
-        let ev = self.live.lock().unwrap().get(task_id).cloned().unwrap_or_default();
-        json!({"running": self.running(task_id), "total": ev.len(), "events": ev.into_iter().skip(since).collect::<Vec<_>>()})
+        let (dropped, ev) = self.live.lock().unwrap().get(task_id).cloned().unwrap_or_default();
+        let skip = since.saturating_sub(dropped);
+        json!({"running": self.running(task_id), "total": dropped + ev.len(), "events": ev.into_iter().skip(skip).collect::<Vec<_>>()})
     }
 
-    fn record(&self, task_id: &str, ev: &Value) {
+    pub fn record(&self, task_id: &str, ev: &Value) {
         let mut l = self.live.lock().unwrap();
-        let v = l.entry(task_id.to_string()).or_default();
+        let (dropped, v) = l.entry(task_id.to_string()).or_default();
         v.push(ev.clone());
         if v.len() > 500 {
             v.remove(0);
+            *dropped += 1;
         }
     }
 
@@ -371,7 +374,7 @@ impl AgentRunner {
         };
         let _slot = Reservation { map: &self.cancels, key: task_id.clone() };
         self.pending.lock().unwrap().remove(&task_id);
-        self.live.lock().unwrap().insert(task_id.clone(), vec![]);
+        self.live.lock().unwrap().insert(task_id.clone(), (0, vec![]));
         let rd = match crate::taskflow::readiness(&store, &task_id) {
             Ok(r) => r,
             Err(e) => return send(json!({"type": "error", "text": e.message})).await,
@@ -500,5 +503,25 @@ impl AgentRunner {
         .await;
         send(json!({"type": "result", "run_id": run_id, "exit_status": log["exit_status"], "branch": log["branch"],
                     "commits": log["commits"], "violations": log["violations"], "task_status": store.get(Kind::Tasks, &task_id).map(|t| t["status"].clone()).unwrap_or(Value::Null)})).await;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn live_progress_keeps_advancing_past_the_buffer_cap() {
+        let r = AgentRunner::default();
+        for i in 0..520 {
+            r.record("TASK-0001", &json!({"i": i}));
+        }
+        let all = r.live("TASK-0001", 0);
+        assert_eq!(all["total"], json!(520));
+        assert_eq!(all["events"][0]["i"], json!(20));
+        let tail = r.live("TASK-0001", 518);
+        assert_eq!(tail["events"].as_array().unwrap().len(), 2);
+        r.record("TASK-0001", &json!({"i": 520}));
+        assert_eq!(r.live("TASK-0001", 520)["events"][0]["i"], json!(520));
     }
 }

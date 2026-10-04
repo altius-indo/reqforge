@@ -651,3 +651,120 @@ export interface CodeImpact {
   criteria_at_risk: string[]
   untraced_changes: string[]
 }
+
+// ------------------------------------------------------------------ tasks: start, agent runs, agent queue
+export interface UnfinishedDep {
+  id: string
+  status: string
+  title: string
+}
+
+/** GET tasks/{id}/readiness */
+export interface TaskReadiness {
+  task: string
+  status: string
+  version: number
+  unfinished: UnfinishedDep[]
+  can_start: boolean
+  start_reasons: string[]
+  can_start_agent: boolean
+  agent_reasons: string[]
+  component: string
+}
+
+/** POST tasks/{id}/start */
+export interface StartResult {
+  task: RecordBase
+  /** ids moved to in-progress: the task, then its story and epic when they were todo */
+  changed: string[]
+  at: string
+}
+
+/** GET tasks/{id}/agent: readiness + what a run would do */
+export interface AgentPlan {
+  task: string
+  ready: boolean
+  reasons: string[]
+  component: string
+  branch: string
+  unfinished: UnfinishedDep[]
+  component_path?: string
+  worktree?: string
+  brief?: string
+}
+
+export interface AgentCommit {
+  sha: string
+  message: string
+}
+
+/** exit code, or "cancelled" / "error" / "killed" */
+export type AgentExitStatus = number | string
+
+export type AgentEvent =
+  | { type: "run"; run_id: string; branch: string; worktree: string; component: string; base: string; task_started: boolean }
+  | { type: "session"; session_id?: string | null }
+  | { type: "tool"; name: string; sub: boolean; text: string }
+  | { type: "text"; text: string }
+  | { type: "warning"; text: string }
+  | { type: "error"; text: string }
+  | { type: "done"; is_error?: boolean; result?: string | null; turns?: number | null; cost?: number | null }
+  | {
+      type: "result"
+      run_id: string
+      exit_status: AgentExitStatus
+      branch: string
+      commits: AgentCommit[]
+      violations: string[]
+      task_status: string | null
+    }
+
+/** GET tasks/{id}/agent/live?since=n */
+export interface AgentLive {
+  running: boolean
+  total: number
+  events: AgentEvent[]
+}
+
+/** GET tasks/{id}/runs (newest first; events omitted) */
+export interface AgentRunLog {
+  run_id: string
+  task: string
+  story: string
+  component: string
+  branch: string
+  worktree: string
+  base: string
+  user: string
+  started: string
+  ended: string
+  exit_status: AgentExitStatus
+  commits: AgentCommit[]
+  violations: string[]
+}
+
+/** GET/POST agent-queue */
+export interface AgentQueue {
+  enabled: boolean
+  limit: number
+  changed_by: string | null
+  changed_at: string | null
+  running: string[]
+  waiting: string[]
+}
+
+export interface AgentQueueUpdate {
+  enabled?: boolean
+  limit?: number
+  confirm?: boolean
+}
+
+/** GET verification/history: one snapshot per evidence ingest, oldest first */
+export interface VerificationSnapshot {
+  at: string
+  commit?: string | null
+  run?: string | null
+  criteria: Partial<Record<VerificationStatus, number>>
+  criteria_total: number
+  verified_ratio: number
+}

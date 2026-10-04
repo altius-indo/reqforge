@@ -30,6 +30,8 @@ export interface DrawerState {
   /** null = creating a new record */
   id: string | null
   nonce: number
+  /** drawer tab to show first (default "details") */
+  tab?: string
 }
 
 const TABS: Tab[] = [...KINDS, "trace", "verification", "lint", "changes"]
@@ -80,7 +82,7 @@ interface AppCtx {
   setSideOpen: (b: boolean) => void
   // drawer
   drawer: DrawerState
-  openDrawer: (kind: Kind | undefined, id: string | null) => void
+  openDrawer: (kind: Kind | undefined, id: string | null, tab?: string) => void
   closeDrawer: () => void
   // data refresh
   refreshAll: () => void
@@ -214,9 +216,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }, [project])
 
-  const openDrawer = useCallback((kind: Kind | undefined, id: string | null) => {
+  const openDrawer = useCallback((kind: Kind | undefined, id: string | null, tab?: string) => {
     if (!kind) return
-    setDrawer((d) => ({ open: true, kind, id, nonce: d.nonce + 1 }))
+    setDrawer((d) => ({ open: true, kind, id, nonce: d.nonce + 1, tab }))
   }, [])
   const closeDrawer = useCallback(() => setDrawer((d) => ({ ...d, open: false })), [])
 

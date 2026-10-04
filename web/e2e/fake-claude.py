@@ -4,11 +4,18 @@
 
 Emits stream-json like the real CLI. Turn 1 searches and asks a ```choices question; turn 2 (the answer,
 which contains "→") proposes a real changeset through `reqforge mcp`; turn 3 (the "I applied …" follow-up)
-replies "Verified". The reqforge binary comes from $REQFORGE_BIN (set by web/e2e/run.mjs)."""
+replies "Verified". The reqforge binary comes from $REQFORGE_BIN (set by web/e2e/run.mjs).
+
+Coding-agent mode (the server's agent launcher passes `--permission-mode acceptEdits`, cwd = the task worktree,
+stdin = the brief): writes a file in cwd, commits it as "TASK-…: …", and emits stream-json (system init,
+assistant tool_use + text, result). A brief containing "SLOW" keeps running for up to 120 s (for cancel tests);
+one containing "QWAIT" takes 6 s (for queue tests)."""
 import json
 import os
+import re
 import subprocess
 import sys
+import time
 
 BIN = os.environ.get("REQFORGE_BIN") or "reqforge"
 prompt = sys.stdin.read()
@@ -16,6 +23,39 @@ prompt = sys.stdin.read()
 
 def out(o):
     print(json.dumps(o), flush=True)
+
+
+def coding_agent():
+    task = os.environ.get("REQFORGE_TASK") or (re.search(r"TASK-\d+", prompt) or [None])[0] or "TASK"
+    out({"type": "system", "subtype": "init", "session_id": "agent-" + task,
+         "mcp_servers": [{"name": "plugin:reqforge:reqforge", "status": "connected"}]})
+    out({"type": "assistant", "message": {"content": [{"type": "text", "text": f"Working on {task}: reading the brief."}]}})
+    out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "r1", "name": "Read", "input": {"file_path": "README.md"}}]}})
+    if "SLOW" in prompt:
+        for i in range(240):
+            if i % 4 == 0:
+                out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": f"b{i}", "name": "Bash",
+                                                                    "input": {"command": f"sleep 2  # step {i // 4}"}}]}})
+            time.sleep(0.5)
+    elif "QWAIT" in prompt:
+        time.sleep(6)
+    name = f"agent-{task.lower()}.txt"
+    out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "w1", "name": "Write",
+                                                        "input": {"file_path": name, "content": "..."}}]}})
+    with open(name, "w") as f:
+        f.write(f"work for {task}\n")
+    out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "g1", "name": "Bash",
+                                                        "input": {"command": f"git add {name} && git commit -m '{task}: …'"}}]}})
+    subprocess.run(["git", "add", name], check=True, capture_output=True)
+    subprocess.run(["git", "-c", "user.email=e2e@x", "-c", "user.name=e2e", "commit", "-q", "-m", f"{task}: add {name}"],
+                   check=True, capture_output=True)
+    out({"type": "assistant", "message": {"content": [{"type": "text", "text": f"Done: committed {name} on this branch. Tests: n/a (fake agent)."}]}})
+    out({"type": "result", "subtype": "success", "session_id": "agent-" + task, "total_cost_usd": 0.0, "num_turns": 3, "is_error": False})
+
+
+if "--permission-mode" in sys.argv and "acceptEdits" in sys.argv:
+    coding_agent()
+    sys.exit(0)
 
 
 def mcp(name, args):
