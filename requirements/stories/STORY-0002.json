@@ -43,14 +43,13 @@
       "kind": "integration",
       "command": "cargo test --manifest-path server/Cargo.toml --test codetrace -- commits_are_scoped",
       "covers": [
-        "REQ-0035#AC1",
-        "REQ-0035#AC2"
+        "REQ-0035#AC1"
       ]
     }
   ],
   "status": "done",
   "tags": [],
-  "version": 4,
+  "version": 5,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:27:37+00:00"
+  "updated": "2026-10-04T01:37:08+00:00"
 }
