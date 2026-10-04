@@ -15,13 +15,17 @@
     {
       "id": "AC2",
       "text": "The CI workflow runs clippy -D warnings and cargo test on push and pull_request"
+    },
+    {
+      "id": "AC3",
+      "text": "The CI workflow ingests test evidence and runs reqforge verify --gate on 100% of pushes"
     }
   ],
   "tags": [],
   "standards": [],
   "stakeholders": [],
   "source": "reverse-engineered from code @ reqforge 0.2",
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T02:24:52+00:00"
 }

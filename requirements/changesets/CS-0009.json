@@ -3,7 +3,7 @@
   "title": "Specify the two monitoring tasks",
   "summary": "Give TASK-0009 and TASK-0019 descriptions and done_when, add the criteria they deliver (REQ-0043#AC3, REQ-0034#AC5) and cover them with evals.",
   "rationale": "Monitoring tasks had no description or criteria, so their completion could not be verified.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-04T02:24:52+00:00",
   "valid": true,
   "ops": [
@@ -717,5 +717,8 @@
         "STORY-0009"
       ]
     }
-  }
+  },
+  "applied_at": "2026-10-04T02:24:52+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }

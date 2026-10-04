@@ -3,10 +3,11 @@
   "title": "Verification gate in CI",
   "story": "STORY-0004",
   "kind": "monitoring",
-  "done_when": "merged with its evals green",
+  "description": "CI self-verification: on every push, ingest the cargo test output as evidence and run reqforge verify --gate (.github/workflows/test.yml).",
+  "done_when": "tests/plugin.rs ci_workflow test asserts the gate; REQ-0043#AC3 verified",
   "status": "todo",
   "tags": [],
-  "version": 7,
+  "version": 8,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T02:20:37+00:00"
+  "updated": "2026-10-04T02:24:52+00:00"
 }

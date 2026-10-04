@@ -23,13 +23,17 @@
     {
       "id": "AC4",
       "text": "The impact panel lists touched requirements and tests to re-run"
+    },
+    {
+      "id": "AC5",
+      "text": "The dashboard charts the verified-criteria ratio across the last 30 evidence ingests"
     }
   ],
   "tags": [],
   "standards": [],
   "stakeholders": [],
   "source": "reverse-engineered from code @ reqforge 0.2",
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:25+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T02:24:52+00:00"
 }

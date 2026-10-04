@@ -47,13 +47,14 @@
       "kind": "unit",
       "command": "cargo test --manifest-path server/Cargo.toml --test plugin -- ci_workflow",
       "covers": [
-        "REQ-0043#AC2"
+        "REQ-0043#AC2",
+        "REQ-0043#AC3"
       ]
     }
   ],
   "status": "done",
   "tags": [],
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T01:47:40+00:00"
+  "updated": "2026-10-04T02:24:52+00:00"
 }

@@ -3,10 +3,11 @@
   "title": "Track verified ratio on the Verification dashboard",
   "story": "STORY-0009",
   "kind": "monitoring",
-  "done_when": "merged with its evals green",
+  "description": "Record a verification snapshot (time, commit, counts, verified ratio) on every evidence ingest; expose GET /verification/history; chart the trend of the last 30 snapshots on the Verification dashboard.",
+  "done_when": "verification_history test and the dashboard trend check pass; REQ-0034#AC5 verified",
   "status": "todo",
   "tags": [],
-  "version": 7,
+  "version": 8,
   "created": "2026-10-04T01:01:26+00:00",
-  "updated": "2026-10-04T02:20:37+00:00"
+  "updated": "2026-10-04T02:24:52+00:00"
 }
