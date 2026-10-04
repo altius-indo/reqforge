@@ -1,0 +1,218 @@
+{
+  "run_id": "RUN-TASK-0034-20261004T065441600",
+  "task": "TASK-0034",
+  "story": "STORY-0015",
+  "component": "web",
+  "branch": "reqforge/TASK-0034",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034",
+  "base": "7110fb1238a05a16701ced9360cd089518560a82",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-04T06:54:41+00:00",
+  "ended": "2026-10-04T06:57:42+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "3577c48",
+      "message": "TASK-0034: design document endpoints, lint rule and record context"
+    }
+  ],
+  "violations": [
+    "the component's checked-out branch moved from 7110fb1238 to e1db0f2fae"
+  ],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "16beca5b-b6fa-4e05-b0b8-274c520c4e74"
+    },
+    {
+      "type": "text",
+      "text": "I'll start by exploring the repo layout."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034/server/src/api.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034/server/src/lint.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I've mapped the API router, lint, and context code. Next I'll add a `design` module and wire it into the API, lint, and context. First, a look at the test fixtures:"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034/server/tests/integration.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034/server/tests/integration.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034/server/src/lib.rs"
+    },
+    {
+      "type": "text",
+      "text": "Now writing the `design` module."
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Tighten the id check so a crafted realises entry can't drive a path lookup:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034/server/src/changes.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034/server/src/changes.rs"
+    },
+    {
+      "type": "text",
+      "text": "Now wiring into Source/View, lint, revision, context, API, and lib:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Builds clean. Now the integration tests (named `design_docs_*` so the eval filter picks them up):"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The heredoc was blocked; I'll append via Edit instead."
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0034/server/tests/integration.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "All 4 pass. Running the full server suite and clippy to check for regressions:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Everything passes and clippy reports nothing in the new code. Committing:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Let me check whether the E2 e2e suite exists yet:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I've added the two design-document endpoints, the lint rule for unknown `realises` ids, and the list of realising documents in a requirement's context. The `design_docs` integration eval (E1) passes, 4 of 4, and the full server test suite still passes. It's committed as `3577c48`; I haven't pushed.\n\n**What changed**\n- **New `server/src/design.rs`:**\n  - Reads `design/<slug>.md` files and pulls `title` and `realises` from the front matter. `realises` can be written inline (`[REQ-1, REQ-2]`) or as a `- REQ-1` list.\n  - Checks the slug against `^[a-z0-9][a-z0-9-]{0,63}$` before touching any file.\n  - Rejects any path that ends up outside `design/`, including a symlink inside `design/` that points out of it.\n- **API:**\n  - `GET /api/design` returns slug, title and realises for each document, sorted by slug.\n  - `GET /api/design/{slug}` returns the raw Markdown. A bad slug gets 400 and a missing document gets 404. There are no write routes.\n- **Lint:** a new `design-realises` error rule. Each finding names the file (`design/<slug>.md`) and the id that isn't an existing requirement. It also fires for valid ids of other kinds, such as `STORY-0001`.\n- **Context:** `GET /api/context/REQ-…` now includes `design: [{slug, title}]`, listing the documents that realise it.\n- **Lint cache:** the store now watches `design/` for changes, so editing a design file refreshes the cached lint results. Changeset previews see the same design documents, so they don't show bogus lint changes.\n- **Tests:** four new `design_docs_*` tests in `server/tests/integration.rs`, tagged to REQ-0054 AC1, AC2 and AC3.\n\n**Tests run**\n- `cargo test --manifest-path server/Cargo.toml --test integration -- design_docs`: 4 passed.\n- `cargo test --manifest-path server/Cargo.toml` (all test targets): all passed.\n- `cargo clippy --all-targets`: no warnings in the new code.\n\n**Still open**\n- **E2 (e2e `--suite design`, REQ-0055) not run.** That's the Design tab in the web UI, which this task doesn't build. `web/e2e/suites` has no design suite yet, so it belongs to a frontend task.\n- **Front matter parser is hand-written.** It covers `title`, inline lists and `- item` lists, but not full YAML, because the server has no YAML library.\n- **Unchecked format problems.** Files with names that fail the slug pattern are left out of the list without any lint finding. A document with no `title` uses its slug as the title. I only added the `realises` rule the task asked for.\n- **The reqforge MCP server failed to connect this session**, so I worked from the requirements text in the brief."
+    },
+    {
+      "type": "done",
+      "session_id": "16beca5b-b6fa-4e05-b0b8-274c520c4e74",
+      "cost": 0.9943114,
+      "turns": 24,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
