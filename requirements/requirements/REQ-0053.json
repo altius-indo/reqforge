@@ -5,7 +5,7 @@
   "type": "functional",
   "category": "task-execution",
   "priority": "could",
-  "status": "proposed",
+  "status": "approved",
   "rationale": "Lets approved work start in Claude Code without a click per task, while bounding machine load and keeping each run attributable to a user.",
   "acceptance_criteria": [
     {
@@ -33,6 +33,7 @@
       "text": "The tasks view shows the queue state (on/off, enabling user), the running tasks and the waiting eligible tasks in start order"
     }
   ],
+  "parent": null,
   "tags": [
     "tasks",
     "agent"
@@ -40,7 +41,8 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
-  "version": 1,
+  "notes": null,
+  "version": 2,
   "created": "2026-10-04T02:29:01+00:00",
-  "updated": "2026-10-04T02:29:01+00:00"
+  "updated": "2026-10-04T02:30:53+00:00"
 }
