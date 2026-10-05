@@ -2,7 +2,7 @@
 //! branch", REQ-0056; sandboxed eval run REQ-0052#AC5).
 //!
 //! One action: check preconditions, merge the target into the task branch in its worktree, run the
-//! story's evals there under the agent sandbox checks, land the branch on the target with --no-ff,
+//! task's evals (all of the story's for its last open task) there under the agent sandbox checks, land the branch on the target with --no-ff,
 //! cascade task -> story -> epic to done, and remove the worktree and branch. Every attempt is
 //! logged next to the task's agent runs.
 
@@ -11,10 +11,10 @@ use std::path::{Path, PathBuf};
 use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 
 use crate::agent::{resolve, snapshot, violations, AgentRunner, Plan, Snapshot};
-use crate::model::{objs, s, Kind, Rec};
+use crate::model::{objs, s, strs, Kind, Rec};
 use crate::store::{dump, now, Res, Source, Store, StoreError};
 
 /// One Complete at a time per project (requirements repo root).
@@ -197,6 +197,35 @@ fn log_attempt(store: &Store, task_id: &str, log: &Value) {
     }
 }
 
+pub const NO_EVALS_RUN: &str = "no evals run";
+
+struct Selected<'a> {
+    /// "task": the task's listed evals; "story": all of the story's (its last open task); "none"
+    scope: &'static str,
+    evals: Vec<&'a Map<String, Value>>,
+    /// listed ids no longer defined on the story
+    missing: Vec<String>,
+}
+
+/// The evals Complete runs for a task (AC4): all of the story's when it is the story's last open
+/// task, otherwise the ones listed on the task (AC7), otherwise none.
+// reqforge: implements REQ-0056
+fn evals_to_run<'a>(store: &Store, task: &Rec, story: &'a Rec) -> Selected<'a> {
+    let (tid, sid) = (s(task, "id"), s(story, "id"));
+    let last_open = store.records(Kind::Tasks).iter().filter(|t| s(t, "story") == sid).all(|t| s(t, "id") == tid || s(t, "status") == "done");
+    let all = objs(story, "evals");
+    if last_open {
+        return Selected { scope: if all.is_empty() { "none" } else { "story" }, evals: all, missing: vec![] };
+    }
+    let listed = strs(task, "evals");
+    if listed.is_empty() {
+        return Selected { scope: "none", evals: vec![], missing: vec![] };
+    }
+    let evals: Vec<_> = all.iter().copied().filter(|e| listed.contains(&s(e, "id"))).collect();
+    let missing = listed.iter().filter(|id| !evals.iter().any(|e| s(e, "id") == **id)).map(|id| id.to_string()).collect();
+    Selected { scope: "task", evals, missing }
+}
+
 /// Task -> story -> epic to done (AC5, AC6), one commit. Returns the ids that moved.
 fn cascade(store: &Store, task_id: &str) -> Res<Vec<String>> {
     let _g = store.lock()?;
@@ -264,8 +293,8 @@ pub fn complete(store: &Store, runner: &AgentRunner, task_id: &str, expected_ver
 
     // already landed (e.g. the status commit failed earlier): only the cascade and cleanup remain
     let landed = branch_exists(&c.top, &c.plan.branch) && merged_into_target(&c) && s(&task, "status") == "in-progress";
-    let (merge_commit, evals) = if landed {
-        (git(&c.top, &["rev-parse", "HEAD"]).unwrap_or_default(), json!([]))
+    let (merge_commit, evals, eval_scope) = if landed {
+        (git(&c.top, &["rev-parse", "HEAD"]).unwrap_or_default(), json!([]), "landed")
     } else {
         // 1. preconditions (AC2)
         let mut reasons = preconditions(store, runner, &task, &c);
@@ -298,11 +327,18 @@ pub fn complete(store: &Store, runner: &AgentRunner, task_id: &str, expected_ver
                 json!({"conflicts": conflicts, "task_head_restored": back == t}),
             ));
         }
-        // 3. the story's evals on the merged tree, sandboxed (AC4, REQ-0052#AC5)
+        // 3. the task's evals (all of the story's for its last open task) on the merged tree, sandboxed (AC4, REQ-0052#AC5)
         let story = store.get(Kind::Stories, s(&task, "story"))?;
+        let selected = evals_to_run(store, &task, &story);
+        log["eval_scope"] = json!(selected.scope);
         let mut results = vec![];
         let mut failed = vec![];
-        for ev in objs(&story, "evals") {
+        for id in &selected.missing {
+            let r = json!({"id": id, "name": "", "status": "failed", "output_tail": format!("{id} is not an eval of {}", s(&story, "id"))});
+            failed.push(r.clone());
+            results.push(r);
+        }
+        for ev in selected.evals {
             let (id, name, cmd) = (s(ev, "id"), s(ev, "name"), s(ev, "command"));
             if cmd.is_empty() {
                 results.push(json!({"id": id, "name": name, "status": "skipped"}));
@@ -362,7 +398,7 @@ pub fn complete(store: &Store, runner: &AgentRunner, task_id: &str, expected_ver
             finish(&mut log, "refused: land failed");
             return Err(refused("land", e, json!({})));
         }
-        (git(&c.top, &["rev-parse", "HEAD"]).unwrap_or_default(), json!(results))
+        (git(&c.top, &["rev-parse", "HEAD"]).unwrap_or_default(), json!(results), selected.scope)
     };
     log["merge_commit"] = json!(merge_commit);
 
@@ -387,7 +423,11 @@ pub fn complete(store: &Store, runner: &AgentRunner, task_id: &str, expected_ver
     log["changed"] = json!(changed);
     log["cleanup_warnings"] = json!(warnings);
     finish(&mut log, "completed");
-    Ok(json!({"task": task_id, "merge_commit": merge_commit, "changed": changed, "evals": evals, "cleanup_warnings": warnings}))
+    let mut out = json!({"task": task_id, "merge_commit": merge_commit, "changed": changed, "evals": evals, "eval_scope": eval_scope, "cleanup_warnings": warnings});
+    if eval_scope == "none" {
+        out["note"] = json!(NO_EVALS_RUN);
+    }
+    Ok(out)
 }
 
 /// Other in-progress tasks of the same story with unmerged agent branches (REQ-0051#AC7).

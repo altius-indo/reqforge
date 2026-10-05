@@ -830,6 +830,10 @@ export interface CompleteResult {
   /** ids that moved to done: the task, then its story and epic when they qualified */
   changed: string[]
   evals: CompleteEvalResult[]
+  /** which evals ran: the task's listed ones, all of the story's (its last open task), none, or "landed" (an earlier attempt already merged) */
+  eval_scope?: "task" | "story" | "none" | "landed"
+  /** "no evals run" when the task listed none and was not the story's last open task */
+  note?: string
   cleanup_warnings: string[]
 }
 

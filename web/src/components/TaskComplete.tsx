@@ -612,6 +612,11 @@ export function CompleteOutcome({
                 ))}
               </div>
             )}
+            {r.note && (
+              <div data-testid="complete-note" className="mt-1 text-muted-foreground">
+                {r.note}
+              </div>
+            )}
             {r.cleanup_warnings.length > 0 && (
               <div data-testid="complete-cleanup" className="mt-1.5 text-warn">
                 Cleanup did not finish; run it by hand:

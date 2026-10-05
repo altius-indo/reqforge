@@ -28,6 +28,7 @@ case "$brief" in *MISBEHAVE*)
   main=$(git worktree list --porcelain | head -1 | cut -d' ' -f2)
   echo tampered >> "$main/README.md";;
 esac
+case "$brief" in *PAUSE*) sleep 3;; esac
 echo '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Edit","input":{"file_path":"feature.py"}}]}}'
 echo '{"type":"assistant","message":{"content":[{"type":"text","text":"Implemented feature(); tests pass."}]}}'
 echo '{"type":"result","subtype":"success","session_id":"agent-1","total_cost_usd":0.0,"num_turns":2,"is_error":false}'

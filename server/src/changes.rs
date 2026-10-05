@@ -229,6 +229,9 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                 for e in crate::model::task_dependency_errors(rec, &view.records(Kind::Tasks)) {
                     errors.push(format!("{id}: {e}"));
                 }
+                for e in crate::model::task_eval_errors(rec, &view.records(Kind::Stories)) {
+                    errors.push(format!("{id}: {e}"));
+                }
             }
         }
     }

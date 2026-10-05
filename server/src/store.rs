@@ -5,7 +5,7 @@
 //! <repo>/sessions/ELI-0001.md     elicitation transcripts
 //! <repo>/changesets/CS-0001.json  proposed / applied change batches
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs::{self, File, OpenOptions};
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
@@ -172,6 +172,8 @@ pub struct Store {
     files: Mutex<HashMap<Kind, FileCache>>,
     memo: Mutex<Memo>,
     write: Mutex<()>,
+    /// next watch id, and per watch the changed files (path, content hash) seen at write-lock boundaries
+    watches: Mutex<(u64, HashMap<u64, BTreeSet<(String, String)>>)>,
 }
 
 pub struct WriteGuard<'a> {
@@ -221,6 +223,7 @@ impl Store {
             files: Mutex::new(HashMap::new()),
             memo: Mutex::new(HashMap::new()),
             write: Mutex::new(()),
+            watches: Mutex::new((0, HashMap::new())),
         })
     }
 
@@ -315,7 +318,38 @@ impl Store {
             .open(self.root.join(".reqforge.lock"))
             .map_err(|e| StoreError::bad(e.to_string()))?;
         f.lock_exclusive().map_err(|e| StoreError::bad(e.to_string()))?;
-        Ok(WriteGuard { _g: g, _f: f })
+        let guard = WriteGuard { _g: g, _f: f };
+        self.observe_foreign();
+        Ok(guard)
+    }
+
+    /// reqforge commits its own writes before releasing the write lock, so whatever is left
+    /// changed when the lock is taken is someone else's: note it for every watcher before
+    /// this writer's commit can sweep it up.
+    fn observe_foreign(&self) {
+        let mut w = self.watches.lock().unwrap();
+        if w.1.is_empty() {
+            return;
+        }
+        let dirty = git::dirty(&self.root);
+        for seen in w.1.values_mut() {
+            seen.extend(dirty.iter().map(|(p, h)| (p.clone(), h.clone())));
+        }
+    }
+
+    /// Start noting foreign changes at write-lock boundaries (see `observe_foreign`).
+    // reqforge: implements REQ-0052
+    pub fn watch_foreign(&self) -> u64 {
+        let mut w = self.watches.lock().unwrap();
+        w.0 += 1;
+        let id = w.0;
+        w.1.insert(id, BTreeSet::new());
+        id
+    }
+
+    /// Stop a watch and return the changed files (path, content hash) it saw.
+    pub fn unwatch_foreign(&self, id: u64) -> BTreeSet<(String, String)> {
+        self.watches.lock().unwrap().1.remove(&id).unwrap_or_default()
     }
 
     pub fn path(&self, kind: Kind, id: &str) -> PathBuf {
@@ -374,6 +408,7 @@ impl Store {
         }
         if kind == Kind::Tasks && errors.is_empty() {
             errors.extend(crate::model::task_dependency_errors(rec, &self.records(Kind::Tasks)));
+            errors.extend(crate::model::task_eval_errors(rec, &self.records(Kind::Stories)));
         }
         if errors.is_empty() {
             Ok(())
@@ -788,6 +823,29 @@ pub mod git {
             return false;
         }
         run(root, &["commit", "-q", "-m", message, "--", "."]).map(|o| o.status.success()).unwrap_or(false)
+    }
+
+    /// Uncommitted files under `root` (path from the checkout's top level -> content hash, or
+    /// "deleted"), untracked ones included.
+    pub fn dirty(root: &Path) -> BTreeMap<String, String> {
+        let mut out = BTreeMap::new();
+        let ok = |o: &std::process::Output| o.status.success();
+        let Some(top) = run(root, &["rev-parse", "--show-toplevel"]).filter(ok) else { return out };
+        let top = PathBuf::from(String::from_utf8_lossy(&top.stdout).trim());
+        let Some(st) = run(root, &["status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames", "--", "."]).filter(ok) else { return out };
+        for entry in String::from_utf8_lossy(&st.stdout).split('\0').filter(|e| e.len() > 3) {
+            let path = &entry[3..];
+            let hash = match fs::read(top.join(path)) {
+                Ok(bytes) => {
+                    let mut h = std::collections::hash_map::DefaultHasher::new();
+                    bytes.hash(&mut h);
+                    format!("{:016x}", h.finish())
+                }
+                Err(_) => "deleted".into(),
+            };
+            out.insert(path.to_string(), hash);
+        }
+        out
     }
 
     pub fn has_remote(root: &Path) -> bool {
