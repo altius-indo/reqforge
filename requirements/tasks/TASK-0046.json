@@ -3,12 +3,14 @@
   "title": "Decision record kind and DEC trace tags",
   "story": "STORY-0019",
   "kind": "code",
-  "depends_on": [],
+  "depends_on": [
+    "TASK-0053"
+  ],
   "description": "Add the decisions kind (DEC prefix) to model, store, MCP tool schemas and changesets; scan DEC tags; compute exercised from evidence; lint for unexercised accepted decisions.",
   "done_when": "decisions integration tests pass.",
   "status": "in-progress",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:34:52+00:00"
+  "updated": "2026-10-05T02:46:29+00:00"
 }

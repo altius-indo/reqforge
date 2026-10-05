@@ -3,7 +3,7 @@
   "title": "Make TASK-0041 measurable and close the design gap in STORY-0019",
   "summary": "Rewrites TASK-0041's done_when, which referred to the unresolved refs r1/r2, as a verifiable design document. Widens its scope to the full prompt and brief layout, including REQ-0059's next action. Adds a compaction-hook feasibility check. Adds design task TASK-0053 for the decisions record kind and makes TASK-0046 depend on it.",
   "rationale": "Review of TASK-0041: its kind (design) and story (STORY-0017) are correct, and it does not overlap TASK-0042, which builds what it designs. Four problems: (1) done_when names changeset refs r1/r2 that were never resolved to REQ ids (an error in CS-0019) and names no artifact, so it can't be checked; (2) brief ordering is required by both REQ-0058 AC2 (snapshot after the task section) and REQ-0059 AC3 (next action first) but no task designs the combined layout; (3) re-supplying the snapshot after compaction depends on a SessionStart hook that has not been verified for headless 'claude -p --resume' chat turns or agent runs; (4) among its sibling stories, STORY-0019 adds a record kind across schema, MCP, CSV and UI with no design task.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-05T02:46:06+00:00",
   "valid": true,
   "ops": [
@@ -175,5 +175,10 @@
       "components": [],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-05T02:46:29+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "t1": "TASK-0053"
   }
 }
