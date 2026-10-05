@@ -3,7 +3,7 @@
   "title": "Per-task evals in Complete, stricter exercised rule, sandbox false positives",
   "summary": "REQ-0056: tasks list the story evals that prove them and Complete runs only those (all of them for the story's last open task). REQ-0061: a decision needs at least 1 passing tagged test. REQ-0052 AC6: reqforge's own commits during a run are not violations. Adds TASK-0054 and TASK-0055 and updates the briefs of TASK-0041 and TASK-0053 so their reruns fix the first runs.",
   "rationale": "Complete refused TASK-0041 twice because its story's evals are written by later tasks, which would block every multi-task story. Three parallel agent runs (TASK-0046, 0048, 0050) were flagged for requirements-repo changes that the server itself committed (run logs). TASK-0053's design and TASK-0046's code disagreed on decisions with no tagged tests. Product owner decisions on 2026-10-05: per-task eval lists; at least 1 passing tagged test required.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-05T03:02:06+00:00",
   "valid": true,
   "ops": [
@@ -996,5 +996,11 @@
         "STORY-0019"
       ]
     }
+  },
+  "applied_at": "2026-10-05T03:02:21+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "t1": "TASK-0054",
+    "t2": "TASK-0055"
   }
 }

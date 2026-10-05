@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0054",
+  "title": "Per-task eval lists in Complete",
+  "story": "STORY-0016",
+  "kind": "code",
+  "depends_on": [],
+  "description": "Add an evals field to the task schema (ids of the story's evals, validated). Complete runs the task's listed evals, or all of the story's evals for its last open task, and shows 'no evals run' otherwise. Then propose a changeset that backfills evals on open tasks: TASK-0042 [E1], TASK-0043 [E2], TASK-0044 [E1], TASK-0045 [E2], TASK-0046 [E1], TASK-0047 [E2], TASK-0048 [E1], TASK-0049 [E2], TASK-0050 [E1, E2]; design and agent tasks none. Tag tests REQ-0056#AC4 and REQ-0056#AC7.",
+  "done_when": "task_complete integration tests pass, including a story where the first task completes with only its own evals.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T03:02:21+00:00",
+  "updated": "2026-10-05T03:02:21+00:00"
+}
