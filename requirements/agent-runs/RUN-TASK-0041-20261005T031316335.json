@@ -1,0 +1,278 @@
+{
+  "run_id": "RUN-TASK-0041-20261005T031316335",
+  "task": "TASK-0041",
+  "story": "STORY-0017",
+  "component": "server",
+  "branch": "reqforge/TASK-0041",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0041",
+  "base": "8a732c6eb484519b18739faee1ae087369d2df0e",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:13:16+00:00",
+  "ended": "2026-10-05T03:16:38+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "e5d1884",
+      "message": "TASK-0041: move context design to design/context-management.md and extend it"
+    },
+    {
+      "sha": "a92a6e4",
+      "message": "Merge commit '8a732c6eb484519b18739faee1ae087369d2df0e' into reqforge/TASK-0041"
+    },
+    {
+      "sha": "dd0a694",
+      "message": "Merge commit '91089800125f56a42b163dccdb63edf91d8f9af9' into reqforge/TASK-0041"
+    },
+    {
+      "sha": "2f183e8",
+      "message": "Merge commit '4a8f0739e993ff8ef521852db527764e2e81c4af' into reqforge/TASK-0041"
+    },
+    {
+      "sha": "760c610",
+      "message": "Merge commit 'f2d6904dc7b7db872c38f58ec65ce1dfd9072945' into reqforge/TASK-0041"
+    },
+    {
+      "sha": "b85a89d",
+      "message": "TASK-0041: design the project snapshot op, injection points and compaction hook"
+    }
+  ],
+  "violations": [],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "6d5633fc-1a96-4dcc-9e78-ca0e720660c1"
+    },
+    {
+      "type": "warning",
+      "text": "reqforge MCP server status: pending"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Reading the chat runner and agent brief so the design matches the current code; next I'll test the compaction hook with headless `claude -p --resume`."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Running `claude` isn't allowed in this session, so I can't run the live hook test. Instead I'm adding a repeatable check script and recording that result honestly in the design."
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0041/scripts/self-verify.sh"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep sessionId|session_id|New chat|newChat|setOpen\\(false\\)"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the check script, then the design doc (moved from `docs/context.md`)."
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I'll write the doc at the new path (git mv needs approval here; I'll remove the old file via git afterwards)."
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "text",
+      "text": "Now removing the old file and running lint for unknown realises ids."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "ToolSearch",
+      "sub": false,
+      "text": "ToolSearch"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "lint",
+      "sub": false,
+      "text": "lint"
+    },
+    {
+      "type": "tool",
+      "name": "Glob",
+      "sub": false,
+      "text": "Glob requirements/requirements/REQ-005[789].json"
+    },
+    {
+      "type": "text",
+      "text": "All three realises ids exist. Committing now."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I wrote the design document, but three things in the brief aren't done: the compaction-hook test wasn't run, the old `docs/context.md` wasn't removed, and lint wasn't run on this branch. Running `claude`, `git rm`, `chmod` and the local `reqforge` binary all needed approval, and this session can't get it.\n\n**What changed (commit `e5d1884`)**\n- **`requirements/design/context-management.md`**: the first run's `docs/context.md`, moved and extended. It now has front matter with title \"Context management\" and realises REQ-0057, REQ-0058 and REQ-0059. Each criterion has its own section: REQ-0057 AC1–AC4, REQ-0058 AC1–AC4, and REQ-0059 AC3 and AC4. What's new:\n  - **Layout:** sessions get the task's next action and the date it was set first, then the task section, then the snapshot, wrapped in a `<project-state>` tag. This applies to the coding-agent brief and to the first chat turn when the chat is about one task.\n  - **Asking for next actions (REQ-0059#AC4):** the web chat tracks whether a changeset was applied in the session. If one was, starting a new chat or closing the panel sends one fixed message, once per session, asking the chat agent for updated next actions and a new snapshot Next. The answer comes back as an ordinary changeset to review and apply.\n  - **Compaction:** the main mechanism is a plugin hook that runs after Claude Code compacts a session (SessionStart, `compact`). The design covers both headless cases: chat turns joined by `claude -p --resume`, and one long agent run. The fallback re-supplies the snapshot every turn by adding it to the system prompt, which compaction doesn't summarise. A switch `REQFORGE_SNAPSHOT_RESUPPLY` (`system` or `hook`) picks the mode, and it defaults to the fallback until the hook test passes.\n- **`scripts/check-compact-hook.sh`**: a new script that tests the hook against the real `claude` in both cases. It builds a throwaway plugin whose hook supplies a codeword, compacts with `/compact`, then asks for the codeword. Each case gets a PASS or FAIL line.\n\n**Tests and checks**\n- **Hook test:** the design records the result as **not run**, so it's unverified whether the hook fires in headless mode. To run it: `bash scripts/check-compact-hook.sh` (the file isn't executable because `chmod` needed approval). Then put the result and `claude --version` in the \"Test result\" table, and switch the default to `hook` only if both cases pass.\n- **Lint:** the reqforge lint tool reported 0 findings, but it reads the main project, not this branch, so it doesn't prove the new file passes. I did confirm that REQ-0057, REQ-0058 and REQ-0059 all exist here. Running `./bin/reqforge --repo requirements lint` on this branch would settle it.\n- **E1 and E2:** not run. They test code that this design task doesn't write (`server/tests/context.rs` and the `snapshot` e2e suite don't exist yet).\n- **Script:** never executed, not even a syntax check.\n\n**Still open**\n- **Old file:** `docs/context.md` is still in the repo. It needs `git rm docs/context.md` and a commit.\n- **Next-action data:** the design assumes REQ-0059#AC1 stores the next action as two fields, `next_action` and `next_action_set` (the date). The task that adds the field should confirm that."
+    },
+    {
+      "type": "done",
+      "session_id": "6d5633fc-1a96-4dcc-9e78-ca0e720660c1",
+      "cost": 1.1519576,
+      "turns": 33,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
