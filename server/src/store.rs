@@ -374,6 +374,7 @@ impl Store {
         }
         if kind == Kind::Tasks && errors.is_empty() {
             errors.extend(crate::model::task_dependency_errors(rec, &self.records(Kind::Tasks)));
+            errors.extend(crate::model::task_eval_errors(rec, &self.records(Kind::Stories)));
         }
         if errors.is_empty() {
             Ok(())
