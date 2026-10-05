@@ -534,6 +534,8 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
             let root = qs.get("root").map(|r| checked_component_root(store, r, &cands)).transpose()?;
             return Ok(Out::Json(200, crate::impact::impact(store, qs.get("component").map(String::as_str), root.as_deref(), qs.get("base").map(String::as_str))?));
         }
+        // reqforge: implements REQ-0058
+        ["snapshot"] if get => return Ok(Out::Json(200, crate::snapshot::status(&store.root))),
         ["changesets"] if get => return Ok(Out::Json(200, json!(changes::list(store, qs.get("status").map(String::as_str))))),
         ["changesets"] if post => return Ok(Out::Json(201, changes::propose(store, &b)?)),
         ["changesets", "simulate"] if post => return Ok(Out::Json(200, changes::simulate(store, &b))),

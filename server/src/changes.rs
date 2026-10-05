@@ -6,7 +6,8 @@
 //! touches changed since the proposal, then writes everything as one git commit.
 //!
 //! ops: {"op":"create","kind":..,"ref":"r1","data":{..}} | {"op":"update","id":..,"patch":{..},"add":{..},"remove":{..}}
-//!      | {"op":"delete","id":..} | {"op":"finding","ref":"f1","data":{claim,grade,sources,date,perishability,supersedes}}.
+//!      | {"op":"delete","id":..} | {"op":"finding","ref":"f1","data":{claim,grade,sources,date,perishability,supersedes}}
+//!      | {"op":"snapshot","content":"<full new state/HOT.md>"} (at most one per changeset).
 //! Later ops may reference earlier creates as "$r1" (also inside strings). Findings are append-only.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
@@ -18,7 +19,7 @@ use serde_json::{json, Map, Value};
 
 use crate::model::{coerce, defaults, is_system, objs, s, schema, strs, validate, FType, Kind, Rec, KINDS};
 use crate::store::{as_list, dump, now, Res, Source, Store, StoreError};
-use crate::{lint, research, trace};
+use crate::{lint, research, snapshot, trace};
 
 static REF_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\$([A-Za-z][A-Za-z0-9_-]*)").unwrap());
 static NUM_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[A-Z]+-(\d+)$").unwrap());
@@ -29,6 +30,8 @@ pub struct View {
     pub recs: HashMap<Kind, BTreeMap<String, Arc<Rec>>>,
     design: Vec<crate::design::DesignDoc>,
     pub findings: Vec<Value>,
+    /// the project snapshot (state/HOT.md) as it would be after the changeset
+    pub snapshot: Option<String>,
 }
 
 impl Source for View {
@@ -47,11 +50,14 @@ impl Source for View {
     fn findings(&self) -> Vec<Value> {
         self.findings.clone()
     }
+    fn snapshot(&self) -> Option<String> {
+        self.snapshot.clone()
+    }
 }
 
 pub fn base_view(store: &Store) -> View {
     let recs = KINDS.iter().map(|k| (*k, store.records(*k).into_iter().map(|r| (s(&r, "id").to_string(), r)).collect())).collect();
-    View { config: store.config_value(), recs, design: store.design_docs(), findings: store.findings() }
+    View { config: store.config_value(), recs, design: store.design_docs(), findings: store.findings(), snapshot: snapshot::read(&store.root) }
 }
 
 fn resolve(v: &Value, refmap: &Map<String, Value>) -> Value {
@@ -110,6 +116,8 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
     let mut findings = base.findings.clone();
     let mut next_rf = findings.iter().filter_map(|f| f["id"].as_str().and_then(research::id_num)).max().unwrap_or(0) + 1;
     let (mut refmap, mut errors, mut resolved) = (Map::new(), vec![], vec![]);
+    let mut snap = base.snapshot.clone();
+    let mut snap_ops = 0;
     let t = now();
     for (i, op) in ops.iter().enumerate() {
         let kind_op = op.get("op").and_then(Value::as_str).unwrap_or("");
@@ -127,6 +135,23 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                     resolved.push(json!({"i": i, "op": "finding", "kind": research::KIND, "id": id, "ref": op.get("ref").cloned().unwrap_or(Value::Null),
                         "title": rec["claim"], "reason": op.get("reason").cloned().unwrap_or(Value::Null), "data": Value::Object(rec.clone())}));
                     findings.push(Value::Object(rec));
+                }
+                // reqforge: implements REQ-0057
+                "snapshot" => {
+                    let content = op.get("content").and_then(Value::as_str).ok_or("'content' must be a string with the full new file")?;
+                    snap_ops += 1;
+                    if snap_ops > 1 {
+                        return Err("a changeset may hold at most one snapshot op".into());
+                    }
+                    let old = base.snapshot.as_deref();
+                    resolved.push(json!({"i": i, "op": "snapshot", "kind": "snapshot", "id": snapshot::PATH,
+                        "reason": op.get("reason").cloned().unwrap_or(Value::Null), "bytes": content.len(),
+                        "last_reconciled": snapshot::last_reconciled(content).map(|d| d.to_string()),
+                        "diff": snapshot::line_diff(old.unwrap_or(""), content), "base_version": snapshot::version_of(old)}));
+                    snap = Some(content.to_string());
+                    for e in snapshot::validate(content) {
+                        errors.push(format!("op {i} (snapshot): {e}"));
+                    }
                 }
                 "create" => {
                     let kind = Kind::parse(op.get("kind").and_then(Value::as_str).ok_or("'kind'")?)?;
@@ -200,7 +225,7 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                         "reason": op.get("reason").cloned().unwrap_or(Value::Null), "changes": changes, "base_version": base_version}));
                     recs.get_mut(&kind).unwrap().insert(id, Arc::new(rec));
                 }
-                other => return Err(format!("unknown op '{other}' (expected create, update, delete or finding)")),
+                other => return Err(format!("unknown op '{other}' (expected create, update, delete, finding or snapshot)")),
             }
             Ok(())
         })();
@@ -208,9 +233,9 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
             errors.push(format!("op {i} ({kind_op}): {e}"));
         }
     }
-    let view = View { config: store.config_value(), recs, design: store.design_docs(), findings };
+    let view = View { config: store.config_value(), recs, design: store.design_docs(), findings, snapshot: snap };
     for r in &resolved {
-        if r["op"] == json!("delete") || r["op"] == json!("finding") {
+        if r["op"] == json!("delete") || r["op"] == json!("finding") || r["op"] == json!("snapshot") {
             continue;
         }
         let kind = Kind::parse(r["kind"].as_str().unwrap()).unwrap();
@@ -460,6 +485,13 @@ pub fn apply(store: &Store, id: &str, exclude: &[usize]) -> Res<Value> {
         }
         let mut stale = vec![];
         for (rid, ver) in cs["base_versions"].as_object().cloned().unwrap_or_default() {
+            if rid == snapshot::PATH {
+                let cur = snapshot::version_of(snapshot::read(&store.root).as_deref());
+                if ver.as_str() != Some(cur.as_str()) {
+                    stale.push(format!("{rid} changed since the proposal"));
+                }
+                continue;
+            }
             let Ok(kind) = Kind::of_id(&rid) else { continue };
             match store.get(kind, &rid) {
                 Err(_) => stale.push(format!("{rid} was deleted")),
@@ -489,6 +521,11 @@ pub fn apply(store: &Store, id: &str, exclude: &[usize]) -> Res<Value> {
         let mut touched: BTreeSet<(Kind, String)> = BTreeSet::new();
         let mut appended = vec![];
         for o in &m.ops {
+            if o["op"] == json!("snapshot") {
+                snapshot::write_unlocked(&store.root, m.view.snapshot.as_deref().unwrap_or_default())?;
+                appended.push(snapshot::PATH.to_string());
+                continue;
+            }
             if o["op"] == json!("finding") {
                 research::append(&store.root, &o["data"])?;
                 appended.push(o["id"].as_str().unwrap().to_string());

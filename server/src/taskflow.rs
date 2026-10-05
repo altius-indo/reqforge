@@ -105,3 +105,15 @@ pub fn start(store: &Store, id: &str, expected_version: Option<i64>) -> Res<Valu
 pub fn tasks_of_story(store: &Store, story: &str) -> Vec<String> {
     store.records(Kind::Tasks).iter().filter(|t| s(t, "story") == story).map(|t| s(t, "id").to_string()).collect()
 }
+
+/// The task's next action, shown first in a brief or a task-focused chat; None when it has none.
+/// Reads `next_action` and `next_action_set` (REQ-0059#AC1).
+pub fn next_action_block(task: &Rec) -> Option<String> {
+    let text = s(task, "next_action").trim();
+    if text.is_empty() {
+        return None;
+    }
+    let set = s(task, "next_action_set");
+    let date = if set.is_empty() { String::new() } else { format!(" (set {})", set.get(..10).unwrap_or(set)) };
+    Some(format!("## Next action{date}\n{text}"))
+}
