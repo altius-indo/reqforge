@@ -1,0 +1,1823 @@
+{
+  "id": "CS-0019",
+  "title": "Context management across sessions (from canoe)",
+  "summary": "New EPIC-0011 with 7 requirements (REQ-0057 to REQ-0063), 5 stories, 12 tasks and 10 evals: a project snapshot under an 8 KB budget loaded into every chat and agent session and re-supplied after compaction; one next action per task; DEC decision records counted once tested code uses them; metadata-only session and agent-run history kept 365 days then compacted monthly; graded research findings with refresh-by dates.",
+  "rationale": "Adapted from the canoe harness. Product owner decisions on 2026-10-04: agents propose snapshot and next-action updates and the user accepts them (REQ-0041 unchanged); decisions are a DEC record kind exercised through trace tags and evidence; history is kept 365 days then compacted into monthly summaries. Research grading and refresh-by periods follow canoe: 60 days for fast-changing findings, 180 for slow. canoe's own gap is closed: its snapshot was only pointed to, never injected; REQ-0058 requires the full text.",
+  "status": "pending",
+  "created": "2026-10-05T02:29:07+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "create",
+      "kind": "epics",
+      "ref": "e1",
+      "data": {
+        "title": "Context management across sessions",
+        "description": "Durable project state that survives chat sessions, agent runs, context compaction and long gaps: snapshot, next actions, decisions, history and research.",
+        "status": "todo"
+      },
+      "reason": "Group the context-management features"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r1",
+      "data": {
+        "title": "Project snapshot",
+        "statement": "The system shall keep one snapshot per project in state/HOT.md with Now, Next and Watch sections and a Last reconciled date, at most 8,192 bytes, changed only by applying a proposed changeset.",
+        "type": "data",
+        "category": "model",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "A small, always-current summary lets every session start from the project's real state instead of chat history.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "state/HOT.md has the headings Now, Next and Watch in that order and a line 'Last reconciled: YYYY-MM-DD'; Next holds exactly 1 item"
+          },
+          {
+            "id": "AC2",
+            "text": "A changeset may carry a snapshot op with the full new content; the changeset card shows its diff, Apply writes and commits it, and 0 other paths write the file"
+          },
+          {
+            "id": "AC3",
+            "text": "Simulate reports an error for a snapshot over 8,192 bytes, without the 3 required headings, or with more than 1 Next item"
+          },
+          {
+            "id": "AC4",
+            "text": "Lint warns when Last reconciled is more than 21 days old"
+          }
+        ],
+        "tags": [
+          "context"
+        ],
+        "source": "product owner request 2026-10-04; adapted from canoe"
+      },
+      "reason": "Snapshot storage and update path"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r2",
+      "data": {
+        "title": "Snapshot in agent context",
+        "statement": "The system shall include the project snapshot's full text in the context of every chat session and coding-agent run, and supply it again after the agent's context is compacted.",
+        "type": "functional",
+        "category": "context-management",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "A pointer to the file is not enough; the agent must see the state at start and after compaction.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "The first turn of a chat session includes the snapshot text verbatim, marked as project state, not a pointer to the file"
+          },
+          {
+            "id": "AC2",
+            "text": "A coding-agent brief includes the snapshot text verbatim after the task section"
+          },
+          {
+            "id": "AC3",
+            "text": "When Claude Code compacts a chat or agent session, the snapshot is supplied again before the next model turn"
+          },
+          {
+            "id": "AC4",
+            "text": "With no snapshot file, sessions start normally and the chat panel shows 'No project snapshot' with an action to ask Claude to draft one"
+          }
+        ],
+        "tags": [
+          "context"
+        ],
+        "source": "product owner request 2026-10-04; adapted from canoe"
+      },
+      "reason": "Load the snapshot into agents"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r3",
+      "data": {
+        "title": "Next action per task",
+        "statement": "The system shall keep exactly one next action per task, proposed when an agent run or chat session on the task ends and shown first when the next one starts.",
+        "type": "functional",
+        "category": "context-management",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "One concrete cue written at stop time is the most reliable way to resume work after a gap.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "Tasks have a next_action field of at most 280 characters that names a file path, command or record id"
+          },
+          {
+            "id": "AC2",
+            "text": "When an agent run ends, a line starting 'NEXT:' in its final message becomes a pending proposal on the task, which the user accepts, edits or rejects in the task drawer"
+          },
+          {
+            "id": "AC3",
+            "text": "A coding-agent brief and the task drawer show the task's next_action first, with the date it was set"
+          },
+          {
+            "id": "AC4",
+            "text": "Starting a new chat or closing the chat panel after a changeset was applied in the session asks the chat agent once to propose updated next actions and a snapshot Next"
+          }
+        ],
+        "tags": [
+          "context"
+        ],
+        "source": "product owner request 2026-10-04; adapted from canoe"
+      },
+      "reason": "Re-entry cue per task"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r4",
+      "data": {
+        "title": "Decision records",
+        "statement": "The system shall store decisions as DEC-NNNN records with title, context, decision, status, linked requirements and superseded_by, created and changed only through changesets.",
+        "type": "data",
+        "category": "model",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "Design decisions need their own traceable records so they can be checked against code.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "title, context and decision are required; status is one of proposed, accepted or superseded, default proposed"
+          },
+          {
+            "id": "AC2",
+            "text": "requirements must reference existing requirements; status superseded requires superseded_by naming another decision, and supersession cycles are rejected"
+          },
+          {
+            "id": "AC3",
+            "text": "Decisions are available in search, CSV export, the record drawer and the MCP tools like other kinds, and the chat agent can only propose them"
+          }
+        ],
+        "tags": [
+          "context",
+          "decisions"
+        ],
+        "source": "product owner request 2026-10-04; adapted from canoe"
+      },
+      "reason": "Decision storage"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r5",
+      "data": {
+        "title": "Decisions exercised by code",
+        "statement": "The system shall mark a decision exercised when at least one code location is tagged 'reqforge: implements DEC-NNNN' and every test tagged with that id has passing evidence.",
+        "type": "functional",
+        "category": "verification",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "A decision only counts once working code relies on it; unexercised decisions are design debt.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "The code scan records DEC-NNNN implements and verifies tags in the same way as REQ tags"
+          },
+          {
+            "id": "AC2",
+            "text": "Each decision shows exercised yes or no with its tagged locations; a failing or suspect tagged test makes it no"
+          },
+          {
+            "id": "AC3",
+            "text": "Lint warns for every accepted decision not exercised within 14 days of acceptance"
+          },
+          {
+            "id": "AC4",
+            "text": "A Decisions tab lists decisions with status, exercised flag and linked requirements"
+          }
+        ],
+        "tags": [
+          "context",
+          "decisions"
+        ],
+        "source": "product owner request 2026-10-04; adapted from canoe"
+      },
+      "reason": "Connect decisions to verification"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r6",
+      "data": {
+        "title": "Session and agent-run history",
+        "statement": "The system shall append one metadata-only entry per chat session and agent run to an append-only history, keep entries for 365 days and then compact them into one summary per month.",
+        "type": "data",
+        "category": "lifecycle",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "A durable, private record of when and how work happened shows gaps and patterns without storing conversation content.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "Each entry has kind, id, project, user, start, end, outcome, changesets proposed and applied, and records touched; 0 prompt, message or tool-output text is stored"
+          },
+          {
+            "id": "AC2",
+            "text": "Entries are only appended; compaction is the only rewrite, runs at most once per day and makes 1 commit"
+          },
+          {
+            "id": "AC3",
+            "text": "Entries older than 365 days are replaced by monthly summaries with session count, total duration and outcome counts, and 0 entries younger than 365 days are removed"
+          },
+          {
+            "id": "AC4",
+            "text": "A gap of 14 days or more between sessions is recorded as deliberate when a user paused the project with a reason, otherwise as unexplained, and the next session start shows the gap and lets the user give a reason"
+          }
+        ],
+        "tags": [
+          "context"
+        ],
+        "source": "product owner request 2026-10-04; adapted from canoe"
+      },
+      "reason": "History with retention"
+    },
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r7",
+      "data": {
+        "title": "Graded research findings",
+        "statement": "The system shall store research findings as append-only graded entries with sources and a refresh-by date, citable from a requirement's standards.",
+        "type": "data",
+        "category": "model",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "Research behind requirements goes stale; grading and refresh-by dates make staleness visible instead of remembered.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "Each finding has an id RF-NNNN, claim, grade (VERIFIED, THIN or REFUTED), at least 1 source URL, date and perishability; refresh_by is the date plus 60 days for fast and 180 days for slow perishability"
+          },
+          {
+            "id": "AC2",
+            "text": "Findings are added only through changesets and never edited; a re-check appends a new finding that supersedes the old one"
+          },
+          {
+            "id": "AC3",
+            "text": "Lint warns for each requirement whose standards cite a finding that is REFUTED or past its refresh_by date"
+          },
+          {
+            "id": "AC4",
+            "text": "Claim and source text are stored with newlines and Markdown control characters removed, so 0 findings can add headings or instructions to snapshots or briefs"
+          }
+        ],
+        "tags": [
+          "context",
+          "research"
+        ],
+        "source": "product owner request 2026-10-04; adapted from canoe"
+      },
+      "reason": "Graded, dated research"
+    },
+    {
+      "op": "update",
+      "id": "$e1",
+      "add": {
+        "requirements": [
+          "$r1",
+          "$r2",
+          "$r3",
+          "$r4",
+          "$r5",
+          "$r6",
+          "$r7"
+        ]
+      },
+      "reason": "Link requirements to epic"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s1",
+      "data": {
+        "title": "Project snapshot in every agent session",
+        "epic": "$e1",
+        "narrative": "As a product owner, I want every chat and agent session to start from an approved project snapshot so that work resumes from the real state after gaps or compaction.",
+        "requirements": [
+          "$r1",
+          "$r2"
+        ],
+        "deliverable": "code",
+        "component": "server",
+        "status": "todo",
+        "points": 5,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "snapshot store and injection",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test context -- snapshot",
+            "covers": [
+              "$r1#AC1",
+              "$r1#AC2",
+              "$r1#AC3",
+              "$r1#AC4",
+              "$r2#AC1",
+              "$r2#AC2",
+              "$r2#AC3"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: snapshot",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-snapshot.xml --suite snapshot",
+            "covers": [
+              "$r1#AC2",
+              "$r2#AC4"
+            ]
+          }
+        ]
+      },
+      "reason": "Delivers r1, r2"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s2",
+      "data": {
+        "title": "Next action per task",
+        "epic": "$e1",
+        "narrative": "As a product owner, I want each task to carry one concrete next action written when work stops so that anyone, or any agent, can pick it up again.",
+        "requirements": [
+          "$r3"
+        ],
+        "deliverable": "code",
+        "component": "server",
+        "status": "todo",
+        "points": 3,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "next action capture",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test context -- next_action",
+            "covers": [
+              "$r3#AC1",
+              "$r3#AC2",
+              "$r3#AC3",
+              "$r3#AC4"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: next action",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-next-action.xml --suite next-action",
+            "covers": [
+              "$r3#AC2",
+              "$r3#AC3",
+              "$r3#AC4"
+            ]
+          }
+        ]
+      },
+      "reason": "Delivers r3"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s3",
+      "data": {
+        "title": "Decision records exercised by code",
+        "epic": "$e1",
+        "narrative": "As a product owner, I want design decisions recorded and marked exercised only when tested code relies on them so that I can see which decisions are real.",
+        "requirements": [
+          "$r4",
+          "$r5"
+        ],
+        "deliverable": "code",
+        "component": "server",
+        "status": "todo",
+        "points": 5,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "decision records and exercised status",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test decisions",
+            "covers": [
+              "$r4#AC1",
+              "$r4#AC2",
+              "$r4#AC3",
+              "$r5#AC1",
+              "$r5#AC2",
+              "$r5#AC3"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: decisions",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-decisions.xml --suite decisions",
+            "covers": [
+              "$r5#AC4"
+            ]
+          }
+        ]
+      },
+      "reason": "Delivers r4, r5"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s4",
+      "data": {
+        "title": "Session and agent-run history",
+        "epic": "$e1",
+        "narrative": "As a product owner, I want a private history of sessions and agent runs, with gaps typed, so that I can see how work actually happens over months.",
+        "requirements": [
+          "$r6"
+        ],
+        "deliverable": "code",
+        "component": "server",
+        "status": "todo",
+        "points": 3,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "history append, privacy and compaction",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test history",
+            "covers": [
+              "$r6#AC1",
+              "$r6#AC2",
+              "$r6#AC3",
+              "$r6#AC4"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: gap prompt",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-history.xml --suite history",
+            "covers": [
+              "$r6#AC4"
+            ]
+          }
+        ]
+      },
+      "reason": "Delivers r6"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s5",
+      "data": {
+        "title": "Graded research findings",
+        "epic": "$e1",
+        "narrative": "As a product owner, I want research behind requirements stored graded and dated so that stale or refuted findings are flagged before I rely on them.",
+        "requirements": [
+          "$r7"
+        ],
+        "deliverable": "code",
+        "component": "server",
+        "status": "todo",
+        "points": 3,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "findings store and lint",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test research",
+            "covers": [
+              "$r7#AC1",
+              "$r7#AC2",
+              "$r7#AC3"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "findings sanitised",
+            "kind": "security",
+            "command": "cargo test --manifest-path server/Cargo.toml --test research -- findings_sanitised",
+            "covers": [
+              "$r7#AC4"
+            ]
+          }
+        ]
+      },
+      "reason": "Delivers r7"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t1",
+      "data": {
+        "title": "Context management design: snapshot op, injection points, compaction hook",
+        "story": "$s1",
+        "kind": "design",
+        "description": "Define the snapshot changeset op, where the snapshot enters chat_prompt and agent_prompt, and the plugin SessionStart (compact) hook that re-supplies it.",
+        "done_when": "Design covers r1 and r2 acceptance criteria.",
+        "status": "todo"
+      },
+      "reason": "Design"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t2",
+      "data": {
+        "title": "Snapshot op, validation, lint and injection in the server",
+        "story": "$s1",
+        "kind": "code",
+        "description": "Snapshot op in changes.rs with size/heading checks, staleness lint, injection in chat.rs and agent.rs, SessionStart compact hook in the plugin.",
+        "done_when": "context snapshot integration tests pass.",
+        "status": "todo"
+      },
+      "reason": "Server work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t3",
+      "data": {
+        "title": "Snapshot diff on the changeset card and empty-state action",
+        "story": "$s1",
+        "kind": "code",
+        "description": "Render snapshot ops with a text diff in ChangesetCard; 'No project snapshot' notice with an Ask Claude action in the chat panel.",
+        "done_when": "snapshot e2e suite passes.",
+        "status": "todo"
+      },
+      "reason": "UI work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t4",
+      "data": {
+        "title": "next_action field, NEXT: capture and brief ordering",
+        "story": "$s2",
+        "kind": "code",
+        "description": "Add next_action to the task schema, capture 'NEXT:' from agent runs as a pending proposal, put it first in briefs, and prompt the chat agent on New/Close.",
+        "done_when": "context next_action integration tests pass.",
+        "status": "todo"
+      },
+      "reason": "Server work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t5",
+      "data": {
+        "title": "Next action in the task drawer",
+        "story": "$s2",
+        "kind": "code",
+        "description": "Show next_action first with its date; accept, edit or reject a pending proposal.",
+        "done_when": "next-action e2e suite passes.",
+        "status": "todo"
+      },
+      "reason": "UI work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t6",
+      "data": {
+        "title": "Decision record kind and DEC trace tags",
+        "story": "$s3",
+        "kind": "code",
+        "description": "Add the decisions kind (DEC prefix) to model, store, MCP tool schemas and changesets; scan DEC tags; compute exercised from evidence; lint for unexercised accepted decisions.",
+        "done_when": "decisions integration tests pass.",
+        "status": "todo"
+      },
+      "reason": "Server work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t7",
+      "data": {
+        "title": "Decisions tab",
+        "story": "$s3",
+        "kind": "code",
+        "description": "Decisions tab with status, exercised flag and linked requirements; drawer shows tagged locations.",
+        "done_when": "decisions e2e suite passes.",
+        "status": "todo"
+      },
+      "reason": "UI work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t8",
+      "data": {
+        "title": "History log, compaction and gap typing",
+        "story": "$s4",
+        "kind": "code",
+        "description": "Append-only history/sessions.jsonl with metadata only, daily compaction of entries older than 365 days into monthly summaries, pause-with-reason action and gap detection.",
+        "done_when": "history integration tests pass.",
+        "status": "todo"
+      },
+      "reason": "Server work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t9",
+      "data": {
+        "title": "Gap prompt at session start",
+        "story": "$s4",
+        "kind": "code",
+        "description": "Show a 14-day-plus gap at session start with a field to give a reason; pause action in project settings.",
+        "done_when": "history e2e suite passes.",
+        "status": "todo"
+      },
+      "reason": "UI work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t10",
+      "data": {
+        "title": "Research findings store, sanitisation and lint",
+        "story": "$s5",
+        "kind": "code",
+        "description": "Append-only RF-NNNN findings via a changeset op, refresh_by from perishability, text sanitisation, lint on requirements citing refuted or stale findings.",
+        "done_when": "research integration and security tests pass.",
+        "status": "todo"
+      },
+      "reason": "Server work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t11",
+      "data": {
+        "title": "standards-researcher persists graded findings",
+        "story": "$s5",
+        "kind": "code",
+        "description": "Update the standards-researcher agent and elicit skill to grade claims and propose them as findings in a changeset, citing RF ids in requirements' standards.",
+        "done_when": "An elicit run proposes findings with grades and refresh_by dates.",
+        "status": "todo"
+      },
+      "reason": "Agent work"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t12",
+      "data": {
+        "title": "Monitor snapshot staleness and unexercised decisions",
+        "story": "$s1",
+        "kind": "monitoring",
+        "description": "Add snapshot staleness and unexercised-decision counts to the scheduled monitor job and the verification dashboard.",
+        "done_when": "The daily monitor reports both counts.",
+        "status": "todo"
+      },
+      "reason": "Monitoring"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "5 new stories under new EPIC-0011 (19 points, all server). No existing story changes scope."
+    ],
+    "code": [
+      "Server: changes.rs (new snapshot and finding ops), model.rs and store.rs (decisions kind; next_action on tasks), mcp.rs tool schemas (decisions kind), codetrace.rs and verify.rs (DEC tags, exercised), lint.rs (snapshot staleness, unexercised decisions, stale findings), chat.rs, chat_prompt.md and agent.rs (snapshot injection, NEXT: capture), a new history module with compaction.",
+      "Plugin: a SessionStart hook for source=compact that re-supplies the snapshot; standards-researcher agent and elicit skill.",
+      "Web: ChangesetCard (snapshot diff), ChatPanel (empty state, New/Close prompt), RecordDrawer (next action), a Decisions tab, a gap prompt.",
+      "New tests: server/tests/context.rs, decisions.rs, history.rs, research.rs; e2e suites snapshot, next-action, decisions, history. No existing trace tags change."
+    ],
+    "evals": [
+      "10 new evals: 5 integration, 4 e2e, 1 security (findings sanitisation)."
+    ],
+    "risks": [
+      "The snapshot is injected into every prompt, so it is trusted input to agents. It can only change through an applied changeset, and research text is sanitised (REQ-0063 AC4), but a careless snapshot edit still steers every agent.",
+      "A new decisions kind touches schema, MCP, CSV and UI across the stack; it is the largest item (STORY-0019).",
+      "The coding agent cannot propose changesets (REQ-0052 AC3), so its next action is captured by the server from a 'NEXT:' line, which depends on the agent following its brief.",
+      "The 14-day gap threshold and the 21-day staleness warning are canoe's defaults; adjust them if they don't fit how this project is worked."
+    ]
+  },
+  "base_versions": {},
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "create",
+        "kind": "epics",
+        "id": "EPIC-0011",
+        "ref": "e1",
+        "title": "Context management across sessions",
+        "reason": "Group the context-management features",
+        "data": {
+          "id": "EPIC-0011",
+          "status": "todo",
+          "title": "Context management across sessions",
+          "description": "Durable project state that survives chat sessions, agent runs, context compaction and long gaps: snapshot, next actions, decisions, history and research."
+        }
+      },
+      {
+        "i": 1,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0057",
+        "ref": "r1",
+        "title": "Project snapshot",
+        "reason": "Snapshot storage and update path",
+        "data": {
+          "id": "REQ-0057",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "state/HOT.md has the headings Now, Next and Watch in that order and a line 'Last reconciled: YYYY-MM-DD'; Next holds exactly 1 item"
+            },
+            {
+              "id": "AC2",
+              "text": "A changeset may carry a snapshot op with the full new content; the changeset card shows its diff, Apply writes and commits it, and 0 other paths write the file"
+            },
+            {
+              "id": "AC3",
+              "text": "Simulate reports an error for a snapshot over 8,192 bytes, without the 3 required headings, or with more than 1 Next item"
+            },
+            {
+              "id": "AC4",
+              "text": "Lint warns when Last reconciled is more than 21 days old"
+            }
+          ],
+          "tags": [
+            "context"
+          ],
+          "title": "Project snapshot",
+          "statement": "The system shall keep one snapshot per project in state/HOT.md with Now, Next and Watch sections and a Last reconciled date, at most 8,192 bytes, changed only by applying a proposed changeset.",
+          "type": "data",
+          "category": "model",
+          "rationale": "A small, always-current summary lets every session start from the project's real state instead of chat history.",
+          "source": "product owner request 2026-10-04; adapted from canoe"
+        }
+      },
+      {
+        "i": 2,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0058",
+        "ref": "r2",
+        "title": "Snapshot in agent context",
+        "reason": "Load the snapshot into agents",
+        "data": {
+          "id": "REQ-0058",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "The first turn of a chat session includes the snapshot text verbatim, marked as project state, not a pointer to the file"
+            },
+            {
+              "id": "AC2",
+              "text": "A coding-agent brief includes the snapshot text verbatim after the task section"
+            },
+            {
+              "id": "AC3",
+              "text": "When Claude Code compacts a chat or agent session, the snapshot is supplied again before the next model turn"
+            },
+            {
+              "id": "AC4",
+              "text": "With no snapshot file, sessions start normally and the chat panel shows 'No project snapshot' with an action to ask Claude to draft one"
+            }
+          ],
+          "tags": [
+            "context"
+          ],
+          "title": "Snapshot in agent context",
+          "statement": "The system shall include the project snapshot's full text in the context of every chat session and coding-agent run, and supply it again after the agent's context is compacted.",
+          "type": "functional",
+          "category": "context-management",
+          "rationale": "A pointer to the file is not enough; the agent must see the state at start and after compaction.",
+          "source": "product owner request 2026-10-04; adapted from canoe"
+        }
+      },
+      {
+        "i": 3,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0059",
+        "ref": "r3",
+        "title": "Next action per task",
+        "reason": "Re-entry cue per task",
+        "data": {
+          "id": "REQ-0059",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "Tasks have a next_action field of at most 280 characters that names a file path, command or record id"
+            },
+            {
+              "id": "AC2",
+              "text": "When an agent run ends, a line starting 'NEXT:' in its final message becomes a pending proposal on the task, which the user accepts, edits or rejects in the task drawer"
+            },
+            {
+              "id": "AC3",
+              "text": "A coding-agent brief and the task drawer show the task's next_action first, with the date it was set"
+            },
+            {
+              "id": "AC4",
+              "text": "Starting a new chat or closing the chat panel after a changeset was applied in the session asks the chat agent once to propose updated next actions and a snapshot Next"
+            }
+          ],
+          "tags": [
+            "context"
+          ],
+          "title": "Next action per task",
+          "statement": "The system shall keep exactly one next action per task, proposed when an agent run or chat session on the task ends and shown first when the next one starts.",
+          "type": "functional",
+          "category": "context-management",
+          "rationale": "One concrete cue written at stop time is the most reliable way to resume work after a gap.",
+          "source": "product owner request 2026-10-04; adapted from canoe"
+        }
+      },
+      {
+        "i": 4,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0060",
+        "ref": "r4",
+        "title": "Decision records",
+        "reason": "Decision storage",
+        "data": {
+          "id": "REQ-0060",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "title, context and decision are required; status is one of proposed, accepted or superseded, default proposed"
+            },
+            {
+              "id": "AC2",
+              "text": "requirements must reference existing requirements; status superseded requires superseded_by naming another decision, and supersession cycles are rejected"
+            },
+            {
+              "id": "AC3",
+              "text": "Decisions are available in search, CSV export, the record drawer and the MCP tools like other kinds, and the chat agent can only propose them"
+            }
+          ],
+          "tags": [
+            "context",
+            "decisions"
+          ],
+          "title": "Decision records",
+          "statement": "The system shall store decisions as DEC-NNNN records with title, context, decision, status, linked requirements and superseded_by, created and changed only through changesets.",
+          "type": "data",
+          "category": "model",
+          "rationale": "Design decisions need their own traceable records so they can be checked against code.",
+          "source": "product owner request 2026-10-04; adapted from canoe"
+        }
+      },
+      {
+        "i": 5,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0061",
+        "ref": "r5",
+        "title": "Decisions exercised by code",
+        "reason": "Connect decisions to verification",
+        "data": {
+          "id": "REQ-0061",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "The code scan records DEC-NNNN implements and verifies tags in the same way as REQ tags"
+            },
+            {
+              "id": "AC2",
+              "text": "Each decision shows exercised yes or no with its tagged locations; a failing or suspect tagged test makes it no"
+            },
+            {
+              "id": "AC3",
+              "text": "Lint warns for every accepted decision not exercised within 14 days of acceptance"
+            },
+            {
+              "id": "AC4",
+              "text": "A Decisions tab lists decisions with status, exercised flag and linked requirements"
+            }
+          ],
+          "tags": [
+            "context",
+            "decisions"
+          ],
+          "title": "Decisions exercised by code",
+          "statement": "The system shall mark a decision exercised when at least one code location is tagged 'reqforge: implements DEC-NNNN' and every test tagged with that id has passing evidence.",
+          "type": "functional",
+          "category": "verification",
+          "rationale": "A decision only counts once working code relies on it; unexercised decisions are design debt.",
+          "source": "product owner request 2026-10-04; adapted from canoe"
+        }
+      },
+      {
+        "i": 6,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0062",
+        "ref": "r6",
+        "title": "Session and agent-run history",
+        "reason": "History with retention",
+        "data": {
+          "id": "REQ-0062",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "Each entry has kind, id, project, user, start, end, outcome, changesets proposed and applied, and records touched; 0 prompt, message or tool-output text is stored"
+            },
+            {
+              "id": "AC2",
+              "text": "Entries are only appended; compaction is the only rewrite, runs at most once per day and makes 1 commit"
+            },
+            {
+              "id": "AC3",
+              "text": "Entries older than 365 days are replaced by monthly summaries with session count, total duration and outcome counts, and 0 entries younger than 365 days are removed"
+            },
+            {
+              "id": "AC4",
+              "text": "A gap of 14 days or more between sessions is recorded as deliberate when a user paused the project with a reason, otherwise as unexplained, and the next session start shows the gap and lets the user give a reason"
+            }
+          ],
+          "tags": [
+            "context"
+          ],
+          "title": "Session and agent-run history",
+          "statement": "The system shall append one metadata-only entry per chat session and agent run to an append-only history, keep entries for 365 days and then compact them into one summary per month.",
+          "type": "data",
+          "category": "lifecycle",
+          "rationale": "A durable, private record of when and how work happened shows gaps and patterns without storing conversation content.",
+          "source": "product owner request 2026-10-04; adapted from canoe"
+        }
+      },
+      {
+        "i": 7,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0063",
+        "ref": "r7",
+        "title": "Graded research findings",
+        "reason": "Graded, dated research",
+        "data": {
+          "id": "REQ-0063",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "Each finding has an id RF-NNNN, claim, grade (VERIFIED, THIN or REFUTED), at least 1 source URL, date and perishability; refresh_by is the date plus 60 days for fast and 180 days for slow perishability"
+            },
+            {
+              "id": "AC2",
+              "text": "Findings are added only through changesets and never edited; a re-check appends a new finding that supersedes the old one"
+            },
+            {
+              "id": "AC3",
+              "text": "Lint warns for each requirement whose standards cite a finding that is REFUTED or past its refresh_by date"
+            },
+            {
+              "id": "AC4",
+              "text": "Claim and source text are stored with newlines and Markdown control characters removed, so 0 findings can add headings or instructions to snapshots or briefs"
+            }
+          ],
+          "tags": [
+            "context",
+            "research"
+          ],
+          "title": "Graded research findings",
+          "statement": "The system shall store research findings as append-only graded entries with sources and a refresh-by date, citable from a requirement's standards.",
+          "type": "data",
+          "category": "model",
+          "rationale": "Research behind requirements goes stale; grading and refresh-by dates make staleness visible instead of remembered.",
+          "source": "product owner request 2026-10-04; adapted from canoe"
+        }
+      },
+      {
+        "i": 8,
+        "op": "update",
+        "kind": "epics",
+        "id": "EPIC-0011",
+        "title": "Context management across sessions",
+        "reason": "Link requirements to epic",
+        "changes": {
+          "requirements": [
+            [],
+            [
+              "REQ-0057",
+              "REQ-0058",
+              "REQ-0059",
+              "REQ-0060",
+              "REQ-0061",
+              "REQ-0062",
+              "REQ-0063"
+            ]
+          ]
+        },
+        "base_version": null
+      },
+      {
+        "i": 9,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0017",
+        "ref": "s1",
+        "title": "Project snapshot in every agent session",
+        "reason": "Delivers r1, r2",
+        "data": {
+          "id": "STORY-0017",
+          "requirements": [
+            "REQ-0057",
+            "REQ-0058"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "snapshot store and injection",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test context -- snapshot",
+              "covers": [
+                "REQ-0057#AC1",
+                "REQ-0057#AC2",
+                "REQ-0057#AC3",
+                "REQ-0057#AC4",
+                "REQ-0058#AC1",
+                "REQ-0058#AC2",
+                "REQ-0058#AC3"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "UI e2e: snapshot",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-snapshot.xml --suite snapshot",
+              "covers": [
+                "REQ-0057#AC2",
+                "REQ-0058#AC4"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Project snapshot in every agent session",
+          "epic": "EPIC-0011",
+          "narrative": "As a product owner, I want every chat and agent session to start from an approved project snapshot so that work resumes from the real state after gaps or compaction.",
+          "component": "server",
+          "points": 5
+        }
+      },
+      {
+        "i": 10,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0018",
+        "ref": "s2",
+        "title": "Next action per task",
+        "reason": "Delivers r3",
+        "data": {
+          "id": "STORY-0018",
+          "requirements": [
+            "REQ-0059"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "next action capture",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test context -- next_action",
+              "covers": [
+                "REQ-0059#AC1",
+                "REQ-0059#AC2",
+                "REQ-0059#AC3",
+                "REQ-0059#AC4"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "UI e2e: next action",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-next-action.xml --suite next-action",
+              "covers": [
+                "REQ-0059#AC2",
+                "REQ-0059#AC3",
+                "REQ-0059#AC4"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Next action per task",
+          "epic": "EPIC-0011",
+          "narrative": "As a product owner, I want each task to carry one concrete next action written when work stops so that anyone, or any agent, can pick it up again.",
+          "component": "server",
+          "points": 3
+        }
+      },
+      {
+        "i": 11,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0019",
+        "ref": "s3",
+        "title": "Decision records exercised by code",
+        "reason": "Delivers r4, r5",
+        "data": {
+          "id": "STORY-0019",
+          "requirements": [
+            "REQ-0060",
+            "REQ-0061"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "decision records and exercised status",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test decisions",
+              "covers": [
+                "REQ-0060#AC1",
+                "REQ-0060#AC2",
+                "REQ-0060#AC3",
+                "REQ-0061#AC1",
+                "REQ-0061#AC2",
+                "REQ-0061#AC3"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "UI e2e: decisions",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-decisions.xml --suite decisions",
+              "covers": [
+                "REQ-0061#AC4"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Decision records exercised by code",
+          "epic": "EPIC-0011",
+          "narrative": "As a product owner, I want design decisions recorded and marked exercised only when tested code relies on them so that I can see which decisions are real.",
+          "component": "server",
+          "points": 5
+        }
+      },
+      {
+        "i": 12,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0020",
+        "ref": "s4",
+        "title": "Session and agent-run history",
+        "reason": "Delivers r6",
+        "data": {
+          "id": "STORY-0020",
+          "requirements": [
+            "REQ-0062"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "history append, privacy and compaction",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test history",
+              "covers": [
+                "REQ-0062#AC1",
+                "REQ-0062#AC2",
+                "REQ-0062#AC3",
+                "REQ-0062#AC4"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "UI e2e: gap prompt",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-history.xml --suite history",
+              "covers": [
+                "REQ-0062#AC4"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Session and agent-run history",
+          "epic": "EPIC-0011",
+          "narrative": "As a product owner, I want a private history of sessions and agent runs, with gaps typed, so that I can see how work actually happens over months.",
+          "component": "server",
+          "points": 3
+        }
+      },
+      {
+        "i": 13,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0021",
+        "ref": "s5",
+        "title": "Graded research findings",
+        "reason": "Delivers r7",
+        "data": {
+          "id": "STORY-0021",
+          "requirements": [
+            "REQ-0063"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "findings store and lint",
+              "kind": "integration",
+              "command": "cargo test --manifest-path server/Cargo.toml --test research",
+              "covers": [
+                "REQ-0063#AC1",
+                "REQ-0063#AC2",
+                "REQ-0063#AC3"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "findings sanitised",
+              "kind": "security",
+              "command": "cargo test --manifest-path server/Cargo.toml --test research -- findings_sanitised",
+              "covers": [
+                "REQ-0063#AC4"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Graded research findings",
+          "epic": "EPIC-0011",
+          "narrative": "As a product owner, I want research behind requirements stored graded and dated so that stale or refuted findings are flagged before I rely on them.",
+          "component": "server",
+          "points": 3
+        }
+      },
+      {
+        "i": 14,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0041",
+        "ref": "t1",
+        "title": "Context management design: snapshot op, injection points, compaction hook",
+        "reason": "Design",
+        "data": {
+          "id": "TASK-0041",
+          "status": "todo",
+          "title": "Context management design: snapshot op, injection points, compaction hook",
+          "story": "STORY-0017",
+          "kind": "design",
+          "description": "Define the snapshot changeset op, where the snapshot enters chat_prompt and agent_prompt, and the plugin SessionStart (compact) hook that re-supplies it.",
+          "done_when": "Design covers r1 and r2 acceptance criteria."
+        }
+      },
+      {
+        "i": 15,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0042",
+        "ref": "t2",
+        "title": "Snapshot op, validation, lint and injection in the server",
+        "reason": "Server work",
+        "data": {
+          "id": "TASK-0042",
+          "status": "todo",
+          "title": "Snapshot op, validation, lint and injection in the server",
+          "story": "STORY-0017",
+          "kind": "code",
+          "description": "Snapshot op in changes.rs with size/heading checks, staleness lint, injection in chat.rs and agent.rs, SessionStart compact hook in the plugin.",
+          "done_when": "context snapshot integration tests pass."
+        }
+      },
+      {
+        "i": 16,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0043",
+        "ref": "t3",
+        "title": "Snapshot diff on the changeset card and empty-state action",
+        "reason": "UI work",
+        "data": {
+          "id": "TASK-0043",
+          "status": "todo",
+          "title": "Snapshot diff on the changeset card and empty-state action",
+          "story": "STORY-0017",
+          "kind": "code",
+          "description": "Render snapshot ops with a text diff in ChangesetCard; 'No project snapshot' notice with an Ask Claude action in the chat panel.",
+          "done_when": "snapshot e2e suite passes."
+        }
+      },
+      {
+        "i": 17,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0044",
+        "ref": "t4",
+        "title": "next_action field, NEXT: capture and brief ordering",
+        "reason": "Server work",
+        "data": {
+          "id": "TASK-0044",
+          "status": "todo",
+          "title": "next_action field, NEXT: capture and brief ordering",
+          "story": "STORY-0018",
+          "kind": "code",
+          "description": "Add next_action to the task schema, capture 'NEXT:' from agent runs as a pending proposal, put it first in briefs, and prompt the chat agent on New/Close.",
+          "done_when": "context next_action integration tests pass."
+        }
+      },
+      {
+        "i": 18,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0045",
+        "ref": "t5",
+        "title": "Next action in the task drawer",
+        "reason": "UI work",
+        "data": {
+          "id": "TASK-0045",
+          "status": "todo",
+          "title": "Next action in the task drawer",
+          "story": "STORY-0018",
+          "kind": "code",
+          "description": "Show next_action first with its date; accept, edit or reject a pending proposal.",
+          "done_when": "next-action e2e suite passes."
+        }
+      },
+      {
+        "i": 19,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0046",
+        "ref": "t6",
+        "title": "Decision record kind and DEC trace tags",
+        "reason": "Server work",
+        "data": {
+          "id": "TASK-0046",
+          "status": "todo",
+          "title": "Decision record kind and DEC trace tags",
+          "story": "STORY-0019",
+          "kind": "code",
+          "description": "Add the decisions kind (DEC prefix) to model, store, MCP tool schemas and changesets; scan DEC tags; compute exercised from evidence; lint for unexercised accepted decisions.",
+          "done_when": "decisions integration tests pass."
+        }
+      },
+      {
+        "i": 20,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0047",
+        "ref": "t7",
+        "title": "Decisions tab",
+        "reason": "UI work",
+        "data": {
+          "id": "TASK-0047",
+          "status": "todo",
+          "title": "Decisions tab",
+          "story": "STORY-0019",
+          "kind": "code",
+          "description": "Decisions tab with status, exercised flag and linked requirements; drawer shows tagged locations.",
+          "done_when": "decisions e2e suite passes."
+        }
+      },
+      {
+        "i": 21,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0048",
+        "ref": "t8",
+        "title": "History log, compaction and gap typing",
+        "reason": "Server work",
+        "data": {
+          "id": "TASK-0048",
+          "status": "todo",
+          "title": "History log, compaction and gap typing",
+          "story": "STORY-0020",
+          "kind": "code",
+          "description": "Append-only history/sessions.jsonl with metadata only, daily compaction of entries older than 365 days into monthly summaries, pause-with-reason action and gap detection.",
+          "done_when": "history integration tests pass."
+        }
+      },
+      {
+        "i": 22,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0049",
+        "ref": "t9",
+        "title": "Gap prompt at session start",
+        "reason": "UI work",
+        "data": {
+          "id": "TASK-0049",
+          "status": "todo",
+          "title": "Gap prompt at session start",
+          "story": "STORY-0020",
+          "kind": "code",
+          "description": "Show a 14-day-plus gap at session start with a field to give a reason; pause action in project settings.",
+          "done_when": "history e2e suite passes."
+        }
+      },
+      {
+        "i": 23,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0050",
+        "ref": "t10",
+        "title": "Research findings store, sanitisation and lint",
+        "reason": "Server work",
+        "data": {
+          "id": "TASK-0050",
+          "status": "todo",
+          "title": "Research findings store, sanitisation and lint",
+          "story": "STORY-0021",
+          "kind": "code",
+          "description": "Append-only RF-NNNN findings via a changeset op, refresh_by from perishability, text sanitisation, lint on requirements citing refuted or stale findings.",
+          "done_when": "research integration and security tests pass."
+        }
+      },
+      {
+        "i": 24,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0051",
+        "ref": "t11",
+        "title": "standards-researcher persists graded findings",
+        "reason": "Agent work",
+        "data": {
+          "id": "TASK-0051",
+          "status": "todo",
+          "title": "standards-researcher persists graded findings",
+          "story": "STORY-0021",
+          "kind": "code",
+          "description": "Update the standards-researcher agent and elicit skill to grade claims and propose them as findings in a changeset, citing RF ids in requirements' standards.",
+          "done_when": "An elicit run proposes findings with grades and refresh_by dates."
+        }
+      },
+      {
+        "i": 25,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0052",
+        "ref": "t12",
+        "title": "Monitor snapshot staleness and unexercised decisions",
+        "reason": "Monitoring",
+        "data": {
+          "id": "TASK-0052",
+          "status": "todo",
+          "title": "Monitor snapshot staleness and unexercised decisions",
+          "story": "STORY-0017",
+          "kind": "monitoring",
+          "description": "Add snapshot staleness and unexercised-decision counts to the scheduled monitor job and the verification dashboard.",
+          "done_when": "The daily monitor reports both counts."
+        }
+      }
+    ],
+    "refmap": {
+      "e1": "EPIC-0011",
+      "r1": "REQ-0057",
+      "r2": "REQ-0058",
+      "r3": "REQ-0059",
+      "r4": "REQ-0060",
+      "r5": "REQ-0061",
+      "r6": "REQ-0062",
+      "r7": "REQ-0063",
+      "s1": "STORY-0017",
+      "s2": "STORY-0018",
+      "s3": "STORY-0019",
+      "s4": "STORY-0020",
+      "s5": "STORY-0021",
+      "t1": "TASK-0041",
+      "t2": "TASK-0042",
+      "t3": "TASK-0043",
+      "t4": "TASK-0044",
+      "t5": "TASK-0045",
+      "t6": "TASK-0046",
+      "t7": "TASK-0047",
+      "t8": "TASK-0048",
+      "t9": "TASK-0049",
+      "t10": "TASK-0050",
+      "t11": "TASK-0051",
+      "t12": "TASK-0052"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 56,
+        "active": 56,
+        "epics": 10,
+        "stories": 16,
+        "tasks": 40,
+        "evals": 41,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 63,
+        "active": 63,
+        "epics": 11,
+        "stories": 21,
+        "tasks": 52,
+        "evals": 51,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0057",
+        "REQ-0058",
+        "REQ-0059",
+        "REQ-0060",
+        "REQ-0061",
+        "REQ-0062",
+        "REQ-0063"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0017",
+          "title": "Project snapshot in every agent session",
+          "status": "todo",
+          "component": "server",
+          "via": [
+            "REQ-0057",
+            "REQ-0058"
+          ]
+        },
+        {
+          "id": "STORY-0018",
+          "title": "Next action per task",
+          "status": "todo",
+          "component": "server",
+          "via": [
+            "REQ-0059"
+          ]
+        },
+        {
+          "id": "STORY-0019",
+          "title": "Decision records exercised by code",
+          "status": "todo",
+          "component": "server",
+          "via": [
+            "REQ-0060",
+            "REQ-0061"
+          ]
+        },
+        {
+          "id": "STORY-0020",
+          "title": "Session and agent-run history",
+          "status": "todo",
+          "component": "server",
+          "via": [
+            "REQ-0062"
+          ]
+        },
+        {
+          "id": "STORY-0021",
+          "title": "Graded research findings",
+          "status": "todo",
+          "component": "server",
+          "via": [
+            "REQ-0063"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0041",
+          "title": "Context management design: snapshot op, injection points, compaction hook",
+          "kind": "design",
+          "status": "todo",
+          "story": "STORY-0017"
+        },
+        {
+          "id": "TASK-0042",
+          "title": "Snapshot op, validation, lint and injection in the server",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0017"
+        },
+        {
+          "id": "TASK-0043",
+          "title": "Snapshot diff on the changeset card and empty-state action",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0017"
+        },
+        {
+          "id": "TASK-0044",
+          "title": "next_action field, NEXT: capture and brief ordering",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0018"
+        },
+        {
+          "id": "TASK-0045",
+          "title": "Next action in the task drawer",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0018"
+        },
+        {
+          "id": "TASK-0046",
+          "title": "Decision record kind and DEC trace tags",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0019"
+        },
+        {
+          "id": "TASK-0047",
+          "title": "Decisions tab",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0019"
+        },
+        {
+          "id": "TASK-0048",
+          "title": "History log, compaction and gap typing",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0020"
+        },
+        {
+          "id": "TASK-0049",
+          "title": "Gap prompt at session start",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0020"
+        },
+        {
+          "id": "TASK-0050",
+          "title": "Research findings store, sanitisation and lint",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0021"
+        },
+        {
+          "id": "TASK-0051",
+          "title": "standards-researcher persists graded findings",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0021"
+        },
+        {
+          "id": "TASK-0052",
+          "title": "Monitor snapshot staleness and unexercised decisions",
+          "kind": "monitoring",
+          "status": "todo",
+          "story": "STORY-0017"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0017",
+          "id": "E1",
+          "name": "snapshot store and injection",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test context -- snapshot",
+          "covers": [
+            "REQ-0057#AC1",
+            "REQ-0057#AC2",
+            "REQ-0057#AC3",
+            "REQ-0057#AC4",
+            "REQ-0058#AC1",
+            "REQ-0058#AC2",
+            "REQ-0058#AC3"
+          ]
+        },
+        {
+          "story": "STORY-0017",
+          "id": "E2",
+          "name": "UI e2e: snapshot",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-snapshot.xml --suite snapshot",
+          "covers": [
+            "REQ-0057#AC2",
+            "REQ-0058#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0018",
+          "id": "E1",
+          "name": "next action capture",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test context -- next_action",
+          "covers": [
+            "REQ-0059#AC1",
+            "REQ-0059#AC2",
+            "REQ-0059#AC3",
+            "REQ-0059#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0018",
+          "id": "E2",
+          "name": "UI e2e: next action",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-next-action.xml --suite next-action",
+          "covers": [
+            "REQ-0059#AC2",
+            "REQ-0059#AC3",
+            "REQ-0059#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0019",
+          "id": "E1",
+          "name": "decision records and exercised status",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test decisions",
+          "covers": [
+            "REQ-0060#AC1",
+            "REQ-0060#AC2",
+            "REQ-0060#AC3",
+            "REQ-0061#AC1",
+            "REQ-0061#AC2",
+            "REQ-0061#AC3"
+          ]
+        },
+        {
+          "story": "STORY-0019",
+          "id": "E2",
+          "name": "UI e2e: decisions",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-decisions.xml --suite decisions",
+          "covers": [
+            "REQ-0061#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0020",
+          "id": "E1",
+          "name": "history append, privacy and compaction",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test history",
+          "covers": [
+            "REQ-0062#AC1",
+            "REQ-0062#AC2",
+            "REQ-0062#AC3",
+            "REQ-0062#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0020",
+          "id": "E2",
+          "name": "UI e2e: gap prompt",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-history.xml --suite history",
+          "covers": [
+            "REQ-0062#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0021",
+          "id": "E1",
+          "name": "findings store and lint",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test research",
+          "covers": [
+            "REQ-0063#AC1",
+            "REQ-0063#AC2",
+            "REQ-0063#AC3"
+          ]
+        },
+        {
+          "story": "STORY-0021",
+          "id": "E2",
+          "name": "findings sanitised",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test research -- findings_sanitised",
+          "covers": [
+            "REQ-0063#AC4"
+          ]
+        }
+      ],
+      "components": [
+        "server"
+      ],
+      "in_progress_work": []
+    }
+  }
+}
