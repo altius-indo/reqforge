@@ -43,6 +43,7 @@ Every UI tab and page maps to exactly one section; every section is reachable fr
 | Lint                                | `lint-and-traceability`   | `04-lint-and-traceability.md`   |
 | Changes                             | `chat-and-changesets`     | `03-chat-and-changesets.md`     |
 | Design                              | `design`                  | `08-design.md`                  |
+| Decisions                           | `decisions`               | `09-decisions.md`               |
 | Chat panel (its **?** help button)  | `chat-and-changesets`     | `03-chat-and-changesets.md`     |
 | Projects page, onboarding           | `projects`                | `07-projects.md`                |
 | (contents only)                     | `edit-and-bulk-update`    | `02-edit-and-bulk-update.md`    |
@@ -76,6 +77,9 @@ naming it in one guide.
 8. **Design documents** — read a design document (list, Markdown, realised requirements, record ids open the
    drawer); find the design behind a requirement (*Links & impact* drawer tab); add a design document
    (`design/<slug>.md`, front matter, Lint).
+9. **Decisions** — read the decisions (status, exercised and why not, linked requirements, *Exercised* drawer
+   tab); make a decision exercised (tags, scan, evidence, the 14-day lint); record or change a decision
+   (changesets only).
 
 ## Authoring and bundling
 

@@ -25,6 +25,7 @@ const COLS: Record<Kind, string[]> = {
   stories: ["title", "epic", "requirements", "component", "_evals", "_tasks", "status"],
   tasks: ["title", "story", "kind", "status", "depends_on", "estimate", "_start"],
   components: ["key", "title", "language", "path", "owners"],
+  decisions: ["title", "status", "requirements", "superseded_by"],
 }
 const LABEL: Record<string, string> = {
   _stories: "stories",

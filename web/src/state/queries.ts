@@ -183,6 +183,12 @@ export function useDesignDoc(slug: string | null) {
   return useQuery({ queryKey: ["p", api.key, "design", slug], queryFn: () => api.designDoc(slug!), enabled: !!slug })
 }
 
+/** every decision with its status, linked requirements and exercised flag (GET /decisions/exercised) */
+export function useDecisions() {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "decisions"], queryFn: api.decisions })
+}
+
 /** every task id + title + status, for pickers (depends_on) */
 export function useTaskOptions(enabled = true) {
   const api = useApi()

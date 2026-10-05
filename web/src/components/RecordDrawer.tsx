@@ -3,7 +3,7 @@ import { Bot, GitBranch, Loader2, MessageSquare, X } from "lucide-react"
 import { toast } from "sonner"
 import { ApiError } from "@/api/client"
 import { useApi } from "@/state/project"
-import type { DesignDocRef, FieldSchema, Kind, Meta, RecordBase, RecordContext, Requirement } from "@/api/types"
+import type { DecisionTestStatus, DesignDocRef, FieldSchema, Kind, Meta, RecordBase, RecordContext, Requirement } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +16,8 @@ import { useApp } from "@/state/app"
 import { useChat } from "@/state/chat"
 import { useAgentPlan, useBranchReview, useCode, useRecord, useRecordContext, useTaskOptions } from "@/state/queries"
 import { CodeEvidencePanel } from "@/components/CodeEvidence"
+import { CodeLoc } from "@/components/verification"
+import { ExercisedFlag } from "@/views/DecisionsView"
 import { StartButton } from "@/components/TaskStart"
 import { AgentConfirmDialog, AgentRunView, RunsList, useAgentRun, type AgentRunState } from "@/components/TaskAgent"
 import {
@@ -252,6 +254,8 @@ function DetailsForm({ kind, rec, meta }: { kind: Kind; rec: RecordBase | null; 
   const { closeDrawer, refreshAll } = useApp()
   const api = useApi()
   const schema = meta.schemas[kind]
+  // decisions are created and changed only through changesets (REQ-0060)
+  const readOnly = kind === "decisions"
   const [values, setValues] = useState<FormValues>(() => toForm(schema, rec))
   const [err, setErr] = useState("")
   const [armed, setArmed] = useState(false)
@@ -304,7 +308,12 @@ function DetailsForm({ kind, rec, meta }: { kind: Kind; rec: RecordBase | null; 
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex-1 overflow-y-auto px-4 py-3" data-testid="details-form">
+      <fieldset disabled={readOnly} className="min-w-0 flex-1 overflow-y-auto px-4 py-3" data-testid="details-form">
+        {readOnly && (
+          <p data-testid="decision-readonly" className="mb-2.5 rounded-md border bg-muted/40 px-2.5 py-1.5 text-[12.5px] text-muted-foreground">
+            Decisions change only through changesets: use <b className="font-medium">Ask Claude</b> to propose one.
+          </p>
+        )}
         {Object.entries(schema).map(([f, s]) => (
           <Field
             key={f}
@@ -328,17 +337,19 @@ function DetailsForm({ kind, rec, meta }: { kind: Kind; rec: RecordBase | null; 
             <ErrorText testId="drawer-error">{err}</ErrorText>
           </div>
         )}
-      </div>
-      <div className="flex flex-wrap gap-2 border-t px-4 py-2.5">
-        <Button size="sm" onClick={save} disabled={busy} data-testid="drawer-save">
-          {rec ? "Save" : "Create"}
-        </Button>
-        {rec && (
-          <Button size="sm" variant="destructive" onClick={del} disabled={busy} data-testid="drawer-delete">
-            {armed ? "Click again to delete" : "Delete"}
+      </fieldset>
+      {!readOnly && (
+        <div className="flex flex-wrap gap-2 border-t px-4 py-2.5">
+          <Button size="sm" onClick={save} disabled={busy} data-testid="drawer-save">
+            {rec ? "Save" : "Create"}
           </Button>
-        )}
-      </div>
+          {rec && (
+            <Button size="sm" variant="destructive" onClick={del} disabled={busy} data-testid="drawer-delete">
+              {armed ? "Click again to delete" : "Delete"}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -504,6 +515,66 @@ function LinksPanel({ kind, ctx, meta }: { kind: Kind; ctx: RecordContext; meta:
             ))}
           </ul>
         </>
+      )}
+    </div>
+  )
+}
+
+const TEST_TONE: Record<DecisionTestStatus, string> = {
+  passed: "text-ok",
+  suspect: "text-warn",
+  failing: "text-err",
+  pending: "text-muted-foreground",
+}
+
+/** A decision's exercised flag with the reason, and its tagged code and test locations (REQ-0061#AC2). */
+// reqforge: implements REQ-0061
+function ExercisedTab({ id }: { id: string }) {
+  const q = useRecordContext(id, true)
+  const code = useCode()
+  if (q.error) return <ErrorText>{(q.error as Error).message}</ErrorText>
+  if (!q.data) return <p className="text-muted-foreground">Loading…</p>
+  const e = q.data.exercised
+  if (!e) return <p className="text-muted-foreground">No exercised report for this record.</p>
+  const comps = code.data?.components
+  return (
+    <div data-testid="exercised-panel" className="text-[13px]">
+      <p>
+        Exercised: <ExercisedFlag d={e} />
+      </p>
+      {e.reason && (
+        <p data-testid="exercised-reason" className="mt-0.5 text-muted-foreground">
+          {e.reason}
+        </p>
+      )}
+      <H3>Implemented in</H3>
+      {e.implements.length ? (
+        <ul data-testid="exercised-implements" className="space-y-0.5">
+          {e.implements.map((l, i) => (
+            <li key={i}>
+              <CodeLoc loc={l} components={comps} testId="decision-impl-loc" />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p data-testid="exercised-no-impl" className="text-warn">
+          No code is tagged with {id}.
+        </p>
+      )}
+      <H3>Tagged tests</H3>
+      {e.tests.length ? (
+        <ul data-testid="exercised-tests" className="space-y-0.5">
+          {e.tests.map((t, i) => (
+            <li key={i} data-testid="decision-test" data-status={t.status} className="flex flex-wrap items-baseline gap-x-2">
+              <b className={cn("w-14 font-semibold", TEST_TONE[t.status])}>{t.status}</b>
+              <CodeLoc loc={t} components={comps} testId="decision-test-loc" />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p data-testid="exercised-no-tests" className="text-warn">
+          No test is tagged with {id}.
+        </p>
       )}
     </div>
   )
@@ -685,6 +756,11 @@ function DrawerBody() {
                   Links &amp; impact
                 </TabsTrigger>
               )}
+              {rec && kind === "decisions" && (
+                <TabsTrigger value="exercised" data-testid="drawer-tab-exercised" className="text-[13px]">
+                  Exercised
+                </TabsTrigger>
+              )}
               {rec && kind === "requirements" && (
                 <TabsTrigger value="code" data-testid="drawer-tab-code" className="text-[13px]">
                   Code &amp; evidence
@@ -732,6 +808,11 @@ function DrawerBody() {
                 </div>
               )}
               {review && <BranchReviewPanel review={review} />}
+            </TabsContent>
+          )}
+          {rec && kind === "decisions" && (
+            <TabsContent value="exercised" className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+              <ExercisedTab id={rec.id} />
             </TabsContent>
           )}
           {rec && kind === "requirements" && (

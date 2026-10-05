@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|decisions|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design", "decisions"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,7 +36,7 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|decisions|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
@@ -202,6 +202,32 @@ function writeDesignDocs(repo) {
 }
 // reqforge:on
 
+// Code and tests tagged with decision ids (REQ-0061) in the SHOP demo's code component `web` (<repo>-code): scanned,
+// then a JUnit run in which the first decision's test passes and the second one's fails. The third and fourth
+// decisions have no tags. The decisions themselves are created by the suite, through a changeset.
+// reqforge:off (fixture ids: the decisions the e2e suite creates, not reqforge's own decisions)
+function writeDecisionCode(ctx, repo) {
+  const code = repo + "-code";
+  const files = {
+    "shop/orders.py": ["# reqforge: implements DEC-0001", "def save_order(order):", "    return db.insert(\"orders\", order)", "",
+      "# reqforge: implements DEC-0002", "def retry_charge(token):", "    return backoff(lambda: PSP.charge(token))", ""],
+    "tests/test_decisions.py": ["# reqforge: verifies DEC-0001", "def test_orders_are_persisted():", "    assert save_order(order()).id", "",
+      "# reqforge: verifies DEC-0002", "def test_charge_retries_with_backoff():", "    assert retry_charge(\"tok_flaky\").ok", ""],
+  };
+  for (const [rel, lines] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(code, rel)), { recursive: true });
+    fs.writeFileSync(path.join(code, rel), lines.join("\n"));
+  }
+  ctx.git(code, "add", ...Object.keys(files));
+  ctx.git(code, "-c", "user.email=e2e@x", "-c", "user.name=e2e", "commit", "-qm", "e2e: code relying on decisions");
+  ctx.cli(repo, "scan");
+  const junit = path.join(path.dirname(repo), "junit-decisions.xml");
+  const tc = (name, fail) => `<testcase classname="tests.test_decisions" name="${name}" file="tests/test_decisions.py">${fail ? '<failure message="no retry">assert False</failure>' : ""}</testcase>`;
+  fs.writeFileSync(junit, `<?xml version="1.0"?><testsuites><testsuite name="pytest">${tc("test_orders_are_persisted", false)}${tc("test_charge_retries_with_backoff", true)}</testsuite></testsuites>`);
+  ctx.cli(repo, "evidence", "ingest", junit, "-c", "web");
+}
+// reqforge:on
+
 // Each suite: build its data under `dir`, return how to serve it and where the result session lands.
 const SUITES = {
   core: {
@@ -336,6 +362,15 @@ const SUITES = {
       ctx.importProject(ws, path.join(ws, "bare"), "BARE");
       return { serve: ["--workspace", ws], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/p/SHOP/sessions", route: "/#/p/SHOP",
         workspaceName: "ws" };
+    },
+  },
+  // Decisions tab (REQ-0061#AC4): SHOP demo with its code component and decision-tagged code (writeDecisionCode)
+  decisions: {
+    timeout: 180,
+    setup(ctx, dir) {
+      const shop = ctx.seedDemo(path.join(dir, "shop"));
+      writeDecisionCode(ctx, shop);
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/" };
     },
   },
   // help panel, its keyboard behaviour, and colour schemes: same BIG repository as core

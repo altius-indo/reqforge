@@ -16,6 +16,7 @@ const SIDE_FACETS: Record<Kind, string[]> = {
   stories: ["status", "deliverable", "component", "tags"],
   tasks: ["kind", "status", "tags"],
   components: ["language", "owners", "tags"],
+  decisions: ["status"],
 }
 
 function CovBar({ covered, count }: { covered: number; count: number }) {
@@ -283,6 +284,17 @@ function SidebarBody() {
         <p className="px-1.5 text-[12.5px] text-muted-foreground">
           How the system is built: design documents from the repository's design/ directory, each listing the
           requirements it realises. Click any record id to open it.
+        </p>
+      </>
+    )
+  if (view.tab === "decisions")
+    return (
+      <>
+        <SectionLabel>Decisions</SectionLabel>
+        <p className="px-1.5 text-[12.5px] text-muted-foreground">
+          Design decisions and whether tested code relies on them. A decision is exercised when code is tagged
+          `reqforge: implements DEC-…` and every test tagged with its id has fresh passing evidence. Decisions change
+          only through changesets.
         </p>
       </>
     )
