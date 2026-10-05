@@ -3,7 +3,7 @@
   "title": "Approve REQ-0064 (collapsible, resizable side panels)",
   "summary": "Sets REQ-0064 from proposed to approved so that TASK-0056 becomes eligible for Start and the agent queue.",
   "rationale": "Product owner approval on 2026-10-05.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-05T04:54:16+00:00",
   "valid": true,
   "ops": [
@@ -151,5 +151,8 @@
       ],
       "in_progress_work": []
     }
-  }
+  },
+  "applied_at": "2026-10-05T04:54:31+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }
