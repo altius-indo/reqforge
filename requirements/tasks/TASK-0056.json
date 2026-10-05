@@ -10,11 +10,11 @@
   "status": "done",
   "estimate": null,
   "tags": [],
-  "next_action": "Run `git merge main` on reqforge/TASK-0056, resolve web/e2e/lib/prelude.js with `git checkout --ours`, commit, then rerun the panels and panels-a11y e2e suites.",
-  "next_action_set": "2026-10-04",
+  "next_action": null,
+  "next_action_set": null,
   "next_action_proposal": null,
   "next_action_proposal_run": null,
-  "version": 10,
+  "version": 11,
   "created": "2026-10-05T04:53:50+00:00",
-  "updated": "2026-10-05T05:27:24+00:00"
+  "updated": "2026-10-05T05:35:31+00:00"
 }

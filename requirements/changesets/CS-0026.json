@@ -3,7 +3,7 @@
   "title": "End-of-session: clear stale next action, create project snapshot",
   "summary": "Clears TASK-0056's stale next_action (task done, REQ-0064 verified) and creates state/HOT.md (1,034 bytes): Now, one Next item, Watch, reconciled 2026-10-05.",
   "rationale": "End-of-session reconciliation on 2026-10-05. Every task whose state changed in this session is done, so none needs a new next action. TASK-0056 still carried a 2026-10-04 cue to merge main into its branch, which its drawer would show first. state/HOT.md did not exist, so the snapshot op creates the whole file rather than updating only Next. Next names a problem logged by three agent runs: the reqforge MCP server failed to start.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-05T05:34:59+00:00",
   "valid": true,
   "ops": [
@@ -181,5 +181,8 @@
       "components": [],
       "in_progress_work": []
     }
-  }
+  },
+  "applied_at": "2026-10-05T05:35:31+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }
