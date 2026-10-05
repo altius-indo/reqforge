@@ -1,0 +1,311 @@
+{
+  "id": "CS-0020",
+  "title": "Order the EPIC-0011 tasks with depends_on",
+  "summary": "Adds depends_on links to 8 EPIC-0011 tasks: design before code, server before UI, monitoring after the features it measures. TASK-0041, TASK-0046, TASK-0048 and TASK-0050 have no dependencies and can start in parallel.",
+  "rationale": "The agent queue (REQ-0053) and Start (REQ-0050 AC5) only respect order through depends_on. Without links, the queue could start UI or code before its design or server work.",
+  "status": "pending",
+  "created": "2026-10-05T02:32:47+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "TASK-0042",
+      "patch": {
+        "depends_on": [
+          "TASK-0041"
+        ]
+      },
+      "reason": "Server work after design"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0043",
+      "patch": {
+        "depends_on": [
+          "TASK-0042"
+        ]
+      },
+      "reason": "UI after server snapshot op"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0044",
+      "patch": {
+        "depends_on": [
+          "TASK-0042"
+        ]
+      },
+      "reason": "Next-action prompt proposes a snapshot Next, so needs the snapshot op"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0045",
+      "patch": {
+        "depends_on": [
+          "TASK-0044"
+        ]
+      },
+      "reason": "UI after server"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0047",
+      "patch": {
+        "depends_on": [
+          "TASK-0046"
+        ]
+      },
+      "reason": "UI after server"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0049",
+      "patch": {
+        "depends_on": [
+          "TASK-0048"
+        ]
+      },
+      "reason": "UI after server"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0051",
+      "patch": {
+        "depends_on": [
+          "TASK-0050"
+        ]
+      },
+      "reason": "Agent persists findings via the new op"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0052",
+      "patch": {
+        "depends_on": [
+          "TASK-0042",
+          "TASK-0046"
+        ]
+      },
+      "reason": "Monitors snapshot staleness and unexercised decisions"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "No scope change; ordering only within STORY-0017 to STORY-0021."
+    ],
+    "code": [
+      "None."
+    ],
+    "evals": [
+      "None."
+    ],
+    "risks": [
+      "The next-action story (STORY-0018) now waits for the snapshot server work (TASK-0042)."
+    ]
+  },
+  "base_versions": {
+    "TASK-0042": 1,
+    "TASK-0043": 1,
+    "TASK-0044": 1,
+    "TASK-0045": 1,
+    "TASK-0047": 1,
+    "TASK-0049": 1,
+    "TASK-0051": 1,
+    "TASK-0052": 1
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0042",
+        "title": "Snapshot op, validation, lint and injection in the server",
+        "reason": "Server work after design",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0041"
+            ]
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0043",
+        "title": "Snapshot diff on the changeset card and empty-state action",
+        "reason": "UI after server snapshot op",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0042"
+            ]
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0044",
+        "title": "next_action field, NEXT: capture and brief ordering",
+        "reason": "Next-action prompt proposes a snapshot Next, so needs the snapshot op",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0042"
+            ]
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 3,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0045",
+        "title": "Next action in the task drawer",
+        "reason": "UI after server",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0044"
+            ]
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 4,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0047",
+        "title": "Decisions tab",
+        "reason": "UI after server",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0046"
+            ]
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 5,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0049",
+        "title": "Gap prompt at session start",
+        "reason": "UI after server",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0048"
+            ]
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 6,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0051",
+        "title": "standards-researcher persists graded findings",
+        "reason": "Agent persists findings via the new op",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0050"
+            ]
+          ]
+        },
+        "base_version": 1
+      },
+      {
+        "i": 7,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0052",
+        "title": "Monitor snapshot staleness and unexercised decisions",
+        "reason": "Monitors snapshot staleness and unexercised decisions",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0042",
+              "TASK-0046"
+            ]
+          ]
+        },
+        "base_version": 1
+      }
+    ],
+    "refmap": {},
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 63,
+        "active": 63,
+        "epics": 11,
+        "stories": 21,
+        "tasks": 52,
+        "evals": 51,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 63,
+        "active": 63,
+        "epics": 11,
+        "stories": 21,
+        "tasks": 52,
+        "evals": 51,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [],
+      "children": [],
+      "stories": [],
+      "tasks": [],
+      "evals": [],
+      "components": [],
+      "in_progress_work": []
+    }
+  }
+}
