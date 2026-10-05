@@ -1,0 +1,30 @@
+{
+  "task": "TASK-0048",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:17:17+00:00",
+  "branch": "reqforge/TASK-0048",
+  "target": "main",
+  "target_head": "877cf10de5c1c02a600a8863ce4db7ba0913667a",
+  "task_head": "c1f9293a0804b9eeab7e60d69b725bc79d5b78f8",
+  "evals": [
+    {
+      "id": "E1",
+      "name": "history append, privacy and compaction",
+      "command": "cargo test --manifest-path server/Cargo.toml --test history",
+      "status": "passed",
+      "seconds": 6.6
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: gap prompt",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-history.xml --suite history",
+      "status": "failed",
+      "seconds": 0.1,
+      "output_tail": "e2e: unknown suite: history (core, projects, code, help, help-a11y, theme, task-start, agent-start, agent-queue, task-complete, design, all)"
+    }
+  ],
+  "ended": "2026-10-05T03:17:24+00:00",
+  "outcome": "refused: evals failed",
+  "run_id": "COMPLETE-TASK-0048-20261005T031724000",
+  "kind": "complete"
+}

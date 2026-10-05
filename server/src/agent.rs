@@ -7,7 +7,7 @@
 //! records every run in `agent-runs/` of the requirements repo. A task is never marked done
 //! automatically.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::{Arc, Mutex};
@@ -194,10 +194,28 @@ pub fn prepare_worktree(p: &Plan) -> Res<String> {
 pub struct Snapshot {
     pub default_head: String,
     pub component_status: String,
-    pub requirements_status: String,
+    /// uncommitted files in the requirements repository: path -> content hash
+    pub requirements_dirty: BTreeMap<String, String>,
+    /// foreign changes seen at reqforge's write-lock boundaries since the run began (see `Store::watch_foreign`)
+    pub requirements_seen: BTreeSet<(String, String)>,
     /// the component checkout's top level, and the requirements folder inside it (if any)
     pub top: PathBuf,
     pub requirements_rel: Option<String>,
+}
+
+/// Snapshot taken under the store's write lock (no reqforge write is half done) that starts
+/// watching for foreign changes reqforge's own commits might sweep up; pair with `snapshot_end`.
+// reqforge: implements REQ-0052
+pub fn snapshot_begin(component_root: &Path, store: &Store) -> (Snapshot, u64) {
+    let _g = store.lock();
+    (snapshot(component_root, &store.root), store.watch_foreign())
+}
+
+pub fn snapshot_end(component_root: &Path, store: &Store, watch: u64) -> Snapshot {
+    let _g = store.lock();
+    let mut s = snapshot(component_root, &store.root);
+    s.requirements_seen = store.unwatch_foreign(watch);
+    s
 }
 
 // reqforge: implements REQ-0052
@@ -218,7 +236,8 @@ pub fn snapshot(component_root: &Path, requirements_root: &Path) -> Snapshot {
         requirements_rel: requirements_root.strip_prefix(&top).ok().map(|r| r.display().to_string()).filter(|r| !r.is_empty()),
         default_head: git(&top, &["rev-parse", "HEAD"]).unwrap_or_default(),
         component_status: git(&top, &args).unwrap_or_default(),
-        requirements_status: git(requirements_root, &["status", "--porcelain", "--", "."]).unwrap_or_default(),
+        requirements_dirty: crate::store::git::dirty(requirements_root),
+        requirements_seen: BTreeSet::new(),
     }
 }
 
@@ -238,8 +257,21 @@ pub fn violations(before: &Snapshot, after: &Snapshot) -> Vec<String> {
     if before.component_status != after.component_status {
         v.push("files changed in the component checkout outside the task worktree".into());
     }
-    if before.requirements_status != after.requirements_status {
-        v.push("files changed in the requirements repository".into());
+    // what reqforge commits (run logs, history, record updates from other runs or users) is
+    // never left uncommitted at a write-lock boundary; any other change is, until something commits it
+    let changed: BTreeSet<&str> = after
+        .requirements_dirty
+        .iter()
+        .chain(after.requirements_seen.iter().map(|(p, h)| (p, h)))
+        .filter(|(p, h)| before.requirements_dirty.get(*p) != Some(*h))
+        .map(|(p, _)| p.as_str())
+        .collect();
+    if !changed.is_empty() {
+        let mut names: Vec<&str> = changed.iter().take(5).copied().collect();
+        if changed.len() > 5 {
+            names.push("…");
+        }
+        v.push(format!("files changed in the requirements repository: {}", names.join(", ")));
     }
     v
 }
@@ -438,7 +470,7 @@ impl AgentRunner {
             Err(e) => return send(json!({"type": "error", "text": e.message})).await,
         };
         let run_id = format!("RUN-{task_id}-{}", chrono::Utc::now().format("%Y%m%dT%H%M%S%3f"));
-        let before = snapshot(&p.component_root, &store.root);
+        let (before, watch) = snapshot_begin(&p.component_root, &store);
         let started = now();
         send(json!({"type": "run", "run_id": run_id, "branch": p.branch, "worktree": p.worktree.display().to_string(),
                     "component": p.component, "base": base, "task_started": started_task})).await;
@@ -527,7 +559,7 @@ impl AgentRunner {
                 }
             }
         }
-        let after = snapshot(&p.component_root, &store.root);
+        let after = snapshot_end(&p.component_root, &store, watch);
         let viol = violations(&before, &after);
         let commits = commits_since(&p.worktree, &base);
         let user2 = user.clone();

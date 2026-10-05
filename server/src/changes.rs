@@ -6,7 +6,8 @@
 //! touches changed since the proposal, then writes everything as one git commit.
 //!
 //! ops: {"op":"create","kind":..,"ref":"r1","data":{..}} | {"op":"update","id":..,"patch":{..},"add":{..},"remove":{..}}
-//!      | {"op":"delete","id":..}. Later ops may reference earlier creates as "$r1" (also inside strings).
+//!      | {"op":"delete","id":..} | {"op":"finding","ref":"f1","data":{claim,grade,sources,date,perishability,supersedes}}.
+//! Later ops may reference earlier creates as "$r1" (also inside strings). Findings are append-only.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fs;
@@ -17,7 +18,7 @@ use serde_json::{json, Map, Value};
 
 use crate::model::{coerce, defaults, is_system, objs, s, schema, strs, validate, FType, Kind, Rec, KINDS};
 use crate::store::{as_list, dump, now, Res, Source, Store, StoreError};
-use crate::{lint, trace};
+use crate::{lint, research, trace};
 
 static REF_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\$([A-Za-z][A-Za-z0-9_-]*)").unwrap());
 static NUM_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[A-Z]+-(\d+)$").unwrap());
@@ -28,6 +29,7 @@ pub struct View {
     pub recs: HashMap<Kind, BTreeMap<String, Arc<Rec>>>,
     design: Vec<crate::design::DesignDoc>,
     root: Option<std::path::PathBuf>,
+    pub findings: Vec<Value>,
 }
 
 impl Source for View {
@@ -46,11 +48,14 @@ impl Source for View {
     fn root(&self) -> Option<std::path::PathBuf> {
         self.root.clone()
     }
+    fn findings(&self) -> Vec<Value> {
+        self.findings.clone()
+    }
 }
 
 pub fn base_view(store: &Store) -> View {
     let recs = KINDS.iter().map(|k| (*k, store.records(*k).into_iter().map(|r| (s(&r, "id").to_string(), r)).collect())).collect();
-    View { config: store.config_value(), recs, design: store.design_docs(), root: Some(store.root.clone()) }
+    View { config: store.config_value(), recs, design: store.design_docs(), root: Some(store.root.clone()), findings: store.findings() }
 }
 
 /// A decision becoming accepted is stamped with when, unless the op sets accepted_at itself.
@@ -114,12 +119,27 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
         let max = recs[&k].keys().filter_map(|id| NUM_RE.captures(id).and_then(|c| c[1].parse::<u64>().ok())).max().unwrap_or(0);
         nexts.insert(k, max + 1);
     }
+    let mut findings = base.findings.clone();
+    let mut next_rf = findings.iter().filter_map(|f| f["id"].as_str().and_then(research::id_num)).max().unwrap_or(0) + 1;
     let (mut refmap, mut errors, mut resolved) = (Map::new(), vec![], vec![]);
     let t = now();
     for (i, op) in ops.iter().enumerate() {
         let kind_op = op.get("op").and_then(Value::as_str).unwrap_or("");
         let r: Result<(), String> = (|| {
             match kind_op {
+                // reqforge: implements REQ-0063
+                "finding" => {
+                    let id = format!("{}-{:04}", research::PREFIX, next_rf);
+                    let data = resolve(op.get("data").unwrap_or(&json!({})), &refmap);
+                    let rec = research::build(&id, &data, &findings, &t)?;
+                    next_rf += 1;
+                    if let Some(rf) = op.get("ref").and_then(Value::as_str).filter(|x| !x.is_empty()) {
+                        refmap.insert(rf.into(), json!(id));
+                    }
+                    resolved.push(json!({"i": i, "op": "finding", "kind": research::KIND, "id": id, "ref": op.get("ref").cloned().unwrap_or(Value::Null),
+                        "title": rec["claim"], "reason": op.get("reason").cloned().unwrap_or(Value::Null), "data": Value::Object(rec.clone())}));
+                    findings.push(Value::Object(rec));
+                }
                 "create" => {
                     let kind = Kind::parse(op.get("kind").and_then(Value::as_str).ok_or("'kind'")?)?;
                     let n = nexts[&kind];
@@ -148,6 +168,9 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                 }
                 "update" | "delete" => {
                     let id = resolve(op.get("id").ok_or("'id'")?, &refmap).as_str().unwrap_or("").to_string();
+                    if let Some(e) = research::append_only_error(&id) {
+                        return Err(e);
+                    }
                     let kind = Kind::of_id(&id)?;
                     let cur = recs[&kind].get(&id).cloned().ok_or_else(|| format!("{id} does not exist"))?;
                     let base_version = base.recs[&kind].get(&id).and_then(|r| r.get("version").cloned()).unwrap_or(Value::Null);
@@ -198,7 +221,7 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                         "reason": op.get("reason").cloned().unwrap_or(Value::Null), "changes": changes, "base_version": base_version}));
                     recs.get_mut(&kind).unwrap().insert(id, Arc::new(rec));
                 }
-                other => return Err(format!("unknown op '{other}' (expected create, update or delete)")),
+                other => return Err(format!("unknown op '{other}' (expected create, update, delete or finding)")),
             }
             Ok(())
         })();
@@ -206,9 +229,9 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
             errors.push(format!("op {i} ({kind_op}): {e}"));
         }
     }
-    let view = View { config: store.config_value(), recs, design: store.design_docs(), root: Some(store.root.clone()) };
+    let view = View { config: store.config_value(), recs, design: store.design_docs(), root: Some(store.root.clone()), findings };
     for r in &resolved {
-        if r["op"] == json!("delete") {
+        if r["op"] == json!("delete") || r["op"] == json!("finding") {
             continue;
         }
         let kind = Kind::parse(r["kind"].as_str().unwrap()).unwrap();
@@ -225,6 +248,9 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
             }
             if kind == Kind::Tasks {
                 for e in crate::model::task_dependency_errors(rec, &view.records(Kind::Tasks)) {
+                    errors.push(format!("{id}: {e}"));
+                }
+                for e in crate::model::task_eval_errors(rec, &view.records(Kind::Stories)) {
                     errors.push(format!("{id}: {e}"));
                 }
             }
@@ -487,7 +513,13 @@ pub fn apply(store: &Store, id: &str, exclude: &[usize]) -> Res<Value> {
             return Err(StoreError::with(format!("{id} no longer applies cleanly"), 422, m.errors.into_iter().map(Value::String).collect()));
         }
         let mut touched: BTreeSet<(Kind, String)> = BTreeSet::new();
+        let mut appended = vec![];
         for o in &m.ops {
+            if o["op"] == json!("finding") {
+                research::append(&store.root, &o["data"])?;
+                appended.push(o["id"].as_str().unwrap().to_string());
+                continue;
+            }
             touched.insert((Kind::parse(o["kind"].as_str().unwrap()).unwrap(), o["id"].as_str().unwrap().to_string()));
         }
         for (kind, rid) in &touched {
@@ -509,7 +541,7 @@ pub fn apply(store: &Store, id: &str, exclude: &[usize]) -> Res<Value> {
         cs["assigned_ids"] = Value::Object(m.refmap.clone());
         save(store, &cs)?;
         store.commit(&format!("{id}: apply — {}", cs["title"].as_str().unwrap_or("")));
-        (m.refmap, touched.into_iter().map(|(_, i)| i).collect::<BTreeSet<_>>())
+        (m.refmap, touched.into_iter().map(|(_, i)| i).chain(appended).collect::<BTreeSet<_>>())
     };
     let t = trace::evaluate(store);
     let l = lint::lint(store);

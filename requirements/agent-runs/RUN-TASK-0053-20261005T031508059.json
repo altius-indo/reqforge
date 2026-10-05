@@ -1,0 +1,178 @@
+{
+  "run_id": "RUN-TASK-0053-20261005T031508059",
+  "task": "TASK-0053",
+  "story": "STORY-0019",
+  "component": "server",
+  "branch": "reqforge/TASK-0053",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0053",
+  "base": "baa74d5c1403f49f9805774c3155812205128de7",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:15:08+00:00",
+  "ended": "2026-10-05T03:16:57+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "44b9c61",
+      "message": "TASK-0053: align decisions design with amended REQ-0061 and TASK-0046"
+    },
+    {
+      "sha": "51ba4ae",
+      "message": "Merge commit 'baa74d5c1403f49f9805774c3155812205128de7' into reqforge/TASK-0053"
+    },
+    {
+      "sha": "819c60a",
+      "message": "Merge commit '427568bd0a6e4d61d3bedeb88796f4e2c839438a' into reqforge/TASK-0053"
+    },
+    {
+      "sha": "73acade",
+      "message": "TASK-0053: add design/decisions.md for decision records and the exercised rule"
+    }
+  ],
+  "violations": [],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "bce7e02b-12b6-4064-9100-ea74f2a7b8f0"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Glob",
+      "sub": false,
+      "text": "Glob **/design/*.md"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0053/requirements/design/decisions.md"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Reading the TASK-0046 implementation so the design matches it."
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.claude/projects/-Users-jyoti-sanyal--reqforge-worktrees-REQFORGE-TASK-0053/bce7e02b-12b6-4064-9100-ea74f2a7b8f0/tool-results/bk9kmn983.txt"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now rewriting the doc to match the amended REQ-0061 and the TASK-0046 implementation (`accepted_at`, `changeset_only`, `decision_supersession_errors`, `decisions::compute`)."
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "text",
+      "text": "Now checking lint for unknown realises ids and running the evals."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Both evals fail because the code they test isn't on this branch. Next I'm checking the design-doc lint logic by hand, since the CLI needs approval."
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep fn lint_findings|realises|unknown"
+    },
+    {
+      "type": "text",
+      "text": "The front matter uses the block-list form the parser accepts, and both REQ-0060 and REQ-0061 exist, so the `design-realises` rule should report nothing. Committing."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I've updated `requirements/design/decisions.md` and committed it as `44b9c61`, but neither eval can pass on this branch, because the code they test isn't here.\n\n**What changed**\n- **Exercised rule:** a decision is now exercised only when it has implementing code, at least one tagged test, and every tagged test has passing evidence that is still current. \"No tagged test\" now makes it \"no\", with its own reason. I removed the open question about this case, since the amended REQ-0061 settles it.\n- **`accepted_at`:** the doc now uses the `accepted_at` field built on TASK-0046 (53a75a1) instead of the first run's system-managed `accepted` field. It is stamped when a decision becomes accepted, a date set explicitly in the changeset is kept, and it is not cleared when the status changes back. If it's missing, lint falls back to `updated`, then `created`.\n- **Matching the built code:** the doc now uses the names and behaviour from 53a75a1. Concretely:\n  - The functions it names (`store::changeset_only`, `decision_supersession_errors`, the `decisions` module functions, `GRACE_DAYS`) match the real ones.\n  - The REST route, MCP support and search facets are described as built.\n  - The CSV header comes from the real schema. It has `accepted_at`, and the unbuilt `consequences` field is gone.\n  - Test statuses are passed, failing, suspect or pending.\n  - Tags naming a decision that doesn't exist go into verify's unknown-tag list. The first run had a separate lint rule for this, which was never built.\n- The front matter still says `realises: [REQ-0060, REQ-0061]`. The acceptance-criteria table links a section for each of the seven criteria.\n\n**Evals and checks**\n- **E1** (`cargo test … --test decisions`) failed: there is no `decisions` test target. `server/tests/decisions.rs` only exists on TASK-0046's commit 53a75a1, which isn't merged into this branch.\n- **E2** (`node web/e2e/run.mjs … --suite decisions`) failed: \"unknown suite: decisions\". That suite belongs to TASK-0047's Decisions tab, which isn't on this branch either.\n- **Lint:** I couldn't run it, because `bin/reqforge` needed approval in this session. Both REQ-0060 and REQ-0061 exist, and the front matter uses a list form the design-doc parser in `design.rs` reads, so I expect 0 unknown realises ids. That still needs to be confirmed with `reqforge lint`.\n\n**Open**\n- E1 and E2 can only pass after TASK-0046 and TASK-0047 are merged in.\n- The reqforge MCP server failed to connect (the configured `bin/reqforge` path didn't exist), so I took the requirement text from the task brief."
+    },
+    {
+      "type": "done",
+      "session_id": "bce7e02b-12b6-4064-9100-ea74f2a7b8f0",
+      "cost": 0.8969978000000002,
+      "turns": 19,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}

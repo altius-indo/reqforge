@@ -188,6 +188,9 @@ pub fn lint(src: &dyn Source) -> Value {
     // ---- decisions: accepted ones must be exercised by tested code within the grace period
     findings.extend(crate::decisions::lint_findings(src, chrono::Utc::now()));
 
+    // ---- research: cited findings must be neither refuted nor past their refresh_by date
+    findings.extend(crate::research::lint_findings(src, &reqs, chrono::Utc::now().date_naive()));
+
     let mut counts: BTreeMap<&str, usize> = [("error", 0), ("warning", 0), ("info", 0)].into_iter().collect();
     for f in &findings {
         *counts.entry(f["severity"].as_str().unwrap_or("info")).or_default() += 1;

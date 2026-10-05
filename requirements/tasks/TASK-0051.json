@@ -8,9 +8,9 @@
   ],
   "description": "Update the standards-researcher agent and elicit skill to grade claims and propose them as findings in a changeset, citing RF ids in requirements' standards.",
   "done_when": "An elicit run proposes findings with grades and refresh_by dates.",
-  "status": "todo",
+  "status": "done",
   "tags": [],
-  "version": 2,
+  "version": 4,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:33:16+00:00"
+  "updated": "2026-10-05T03:07:08+00:00"
 }

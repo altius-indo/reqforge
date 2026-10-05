@@ -289,11 +289,13 @@ static STORIES: [Field; 11] = [
     f("points", FType::Int),
     f("tags", FType::List),
 ];
-static TASKS: [Field; 9] = [
+static TASKS: [Field; 10] = [
     req(f("title", FType::Str)),
     req(rf("story", FType::Ref, Kind::Stories)),
     req(en("kind", TASK_KINDS, None)),
     rf("depends_on", FType::RefList, Kind::Tasks),
+    // ids of the story's evals that Complete runs for this task (REQ-0056#AC4, AC7)
+    f("evals", FType::List),
     f("description", FType::Text),
     f("done_when", FType::Text),
     en("status", WORK_STATUSES, Some("todo")),
@@ -591,6 +593,18 @@ pub fn component_key_clash(rec: &Rec, all: &[std::sync::Arc<Rec>]) -> Vec<String
         .filter(|o| s(o, "key") == key && s(o, "id") != id && !key.is_empty())
         .map(|o| format!("key: '{key}' is already used by {}", s(o, "id")))
         .collect()
+}
+
+/// Task evals must name evals defined on the task's story.
+// reqforge: implements REQ-0056
+pub fn task_eval_errors(rec: &Rec, stories: &[std::sync::Arc<Rec>]) -> Vec<String> {
+    let ids = strs(rec, "evals");
+    if ids.is_empty() {
+        return vec![];
+    }
+    let story = s(rec, "story");
+    let defined: Vec<&str> = stories.iter().find(|st| s(st, "id") == story).map(|st| objs(st, "evals").iter().map(|e| s(e, "id")).collect()).unwrap_or_default();
+    ids.iter().filter(|id| !defined.contains(id)).map(|id| format!("evals: {id} is not an eval of {story} (expected one of {})", pylist(&defined))).collect()
 }
 
 /// Task dependency integrity: no self-reference and no cycle through `depends_on`.
