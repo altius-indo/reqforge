@@ -11,9 +11,9 @@
   ],
   "description": "Show next_action first with its date; accept, edit or reject a pending proposal.",
   "done_when": "next-action e2e suite passes.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 4,
+  "version": 5,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T04:21:21+00:00"
+  "updated": "2026-10-05T04:25:26+00:00"
 }
