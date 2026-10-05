@@ -5,7 +5,7 @@
   "type": "data",
   "category": "model",
   "priority": "should",
-  "status": "approved",
+  "status": "implemented",
   "rationale": "Design decisions need their own traceable records so they can be checked against code.",
   "acceptance_criteria": [
     {
@@ -28,7 +28,7 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-04; adapted from canoe",
-  "version": 2,
+  "version": 3,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:34:48+00:00"
+  "updated": "2026-10-05T04:48:33+00:00"
 }
