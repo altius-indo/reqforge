@@ -101,3 +101,94 @@ fn reqforge_commits_to_its_requirements_folder_are_not_violations() {
     let v = reqforge::agent::violations(&s1, &s2);
     assert!(v[0].contains("checked-out branch moved"), "{v:?}");
 }
+
+/// Run several tasks at once on one runner while `during` runs; returns each task's events in order.
+fn run_parallel(f: &Fx, tasks: &[&str], during: impl FnOnce() + Send + 'static) -> Vec<Vec<Value>> {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(async {
+        let runner = std::sync::Arc::new(reqforge::agent::AgentRunner::default());
+        let mut hs = vec![];
+        for t in tasks {
+            let (tx, mut rx) = tokio::sync::mpsc::channel(256);
+            let (r, store, t) = (runner.clone(), f.store.clone(), t.to_string());
+            tokio::spawn(async move { r.run(store, t, "tester".into(), tx).await });
+            hs.push(tokio::spawn(async move {
+                let mut out = vec![];
+                while let Some(ev) = rx.recv().await {
+                    out.push(ev);
+                }
+                out
+            }));
+        }
+        tokio::task::spawn_blocking(during).await.unwrap();
+        let mut all = vec![];
+        for h in hs {
+            all.push(h.await.unwrap());
+        }
+        all
+    })
+}
+
+fn ended(store: &reqforge::store::Store, task: &str) -> bool {
+    reqforge::agent::runs(store, task).iter().any(|r| r["kind"] == json!("agent"))
+}
+
+fn retitle(store: &reqforge::store::Store) {
+    let mut p = serde_json::Map::new();
+    p.insert("title".into(), json!("Answer, revised"));
+    store.update(reqforge::model::Kind::Requirements, "REQ-0001", &p, None, None).unwrap();
+}
+
+// reqforge: verifies REQ-0052#AC6
+#[test]
+fn parallel_runs_do_not_flag_each_others_run_logs_or_record_updates() {
+    let f = fx("SBXD", "Implement feature PAUSE");
+    let t2 = add_task(&f, "Implement other feature", json!([]));
+    let (store, fast) = (f.store.clone(), t2.clone());
+    let r = run_parallel(&f, &["TASK-0001", &t2], move || {
+        // the fast run ends and commits its run log while the slow one is still going
+        assert!(wait_until(|| ended(&store, &fast), 20));
+        assert!(!ended(&store, "TASK-0001"), "the slow run should still be going");
+        // and a user updates a record through reqforge meanwhile
+        retitle(&store);
+    });
+    assert!(ended(&f.store, "TASK-0001") && ended(&f.store, &t2));
+    for evs in &r {
+        let res = result(evs);
+        assert_eq!(res["violations"], json!([]), "{res}");
+    }
+}
+
+// reqforge: verifies REQ-0052#AC6
+#[test]
+fn a_snapshot_never_sees_a_reqforge_write_half_done() {
+    let f = fx("SBXE", "Implement feature");
+    let store = f.store.clone();
+    let writer = std::thread::spawn(move || {
+        let _g = store.lock().unwrap();
+        std::fs::write(store.root.join("other-run.json"), "{}").unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(400));
+        store.commit("other run: log");
+    });
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    let (before, watch) = reqforge::agent::snapshot_begin(&f.code, &f.store);
+    let after = reqforge::agent::snapshot_end(&f.code, &f.store, watch);
+    writer.join().unwrap();
+    assert_eq!(reqforge::agent::violations(&before, &after), Vec::<String>::new());
+}
+
+// reqforge: verifies REQ-0052#AC6
+#[test]
+fn an_agent_edit_to_the_requirements_repo_is_flagged_even_when_reqforge_commits_it() {
+    let f = fx("SBXF", "Implement feature MISBEHAVE PAUSE");
+    let (root, store) = (f.store.root.clone(), f.store.clone());
+    let r = run_parallel(&f, &["TASK-0001"], move || {
+        assert!(wait_until(|| root.join("sneaky.txt").exists(), 20));
+        // a reqforge commit sweeps the agent's file into history before the run ends
+        retitle(&store);
+    });
+    assert_eq!(git(&f.store.root, &["status", "--porcelain", "--", "sneaky.txt"]), "", "reqforge committed sneaky.txt");
+    let res = result(&r[0]);
+    let v: Vec<&str> = res["violations"].as_array().unwrap().iter().filter_map(Value::as_str).collect();
+    assert!(v.iter().any(|x| x.contains("requirements repository") && x.contains("sneaky.txt")), "{v:?}");
+}
