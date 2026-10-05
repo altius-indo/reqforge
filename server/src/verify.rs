@@ -252,6 +252,8 @@ pub fn compute(src: &dyn Source, indexes: &[Index], latest: &BTreeMap<String, Ev
         })
         .collect();
     let total_ac: usize = ac_counts.values().sum();
+    let decisions = crate::decisions::compute(src, indexes, latest);
+    let state = json!({"snapshot": crate::snapshot::monitor_counts(src), "decisions": crate::decisions::monitor_counts(src, &decisions, chrono::Utc::now())});
     json!({
         "ok": ok,
         "summary": {
@@ -259,6 +261,7 @@ pub fn compute(src: &dyn Source, indexes: &[Index], latest: &BTreeMap<String, Ev
             "verified_ratio": if total_ac == 0 { 1.0 } else { (ac_counts["verified"] as f64 / total_ac as f64 * 1000.0).round() / 1000.0 },
             "implemented": implemented, "evidence": latest.len(), "components": comp_summary,
             "by_category": by_cell.into_iter().map(|(k, (n, v))| (k, json!({"requirements": n, "verified": v}))).collect::<Map<_, _>>(),
+            "state": state,
         },
         "checks": checks,
         "statuses": statuses,
@@ -271,6 +274,25 @@ pub fn summary(full: &Value) -> Value {
     json!({"ok": full["ok"], "summary": full["summary"], "checks": full["checks"]})
 }
 
+/// One line for the monitor: snapshot staleness and unexercised decisions.
+// reqforge: implements REQ-0057
+// reqforge: implements REQ-0061
+pub fn state_line(st: &Value) -> String {
+    let sn = &st["snapshot"];
+    let snap = if sn["exists"] != json!(true) {
+        "snapshot: none".to_string()
+    } else {
+        let age = sn["age_days"].as_i64().map(|a| format!("{a} days old")).unwrap_or_else(|| "undated".into());
+        let verdict = if sn["stale"] == json!(true) { format!("stale, {} days over the {}-day limit", sn["days_over"], sn["limit_days"]) } else { "fresh".into() };
+        format!("snapshot: {age} ({verdict})")
+    };
+    let d = &st["decisions"];
+    format!(
+        "{snap}  —  decisions: {} of {} accepted unexercised, {} past the {}-day grace period",
+        d["unexercised"], d["accepted"], d["overdue"], d["grace_days"]
+    )
+}
+
 pub fn to_markdown(rep: &Value) -> String {
     let sm = &rep["summary"];
     let c = &sm["criteria"];
@@ -281,6 +303,7 @@ pub fn to_markdown(rep: &Value) -> String {
             "criteria: {} verified · {} pending · {} suspect · {} failing · {} untested  —  requirements implemented in code: {}",
             c["verified"], c["pending"], c["suspect"], c["failing"], c["untested"], sm["implemented"]
         ),
+        state_line(&sm["state"]),
         String::new(),
         "| check | result | findings |".into(),
         "|---|---|---|".into(),

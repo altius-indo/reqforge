@@ -4,7 +4,8 @@
 
 Emits stream-json like the real CLI. Turn 1 searches and asks a ```choices question; turn 2 (the answer,
 which contains "→") proposes a real changeset through `reqforge mcp`; turn 3 (the "I applied …" follow-up)
-replies "Verified". The reqforge binary comes from $REQFORGE_BIN (set by web/e2e/run.mjs).
+replies "Verified". A turn asking to "Draft a project snapshot" proposes a changeset with one snapshot op (a new
+state/HOT.md dated today). The reqforge binary comes from $REQFORGE_BIN (set by web/e2e/run.mjs).
 
 Coding-agent mode (the server's agent launcher passes `--permission-mode acceptEdits`, cwd = the task worktree,
 stdin = the brief): writes a file in cwd, commits it as "TASK-…: …", and emits stream-json (system init,
@@ -16,6 +17,7 @@ import re
 import subprocess
 import sys
 import time
+from datetime import date
 
 BIN = os.environ.get("REQFORGE_BIN") or "reqforge"
 prompt = sys.stdin.read()
@@ -70,7 +72,16 @@ def mcp(name, args):
 
 
 out({"type": "system", "subtype": "init", "session_id": "s1", "mcp_servers": [{"name": "plugin:reqforge:reqforge", "status": "connected"}]})
-if "→" not in prompt and "applied" not in prompt:
+if "Draft a project snapshot" in prompt and "applied" not in prompt:
+    snap = (f"# Project snapshot\n\n## Now\n\n- Checkout flow in progress (STORY-0001)\n\n## Next\n\n- Ship guest checkout\n\n"
+            f"## Watch\n\n- PSP latency budget\n\nLast reconciled: {date.today().isoformat()}\n")
+    res = mcp("propose_changeset", {"changeset": {"title": "Draft project snapshot", "summary": "First state/HOT.md",
+                                                  "ops": [{"op": "snapshot", "content": snap, "reason": "no snapshot yet"}]}})
+    out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "p", "name": "mcp__plugin_reqforge_reqforge__propose_changeset",
+                                                        "input": {"changeset": {"title": "Draft project snapshot", "ops": [1]}}}]}})
+    out({"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "p", "content": [{"type": "text", "text": json.dumps(res)}]}]}})
+    out({"type": "assistant", "message": {"content": [{"type": "text", "text": "Drafted the snapshot below; review the diff and apply."}]}})
+elif "→" not in prompt and "applied" not in prompt:
     out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "a", "name": "mcp__plugin_reqforge_reqforge__search",
                                                         "input": {"kind": "requirements", "q": "type:data audit"}}]}})
     out({"type": "assistant", "message": {"content": [{"type": "text", "text": "I found **REQ-0042** nearby. One decision first:\n```choices\n"

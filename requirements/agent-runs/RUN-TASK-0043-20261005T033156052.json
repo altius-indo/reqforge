@@ -1,0 +1,368 @@
+{
+  "run_id": "RUN-TASK-0043-20261005T033156052",
+  "task": "TASK-0043",
+  "story": "STORY-0017",
+  "component": "server",
+  "branch": "reqforge/TASK-0043",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0043",
+  "base": "fc29162e0678cdb76f121357b75db61d3b1035ad",
+  "user": "jyoti.sanyal (queue)",
+  "started": "2026-10-05T03:31:56+00:00",
+  "ended": "2026-10-05T03:45:07+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "50d6392",
+      "message": "TASK-0043: snapshot diff on the changeset card and no-snapshot chat notice"
+    }
+  ],
+  "violations": [
+    "the component's checked-out branch moved from daaa9a3ee5 to 6bd5462261"
+  ],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "69ee585d-272d-4c6b-8717-426ec0d54728"
+    },
+    {
+      "type": "warning",
+      "text": "reqforge MCP server status: pending"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0043/web/e2e/run.mjs"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the frontend: ChangesetCard and chat panel."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0043/web/src/components/ChangesetCard.tsx"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I'm reading the e2e harness and fake Claude so I can build the new `snapshot` suite. Next I'll write the UI changes."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the frontend types and API."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0043/web/src/api/types.ts"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the ChangesetCard snapshot diff."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now the chat panel empty-state notice."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep \"(build|lint|typecheck|dev)\""
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "web/dist is committed, so I need to install deps and rebuild."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Types and lint are clean. Next, the e2e suite. Checking the propose API shape and the Changes tab hooks."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now register the suite in run.mjs, with an after-check on git history."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now build the web dist and the server binary, then run the suite."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Just the response field name (`changeset_id`). Fixing."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "20/20 pass. Now E1, and the core suite as a regression check (I touched ChangesetCard and fake-claude)."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "All green. Committing."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The snapshot diff on the changeset card and the \"No project snapshot\" notice are in, and both evals pass. Everything is in one commit on `reqforge/TASK-0043` (`50d6392`), ready for review.\n\n**What changed**\n- **Changeset card** (`web/src/components/ChangesetCard.tsx`): a snapshot op now shows a line-by-line diff of `state/HOT.md`, with added and removed lines coloured and unchanged lines kept as context. Above the diff is a summary line: lines added and removed, size in bytes, the Last reconciled date, and \"(new file)\" when there was no snapshot before. Tagged `implements REQ-0057`.\n- **Chat panel** (`web/src/components/chat/ChatPanel.tsx`): while the project has no snapshot, a \"No project snapshot\" bar appears with an **Ask Claude to draft one** button. The button puts a draft request into the chat input. Chat works normally either way, and the bar goes away once a snapshot is applied. Tagged `implements REQ-0058`.\n- **Plumbing**: a client call and query hook for the server's existing `GET …/snapshot` endpoint (`useSnapshot`), plus types for the snapshot status and the diff lines.\n- **E2E**:\n  - New `snapshot` suite (`web/e2e/suites/snapshot.js`), registered in `web/e2e/run.mjs`. It covers:\n    - The no-snapshot notice and its button, and a chat session starting normally without a snapshot.\n    - The card for a new-file snapshot.\n    - Proposing doesn't write the file.\n    - Apply writes the file with the proposed content.\n    - A second changeset's card diffs against the applied snapshot.\n  - After the run, the harness checks git: exactly one commit touched `state/HOT.md`, and it's the apply commit.\n  - The fake Claude used in tests (`web/e2e/fake-claude.py`) now answers \"Draft a project snapshot\" by proposing a changeset with a snapshot op.\n  - Check names and test functions carry `verifies REQ-0057#AC2` and `verifies REQ-0058#AC4`.\n- **`web/dist`**: rebuilt, because it's committed and the e2e runner serves it.\n\n**Tests and evals run**\n- **E2** `node web/e2e/run.mjs --junit web/e2e/results/junit-snapshot.xml --suite snapshot`: 20/20 passed. The first run had 4 failures because the suite read the wrong field from the propose response; I fixed that and re-ran.\n- **E1** `cargo test --manifest-path server/Cargo.toml --test context -- snapshot`: 9/9 passed. I didn't change any server code.\n- **Regression**: the `core` (42/42) and `projects` (70/70) e2e suites both passed, since I changed the changeset card and the fake Claude.\n- `npm run typecheck` and `npm run lint` report no problems.\n\n**Left open**\n- I didn't update the in-app help (`web/help`) to mention the snapshot diff or the notice.\n- The temp folder from my first, failing run wasn't cleaned up because the delete was denied: `/private/var/folders/9p/dzm94jm56kndj06v4l9wt2mh0000gn/T/reqforge-e2e-3R1o8B`. You can remove it by hand.\n- The `reqforge` MCP server failed to connect, so I worked from the brief and the code rather than the requirement tools.\n- Google Calendar needs authorising in your claude.ai connector settings before it can be used; this task didn't need it."
+    },
+    {
+      "type": "done",
+      "session_id": "69ee585d-272d-4c6b-8717-426ec0d54728",
+      "cost": 1.7552114,
+      "turns": 47,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}

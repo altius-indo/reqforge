@@ -191,6 +191,20 @@ pub fn status(root: &Path) -> Value {
            "age_days": age, "stale": age.map(|a| a > STALE_DAYS).unwrap_or(false), "errors": validate(&content)})
 }
 
+// reqforge: implements REQ-0057
+/// Monitor counts: whether there is a snapshot, its age in days, whether it is stale and by how
+/// many days past STALE_DAYS (0 when fresh or absent).
+pub fn monitor_counts(src: &dyn Source) -> Value {
+    let Some(content) = src.snapshot() else {
+        return json!({"exists": false, "last_reconciled": null, "age_days": null, "stale": false, "days_over": 0, "limit_days": STALE_DAYS, "valid": false});
+    };
+    let lr = last_reconciled(&content);
+    let age = lr.map(|d| (today() - d).num_days());
+    let over = age.map(|a| (a - STALE_DAYS).max(0)).unwrap_or(0);
+    json!({"exists": true, "last_reconciled": lr.map(|d| d.to_string()), "age_days": age, "stale": over > 0, "days_over": over,
+           "limit_days": STALE_DAYS, "valid": validate(&content).is_empty()})
+}
+
 /// Lint findings: a stale or invalid snapshot; none when there is no snapshot (REQ-0057#AC4).
 // reqforge: implements REQ-0057
 pub fn lint_findings(src: &dyn Source) -> Vec<Value> {

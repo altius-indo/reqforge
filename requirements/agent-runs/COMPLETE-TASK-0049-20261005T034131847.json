@@ -1,0 +1,31 @@
+{
+  "task": "TASK-0049",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:40:29+00:00",
+  "branch": "reqforge/TASK-0049",
+  "target": "main",
+  "target_head": "7f7ebb56d2cfad708088fcdf69718f93d825255e",
+  "task_head": "c0d0595f62c249c77765af5483f2b644c6868292",
+  "eval_scope": "story",
+  "evals": [
+    {
+      "id": "E1",
+      "name": "history append, privacy and compaction",
+      "command": "cargo test --manifest-path server/Cargo.toml --test history",
+      "status": "passed",
+      "seconds": 7.6
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: gap prompt",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-history.xml --suite history",
+      "status": "failed",
+      "seconds": 54.7,
+      "output_tail": "e2e: binary server/target/release/reqforge\ne2e: chrome /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\ne2e: data   /private/var/folders/9p/dzm94jm56kndj06v4l9wt2mh0000gn/T/reqforge-e2e-XkArbH\n\n== history 23/24 passed in 50.6s\n   FAIL [REQ-0062#AC4] session start shows the gap since the last session\n        30 dayssince the last sessionunexplained2026-09-04 – 2026-10-04RecordAsk Claude to add, refine, merge or remove requirements. It reviews what exists, loops on MECE and traceability checks, assesses im\n\nFAILED: 23/24 checks (history 23/24)\nJUnit: web/e2e/results/junit-history.xml\n(re-run with --keep to inspect server.log, chrome.log and the data of each suite)"
+    }
+  ],
+  "ended": "2026-10-05T03:41:31+00:00",
+  "outcome": "refused: evals failed",
+  "run_id": "COMPLETE-TASK-0049-20261005T034131847",
+  "kind": "complete"
+}

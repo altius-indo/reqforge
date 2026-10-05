@@ -192,3 +192,15 @@ fn an_agent_edit_to_the_requirements_repo_is_flagged_even_when_reqforge_commits_
     let v: Vec<&str> = res["violations"].as_array().unwrap().iter().filter_map(Value::as_str).collect();
     assert!(v.iter().any(|x| x.contains("requirements repository") && x.contains("sneaky.txt")), "{v:?}");
 }
+
+// reqforge: verifies REQ-0052#AC3
+#[test]
+fn coding_agent_bash_is_limited_to_worktree_file_ops_and_read_only_reqforge() {
+    let allowed = reqforge::agent::allowed_tools();
+    for c in ["git rm", "git mv", "mkdir", "ls", "chmod +x", "bin/reqforge lint", "bin/reqforge verify", "./bin/reqforge show"] {
+        assert!(allowed.contains(&format!("Bash({c}:*)")), "{c} should be allowed");
+    }
+    for c in ["bin/reqforge", "./bin/reqforge", "bin/reqforge edit", "bin/reqforge bulk", "bin/reqforge import", "bin/reqforge rm", "bash", "sh", "chmod", "rm"] {
+        assert!(!allowed.contains(&format!("Bash({c}:*)")), "{c} must not be allowed");
+    }
+}

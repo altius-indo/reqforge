@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|decisions|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|snapshot|history|decisions|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design", "decisions"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design", "snapshot", "history", "decisions"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,7 +36,7 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|decisions|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|snapshot|history|decisions|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
@@ -371,6 +371,53 @@ const SUITES = {
       ctx.importProject(ws, path.join(ws, "bare"), "BARE");
       return { serve: ["--workspace", ws], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/p/SHOP/sessions", route: "/#/p/SHOP",
         workspaceName: "ws" };
+    },
+  },
+  // Project snapshot (REQ-0057/REQ-0058): SHOP demo without state/HOT.md; fake-claude.py drafts one as a changeset
+  snapshot: {
+    timeout: 180,
+    setup(ctx, dir) {
+      const shop = ctx.seedDemo(path.join(dir, "shop"), "--no-code");
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
+        after: () => {
+          // AC2: the file on disk is the applied content, and the only commit that wrote it is the apply commit
+          const log = ctx.git(shop, "log", "--format=%s", "--", "state/HOT.md").trim().split("\n").filter(Boolean);
+          const file = path.join(shop, "state", "HOT.md");
+          const text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
+          return [{ name: "[REQ-0057#AC2] Apply committed state/HOT.md and 0 other commits wrote it",
+            ok: log.length === 1 && /^CS-\d+: apply — Draft project snapshot$/.test(log[0]) && /^## Next$/m.test(text) && /- Ship guest checkout/.test(text),
+            detail: `commits touching state/HOT.md: ${JSON.stringify(log)}; file: ${text.slice(0, 120)}` }];
+        } };
+    },
+  },
+  // Session history gaps (REQ-0062#AC4): SHOP demo whose history holds one chat session that ended 30 days ago, so
+  // the next session start shows an unexplained gap; the suite pauses the project, then records the (now deliberate)
+  // gap with a reason.
+  history: {
+    timeout: 180,
+    setup(ctx, dir) {
+      const shop = ctx.seedDemo(path.join(dir, "shop"), "--no-code");
+      const at = (days) => new Date(Date.now() - days * 86400e3).toISOString().replace(/\.\d+Z$/, "+00:00");
+      const entry = { type: "entry", kind: "chat", id: "e2e-old-session", project: "SHOP", user: "e2e", start: at(30.1), end: at(30),
+        outcome: "discussed", changesets_proposed: [], changesets_applied: [], records_touched: [] };
+      fs.mkdirSync(path.join(shop, "history"), { recursive: true });
+      fs.writeFileSync(path.join(shop, "history", "sessions.jsonl"), JSON.stringify(entry) + "\n");
+      ctx.git(shop, "add", "history");
+      ctx.git(shop, "-c", "user.email=e2e@x", "-c", "user.name=e2e", "commit", "-qm", "e2e: a chat session 30 days ago");
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
+        after: () => {
+          const lines = fs.readFileSync(path.join(shop, "history", "sessions.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+          const pauses = lines.filter((l) => l.type === "pause"), gaps = lines.filter((l) => l.type === "gap");
+          const g = gaps[0] || {};
+          return [
+            { name: "[REQ-0062#AC4] the pause and its reason are in history/sessions.jsonl",
+              ok: pauses.length === 1 && pauses[0].reason === "E2E: waiting for the security review", detail: JSON.stringify(pauses) },
+            { name: "[REQ-0062#AC4] one gap recorded: deliberate, 30 days, with the pause reason and the user's reason",
+              ok: gaps.length === 1 && g.gap === "deliberate" && g.days === 30 && g.pause_reason === "E2E: waiting for the security review"
+                && g.reason === "E2E: the review took a month",
+              detail: JSON.stringify(gaps) },
+          ];
+        } };
     },
   },
   // Decisions tab (REQ-0061#AC4): SHOP demo with its code component and decision-tagged code (writeDecisionCode)

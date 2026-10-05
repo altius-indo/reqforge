@@ -110,25 +110,41 @@ fn parse_time(t: &str) -> Option<chrono::DateTime<chrono::Utc>> {
         .or_else(|| chrono::NaiveDate::parse_from_str(t, "%Y-%m-%d").ok().and_then(|d| d.and_hms_opt(0, 0, 0)).map(|d| d.and_utc()))
 }
 
+/// Accepted decisions that are not exercised: (id, days since acceptance if dated, reason).
+fn unexercised(src: &dyn Source, rep: &Value, now: chrono::DateTime<chrono::Utc>) -> Vec<(String, Option<i64>, String)> {
+    src.records(Kind::Decisions)
+        .iter()
+        .filter(|d| s(d, "status") == "accepted")
+        .filter(|d| rep["decisions"][s(d, "id")]["exercised"] != json!(true))
+        .map(|d| {
+            let since = [s(d, "accepted_at"), s(d, "updated"), s(d, "created")].into_iter().find_map(parse_time);
+            let reason = rep["decisions"][s(d, "id")]["reason"].as_str().unwrap_or("").to_string();
+            (s(d, "id").to_string(), since.map(|t| (now - t).num_days()), reason)
+        })
+        .collect()
+}
+
 // reqforge: implements REQ-0061
 /// Lint findings: every accepted decision not exercised within GRACE_DAYS of acceptance.
 pub fn lint_findings(src: &dyn Source, now: chrono::DateTime<chrono::Utc>) -> Vec<Value> {
     let Some(root) = src.root() else { return vec![] };
     let rep = compute(src, &load_all(&root), &load_latest(&root));
-    let mut out = vec![];
-    for d in src.records(Kind::Decisions).iter().filter(|d| s(d, "status") == "accepted") {
-        let id = s(d, "id");
-        let e = &rep["decisions"][id];
-        if e["exercised"] == json!(true) {
-            continue;
-        }
-        let since = [s(d, "accepted_at"), s(d, "updated"), s(d, "created")].into_iter().find_map(parse_time);
-        let Some(since) = since else { continue };
-        let days = (now - since).num_days();
-        if days >= GRACE_DAYS {
-            out.push(json!({"severity": "warning", "rule": "decision-unexercised", "ids": [id],
-                "message": format!("accepted {days} days ago but not exercised: {}", e["reason"].as_str().unwrap_or(""))}));
-        }
-    }
-    out
+    unexercised(src, &rep, now)
+        .into_iter()
+        .filter_map(|(id, days, reason)| {
+            let days = days.filter(|d| *d >= GRACE_DAYS)?;
+            Some(json!({"severity": "warning", "rule": "decision-unexercised", "ids": [id],
+                "message": format!("accepted {days} days ago but not exercised: {reason}")}))
+        })
+        .collect()
+}
+
+// reqforge: implements REQ-0061
+/// Monitor counts: accepted decisions, how many are unexercised, and how many of those are past
+/// GRACE_DAYS (the ones lint warns about). `rep` is the output of `compute`.
+pub fn monitor_counts(src: &dyn Source, rep: &Value, now: chrono::DateTime<chrono::Utc>) -> Value {
+    let accepted = src.records(Kind::Decisions).iter().filter(|d| s(d, "status") == "accepted").count();
+    let un = unexercised(src, rep, now);
+    let overdue: Vec<&str> = un.iter().filter(|(_, d, _)| d.is_some_and(|d| d >= GRACE_DAYS)).map(|(id, _, _)| id.as_str()).collect();
+    json!({"accepted": accepted, "unexercised": un.len(), "overdue": overdue.len(), "overdue_ids": overdue, "grace_days": GRACE_DAYS})
 }

@@ -3,7 +3,7 @@ import { Check, ChevronRight, X } from "lucide-react"
 import { toast } from "sonner"
 import { ApiError } from "@/api/client"
 import { useApi } from "@/state/project"
-import type { Changeset, ImpactEval, ImpactStory, ImpactTask, ResolvedOp } from "@/api/types"
+import type { Changeset, ImpactEval, ImpactStory, ImpactTask, ResolvedOp, SnapshotDiffLine } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -18,6 +18,41 @@ const OP_STYLE: Record<string, string> = {
   create: "bg-ok/15 text-ok",
   update: "bg-primary/12 text-primary",
   delete: "bg-err/12 text-err",
+  snapshot: "bg-warn/15 text-warn",
+}
+
+const DIFF_STYLE: Record<SnapshotDiffLine["t"], string> = {
+  "+": "bg-ok/12 text-ok",
+  "-": "bg-err/10 text-err",
+  " ": "text-muted-foreground",
+}
+
+/** Line diff of the project snapshot (state/HOT.md), old -> new. */
+// reqforge: implements REQ-0057
+function SnapshotDiff({ o }: { o: ResolvedOp }) {
+  const diff = o.diff || []
+  const added = diff.filter((d) => d.t === "+").length
+  const removed = diff.filter((d) => d.t === "-").length
+  return (
+    <div className="mt-0.5">
+      <div data-testid="cs-snapshot-meta" className="text-[12px] text-muted-foreground">
+        project snapshot{o.base_version === "absent" ? " (new file)" : ""} · <span className="text-ok">+{added}</span>{" "}
+        <span className="text-err">−{removed}</span> lines · {o.bytes ?? 0} bytes
+        {o.last_reconciled ? ` · last reconciled ${o.last_reconciled}` : ""}
+      </div>
+      <pre
+        data-testid="cs-snapshot-diff"
+        className="mt-1 max-h-[320px] overflow-auto rounded border bg-muted/40 py-1 font-mono text-[11.5px] leading-[17px]"
+      >
+        {diff.map((d, i) => (
+          <div key={i} data-testid="cs-diff-line" data-t={d.t} className={cn("px-2 whitespace-pre-wrap", DIFF_STYLE[d.t])}>
+            <span className="inline-block w-3 select-none">{d.t === "-" ? "−" : d.t}</span>
+            {d.line}
+          </div>
+        ))}
+      </pre>
+    </div>
+  )
 }
 
 function Verdict({ ok, yes, no }: { ok: boolean; yes: string; no: string }) {
@@ -76,12 +111,17 @@ function Op({ o, cs, included, onToggle }: { o: ResolvedOp; cs: Changeset; inclu
       )}
       <span className={cn("rounded px-1.5 text-[11px] leading-[18px] font-semibold", OP_STYLE[o.op])}>{o.op}</span>
       <div className="min-w-0 flex-1">
-        {cs.status === "applied" || o.op !== "create" ? <IdLink id={o.id} /> : <span className="id-mono">{o.id}</span>}
+        {o.op !== "snapshot" && (cs.status === "applied" || o.op !== "create") ? (
+          <IdLink id={o.id} />
+        ) : (
+          <span className="id-mono">{o.id}</span>
+        )}
         {o.ref && <span className="text-muted-foreground"> (${o.ref})</span>} <span>{o.title || ""}</span>
         {o.reason && <div className="text-[12px] text-muted-foreground">{o.reason}</div>}
         {o.op === "create" && typeof o.data?.statement === "string" && (
           <div className="mt-0.5 text-[12px] text-muted-foreground">{o.data.statement}</div>
         )}
+        {o.op === "snapshot" && <SnapshotDiff o={o} />}
         {Object.entries(o.changes || {}).map(([f, d]) => (
           <DiffLine key={f} field={f} pair={d} />
         ))}

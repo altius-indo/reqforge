@@ -207,6 +207,11 @@ pub enum Cmd {
         #[arg(long)]
         req: Option<String>,
     },
+    /// project state health for the scheduled monitor: snapshot staleness and unexercised decisions
+    Monitor {
+        #[arg(long)]
+        md: bool,
+    },
     /// requirements, tests and evals affected by a code change (PR impact)
     Impact {
         #[arg(short, long)]
@@ -577,6 +582,15 @@ pub fn run(cli: Cli) -> Res<i32> {
                 pretty(&crate::verify::summary(&full));
             }
             return Ok(if gate && full["ok"] != json!(true) { 1 } else { 0 });
+        }
+        Cmd::Monitor { md } => {
+            let full = crate::verify::report(s);
+            let st = &full["summary"]["state"];
+            if md {
+                println!("## Project state\n\n{}", crate::verify::state_line(st));
+            } else {
+                pretty(st);
+            }
         }
         Cmd::Impact { component, base, root, md, select_tests } => {
             let rep = crate::impact::impact(s, component.as_deref(), root.as_deref(), base.as_deref())?;
