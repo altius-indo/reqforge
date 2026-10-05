@@ -86,7 +86,7 @@ pub fn artifacts(path: &Path) -> Value {
 }
 
 pub fn remote_url(path: &Path) -> Option<String> {
-    let o = Command::new("git").arg("-C").arg(path).args(["remote", "get-url", "origin"]).output().ok()?;
+    let o = Command::new("git").env("GIT_OPTIONAL_LOCKS", "0").arg("-C").arg(path).args(["remote", "get-url", "origin"]).output().ok()?;
     o.status.success().then(|| String::from_utf8_lossy(&o.stdout).trim().to_string()).filter(|s| !s.is_empty())
 }
 

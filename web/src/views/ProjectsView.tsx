@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { ExternalLink, FolderOpen, FolderPlus, Import, Pencil, Star, Trash2, TriangleAlert } from "lucide-react"
+import { ExternalLink, FolderOpen, FolderPlus, Import, Pause, Pencil, Star, Trash2, TriangleAlert } from "lucide-react"
 import { toast } from "sonner"
 import { projectsApi } from "@/api/client"
 import type { DeleteProjectResult, Project } from "@/api/types"
-import { DeleteProjectDialog, RenameProjectDialog } from "@/components/ProjectDialogs"
+import { DeleteProjectDialog, PauseProjectDialog, RenameProjectDialog } from "@/components/ProjectDialogs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -57,6 +57,7 @@ const day = (iso: string) => {
 export function ProjectsView() {
   const { list, projects, single, active, open, openCreate, refresh, forget } = useProjects()
   const [renaming, setRenaming] = useState<Project | null>(null)
+  const [pausing, setPausing] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState<Project | null>(null)
   const [busyKey, setBusyKey] = useState<string | null>(null)
 
@@ -208,6 +209,16 @@ export function ProjectsView() {
                     >
                       <FolderOpen /> Open
                     </Button>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      disabled={!p.available}
+                      title="pause the project with a reason: the next long gap is recorded as deliberate"
+                      onClick={() => setPausing(p)}
+                      data-testid="project-pause"
+                    >
+                      <Pause /> Pause
+                    </Button>
                     {!single && (
                       <>
                         <Button size="xs" variant="ghost" onClick={() => setRenaming(p)} data-testid="project-rename">
@@ -248,6 +259,7 @@ export function ProjectsView() {
         </table>
       </div>
       <RenameProjectDialog project={renaming} onClose={() => setRenaming(null)} />
+      <PauseProjectDialog project={pausing} onClose={() => setPausing(null)} />
       <DeleteProjectDialog project={deleting} onClose={() => setDeleting(null)} onDeleted={(r) => void onDeleted(r)} />
     </div>
   )

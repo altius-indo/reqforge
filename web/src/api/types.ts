@@ -1,8 +1,9 @@
 // Wire types for the reqforge JSON API. These mirror reqforge/api.py, query.py, changes.py and
 // chat.py exactly; the Rust backend serves the same shapes, so change both sides together.
 
-export type Kind = "requirements" | "epics" | "stories" | "tasks" | "components"
+export type Kind = "requirements" | "epics" | "stories" | "tasks" | "components" | "decisions"
 export type Tab = Kind | "trace" | "verification" | "lint" | "changes" | "design"
+/** kinds with a generic list tab (decisions have their own Decisions tab) */
 export const KINDS: Kind[] = ["requirements", "epics", "stories", "tasks", "components"]
 
 // ------------------------------------------------------------------ meta
@@ -280,6 +281,40 @@ export interface RecordContext {
   code?: ReqVerification
   /** requirements only: design documents whose `realises` lists this requirement */
   design?: DesignDocRef[]
+  /** decisions only: whether tested code relies on it (same as GET /decisions/exercised) */
+  exercised?: DecisionExercised
+}
+
+// ------------------------------------------------------------------ decisions
+export type DecisionStatus = "proposed" | "accepted" | "superseded"
+/** per tagged test: passed (fresh), suspect (code changed since), failing, pending (no evidence) */
+export type DecisionTestStatus = "passed" | "suspect" | "failing" | "pending"
+
+export interface DecisionTest extends CodeLocation {
+  status: DecisionTestStatus
+  evidence: { source: string; status: string; commit?: string | null; at?: string | null }[]
+}
+
+/** One decision in GET /decisions/exercised. */
+export interface DecisionExercised {
+  id: string
+  title: string
+  status: DecisionStatus
+  requirements: string[]
+  superseded_by: string | null
+  accepted_at: string | null
+  exercised: boolean
+  /** why it is not exercised; "" when it is */
+  reason: string
+  /** code tagged `reqforge: implements DEC-…` */
+  implements: CodeLocation[]
+  /** tests tagged with the decision id */
+  tests: DecisionTest[]
+}
+
+export interface DecisionsReport {
+  summary: { decisions: number; exercised: number }
+  decisions: Record<string, DecisionExercised>
 }
 
 // ------------------------------------------------------------------ design documents
@@ -322,8 +357,9 @@ export interface ChangesetOp {
 /** An op after simulation (ids resolved, field diffs computed). */
 export interface ResolvedOp {
   i: number
-  op: "create" | "update" | "delete"
-  kind: Kind
+  op: "create" | "update" | "delete" | "snapshot"
+  kind: Kind | "snapshot"
+  /** record id, or state/HOT.md for a snapshot op */
   id: string
   ref?: string | null
   title?: string | null
@@ -332,7 +368,32 @@ export interface ResolvedOp {
   data?: Record<string, unknown>
   /** update: field -> [old, new] */
   changes?: Record<string, [unknown, unknown]>
-  base_version?: number | null
+  /** record version, or the old snapshot's sha256 ("absent" when there was none) */
+  base_version?: number | string | null
+  /** snapshot: size of the new content in bytes */
+  bytes?: number
+  /** snapshot: Last reconciled date of the new content */
+  last_reconciled?: string | null
+  /** snapshot: line diff of state/HOT.md, old -> new */
+  diff?: SnapshotDiffLine[]
+}
+
+/** One line of a snapshot diff: unchanged, added or removed. */
+export interface SnapshotDiffLine {
+  t: " " | "+" | "-"
+  line: string
+}
+
+/** GET snapshot: the project snapshot (state/HOT.md); only `exists` when there is none. */
+export interface SnapshotStatus {
+  exists: boolean
+  path?: string
+  content?: string
+  bytes?: number
+  last_reconciled?: string | null
+  age_days?: number | null
+  stale?: boolean
+  errors?: string[]
 }
 
 export interface TraceDelta {
@@ -471,6 +532,7 @@ export interface ChatRequest {
 
 export type ChatEvent =
   | { type: "session"; session_id: string }
+  | { type: "gap"; gap: PendingGap }
   | { type: "tool"; name: string; sub: boolean; text: string }
   | { type: "text"; text: string }
   | { type: "changeset"; id: string }
@@ -598,6 +660,28 @@ export interface ComponentIndexSummary {
   requirements: number
 }
 
+export interface ProjectStateHealth {
+  snapshot: {
+    exists: boolean
+    last_reconciled: string | null
+    age_days: number | null
+    stale: boolean
+    /** days past limit_days (0 when fresh or absent) */
+    days_over: number
+    limit_days: number
+    valid: boolean
+  }
+  decisions: {
+    accepted: number
+    /** accepted decisions not exercised by tagged, passing tests */
+    unexercised: number
+    /** unexercised for at least grace_days (lint warns) */
+    overdue: number
+    overdue_ids: string[]
+    grace_days: number
+  }
+}
+
 export interface VerificationReport {
   ok: boolean
   summary: {
@@ -610,6 +694,8 @@ export interface VerificationReport {
     components: ComponentIndexSummary[]
     /** "type/category" -> counts */
     by_category: Record<string, { requirements: number; verified: number }>
+    /** project state health, as reported by the scheduled monitor */
+    state?: ProjectStateHealth
   }
   checks: TraceCheck[]
   statuses: Record<string, VerificationStatus>
@@ -887,4 +973,32 @@ export interface VerificationSnapshot {
   criteria: Partial<Record<VerificationStatus, number>>
   criteria_total: number
   verified_ratio: number
+}
+
+// ------------------------------------------------------------------ session history (REQ-0062)
+/** a quiet spell of 14 days or more since the last session that is not recorded yet */
+export interface PendingGap {
+  from: string
+  to: string
+  days: number
+  /** deliberate when the project was paused with a reason since the last session */
+  gap: "deliberate" | "unexplained"
+  pause_reason: string
+}
+
+/** a gap as recorded in history/sessions.jsonl */
+export interface HistoryGap extends PendingGap {
+  type: "gap"
+  project: string
+  user: string
+  reason: string
+  at: string
+}
+
+export interface HistoryPause {
+  type: "pause"
+  project: string
+  user: string
+  at: string
+  reason: string
 }

@@ -827,7 +827,7 @@ pub mod git {
     use super::*;
 
     fn run(root: &Path, args: &[&str]) -> Option<std::process::Output> {
-        Command::new("git").arg("-C").arg(root).args(args).output().ok()
+        Command::new("git").env("GIT_OPTIONAL_LOCKS", "0").arg("-C").arg(root).args(args).output().ok()
     }
 
     pub fn is_repo(root: &Path) -> bool {

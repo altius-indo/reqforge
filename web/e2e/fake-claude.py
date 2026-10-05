@@ -5,7 +5,8 @@
 Emits stream-json like the real CLI. Turn 1 searches and asks a ```choices question; turn 2 (the answer,
 which contains "→") proposes a real changeset through `reqforge mcp`; turn 3 (the "I applied …" follow-up)
 replies "Verified". A message with "NEXT-DEMO" proposes an estimate for TASK-0002 (SHOP demo); the wrap-up
-message ("Before we stop: …") proposes TASK-0002's next action and a snapshot. The reqforge binary comes from
+message ("Before we stop: …") proposes TASK-0002's next action and a snapshot. A turn asking to "Draft a project
+snapshot" proposes a changeset with one snapshot op (a new state/HOT.md dated today). The reqforge binary comes from
 $REQFORGE_BIN (set by web/e2e/run.mjs).
 
 Coding-agent mode (the server's agent launcher passes `--permission-mode acceptEdits`, cwd = the task worktree,
@@ -19,6 +20,7 @@ import re
 import subprocess
 import sys
 import time
+from datetime import date
 
 BIN = os.environ.get("REQFORGE_BIN") or "reqforge"
 prompt = sys.stdin.read()
@@ -49,9 +51,10 @@ def coding_agent():
         f.write(f"work for {task}\n")
     out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "g1", "name": "Bash",
                                                         "input": {"command": f"git add {name} && git commit -m '{task}: …'"}}]}})
-    subprocess.run(["git", "add", name], check=True, capture_output=True)
-    subprocess.run(["git", "-c", "user.email=e2e@x", "-c", "user.name=e2e", "commit", "-q", "-m", f"{task}: add {name}"],
-                   check=True, capture_output=True)
+    for cmd in (["git", "add", name], ["git", "-c", "user.email=e2e@x", "-c", "user.name=e2e", "commit", "-q", "-m", f"{task}: add {name}"]):
+        r = subprocess.run(cmd, capture_output=True, text=True)
+        if r.returncode:
+            sys.exit(f"{' '.join(cmd[:2])} … failed ({r.returncode}): {r.stderr.strip()}")
     done = f"Done: committed {name} on this branch. Tests: n/a (fake agent)."
     if "PROPOSE-NEXT" in prompt:
         done += f"\nNEXT: Run `pytest tests/test_checkout.py` and review {name}"
@@ -96,6 +99,15 @@ if "Before we stop:" in prompt:
 elif "NEXT-DEMO" in prompt:
     propose({"title": "Estimate TASK-0002", "ops": [{"op": "update", "id": "TASK-0002", "patch": {"estimate": "2d"}, "reason": "user asked"}]},
             "Proposed the estimate below; review and apply.")
+elif "Draft a project snapshot" in prompt and "applied" not in prompt:
+    snap = (f"# Project snapshot\n\n## Now\n\n- Checkout flow in progress (STORY-0001)\n\n## Next\n\n- Ship guest checkout\n\n"
+            f"## Watch\n\n- PSP latency budget\n\nLast reconciled: {date.today().isoformat()}\n")
+    res = mcp("propose_changeset", {"changeset": {"title": "Draft project snapshot", "summary": "First state/HOT.md",
+                                                  "ops": [{"op": "snapshot", "content": snap, "reason": "no snapshot yet"}]}})
+    out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "p", "name": "mcp__plugin_reqforge_reqforge__propose_changeset",
+                                                        "input": {"changeset": {"title": "Draft project snapshot", "ops": [1]}}}]}})
+    out({"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "p", "content": [{"type": "text", "text": json.dumps(res)}]}]}})
+    out({"type": "assistant", "message": {"content": [{"type": "text", "text": "Drafted the snapshot below; review the diff and apply."}]}})
 elif "→" not in prompt and "applied" not in prompt:
     out({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "a", "name": "mcp__plugin_reqforge_reqforge__search",
                                                         "input": {"kind": "requirements", "q": "type:data audit"}}]}})

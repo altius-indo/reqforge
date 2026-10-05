@@ -314,4 +314,36 @@ to the requirements it realises. Read them here instead of reading the code.
 3. Write the body in GitHub-flavoured Markdown: headings, lists, tables and code blocks all render.
 4. Commit the file (or click **Sync**), then open the **Design** tab. **Lint** reports any \`realises\` id that is not
    an existing requirement.
+`,"../../../help/09-decisions.md":`---
+id: decisions
+title: Decisions
+tabs: decisions
+keywords: decision, decisions, adr, architecture decision, exercised, superseded, accepted, proposed, DEC
+---
+The **Decisions** tab lists the project's design decisions (DEC-NNNN) and shows which ones tested code really
+relies on.
+
+### Read the decisions
+
+1. Open the **Decisions** tab in the header.
+2. Each row shows the decision's **status** (proposed, accepted or superseded), whether it is **exercised**, and
+   the **requirements** it is linked to. A decision that is not exercised says why.
+3. Click a row to open the decision in the drawer on its **Exercised** tab: the code tagged as implementing it and
+   every tagged test with its status (passed, suspect, failing or pending).
+
+### Make a decision exercised
+
+A decision is exercised when at least one code location carries the comment \`reqforge: implements DEC-NNNN\`, at
+least one test is tagged with the same id, and every such test has fresh passing evidence.
+
+1. Tag the code that relies on the decision, and tag its tests, as you do for requirements.
+2. Scan the component and ingest the CI results on the **Verification** tab.
+3. **Lint** warns about every accepted decision that is still not exercised 14 days after it was accepted.
+
+### Record or change a decision
+
+Decisions change only through changesets; the drawer shows a decision's fields but cannot save them.
+
+1. Open the decision in the drawer and click **Ask Claude**, or describe the decision in the chat.
+2. Review the changeset Claude proposes and apply it on the **Changes** tab.
 `});function t(e,t){let n=t.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/),r={};for(let e of(n?.[1]??``).split(/\r?\n/)){let t=e.indexOf(`:`);t>0&&(r[e.slice(0,t).trim()]=e.slice(t+1).trim())}let i=(n?.[2]??t).trim(),a=e.split(`/`).pop()??e,o=r.id||a.replace(/^\d+-/,``).replace(/\.md$/,``),s=r.title||o,c=r.keywords||``;return{id:o,title:s,tabs:(r.tabs||``).split(`,`).map(e=>e.trim()).filter(Boolean),keywords:c,body:i,haystack:`${s}\n${c}\n${i}`.toLowerCase(),file:a}}var n=Object.entries(e).sort(([e],[t])=>e.localeCompare(t)).map(([e,n])=>t(e,n));function r(e){return(n.find(t=>t.tabs.includes(e))??n[0])?.id??``}function i(e){let t=e.toLowerCase().split(/\s+/).filter(Boolean);return t.length?n.filter(e=>t.every(t=>e.haystack.includes(t))):n}export{n as GUIDES,i as searchGuides,r as sectionFor};

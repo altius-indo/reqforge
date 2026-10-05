@@ -11,6 +11,9 @@ import type {
   StartResult,
   TaskReadiness,
   VerificationSnapshot,
+  HistoryGap,
+  HistoryPause,
+  PendingGap,
   ApplyResult,
   BulkRequest,
   BulkResult,
@@ -28,8 +31,10 @@ import type {
   VerificationReport,
   CreateProjectRequest,
   DeleteProjectResult,
+  DecisionsReport,
   DeleteResult,
   DesignDoc,
+  SnapshotStatus,
   Facets,
   ImportResult,
   Kind,
@@ -179,6 +184,11 @@ export function projectApi(key: string) {
     codeImpact: (component: string, base: string) =>
       request<CodeImpact>("GET", `${b}/impact?${qs({ component, base })}`),
     chatCancel: (chatId: string) => request<{ cancelled: boolean }>("POST", `${b}/chat/cancel`, { chat_id: chatId }),
+    chatEnd: (sessionId: string) => request<{ ended: boolean }>("POST", `${b}/chat/end`, { session_id: sessionId }),
+    // session history (REQ-0062): the pending gap, recording it with a reason, pausing the project
+    pendingGap: () => request<{ gap: PendingGap | null }>("GET", `${b}/history/gap`),
+    recordGap: (reason: string) => request<HistoryGap>("POST", `${b}/history/gap`, { reason }),
+    pause: (reason: string) => request<HistoryPause>("POST", `${b}/history/pause`, { reason }),
     verificationHistory: (limit = 30) =>
       request<VerificationSnapshot[]>("GET", `${b}/verification/history?${qs({ limit })}`),
     // tasks: start, coding-agent runs, agent queue
@@ -198,6 +208,10 @@ export function projectApi(key: string) {
     // design documents (design/<slug>.md), read-only
     designDocs: () => request<DesignDoc[]>("GET", `${b}/design`),
     designDoc: (slug: string) => request<string>("GET", `${b}/design/${encodeURIComponent(slug)}`),
+    // decisions (DEC-NNNN) with whether tested code relies on them
+    decisions: () => request<DecisionsReport>("GET", `${b}/decisions/exercised`),
+    // project snapshot (state/HOT.md), read-only: it changes only through a changeset
+    snapshot: () => request<SnapshotStatus>("GET", `${b}/snapshot`),
   }
 }
 

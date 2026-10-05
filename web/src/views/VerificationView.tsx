@@ -417,6 +417,28 @@ export function VerificationView() {
         <StatCard testId="verif-ratio" value={pct(S.verified_ratio)} label={`criteria verified (${fmt(S.criteria_total)})`} tone={S.verified_ratio >= 1 ? "ok" : undefined} />
         <StatCard value={fmt(S.implemented)} label="requirements with tagged code" />
         <StatCard value={fmt(S.evidence)} label="evidence results" />
+        {S.state && (
+          <StatCard
+            testId="verif-snapshot-age"
+            value={!S.state.snapshot.exists ? "none" : S.state.snapshot.age_days == null ? "undated" : `${fmt(S.state.snapshot.age_days)}d`}
+            tone={S.state.snapshot.stale ? "warn" : S.state.snapshot.exists ? "ok" : "muted"}
+            label={
+              S.state.snapshot.stale
+                ? `snapshot stale · ${fmt(S.state.snapshot.days_over)}d over ${S.state.snapshot.limit_days}d limit`
+                : `snapshot age (limit ${S.state.snapshot.limit_days}d)`
+            }
+            title={S.state.snapshot.last_reconciled ? `Last reconciled ${S.state.snapshot.last_reconciled}` : "No project snapshot"}
+          />
+        )}
+        {S.state && (
+          <StatCard
+            testId="verif-decisions-unexercised"
+            value={fmt(S.state.decisions.unexercised)}
+            tone={S.state.decisions.overdue ? "warn" : S.state.decisions.unexercised ? undefined : "ok"}
+            label={`unexercised decisions of ${fmt(S.state.decisions.accepted)} · ${fmt(S.state.decisions.overdue)} past ${S.state.decisions.grace_days}d`}
+            title={S.state.decisions.overdue_ids.join(", ") || undefined}
+          />
+        )}
       </Cards>
       <div className="mb-3">
         <VerifiedTrend />

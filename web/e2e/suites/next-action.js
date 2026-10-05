@@ -190,8 +190,14 @@ async function wrapUpOnNew() {
   ok("New after the wrap-up starts a fresh session", await until(() => $$(T("msg-user")).length === 0, 5000) && (await wrapCount()) === 1, `${$$(T("msg-user")).length}`);
   await applyInChat("new");
   const n0 = await wrapCount();
+  // the label shows only while the wrap-up turn runs, which the fake agent can finish between two polls: record it as it renders
+  let sawWrapping = false;
+  const mo = new MutationObserver(() => { if (/Wrapping up/.test(txt(T("chat-new")))) sawWrapping = true; });
+  mo.observe(document.body, { subtree: true, childList: true, characterData: true });
   $(T("chat-new")).click();
-  ok("[REQ-0059#AC4] New after an apply wraps up first (Wrapping up…)", await until(() => /Wrapping up/.test(txt(T("chat-new"))), 3000),
+  const wrapped = await until(() => sawWrapping, 3000);
+  mo.disconnect();
+  ok("[REQ-0059#AC4] New after an apply wraps up first (Wrapping up…)", wrapped,
     `${txt(T("chat-new"))} wrap=${localStorage.getItem("reqforge.chat.wrap.SHOP")} session=${localStorage.getItem("reqforge.chat.session.SHOP")}`);
   ok("[REQ-0059#AC4] then the new session starts with an empty log", await until(() => $$(T("msg-user")).length === 0 && /New/.test(txt(T("chat-new"))), 20000), txt(T("chat-messages")).slice(-200));
   ok("[REQ-0059#AC4] exactly one wrap-up for that session", (await wrapCount()) === n0 + 1, `${n0} -> ${await wrapCount()}`);

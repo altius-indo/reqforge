@@ -9,6 +9,7 @@ import { ChatProvider, useChat } from "@/state/chat"
 import { HelpProvider } from "@/state/help"
 import { useProjects } from "@/state/project"
 import { ChangesView } from "@/views/ChangesView"
+import { DecisionsView } from "@/views/DecisionsView"
 import { DesignView } from "@/views/DesignView"
 import { LintView } from "@/views/LintView"
 import { ListView } from "@/views/ListView"
@@ -30,6 +31,7 @@ function MainView() {
   if (view.tab === "lint") return <LintView />
   if (view.tab === "changes") return <ChangesView />
   if (view.tab === "design") return <DesignView />
+  if (view.tab === "decisions") return <DecisionsView />
   if ((KINDS as string[]).includes(view.tab)) return <ListView key={view.tab} kind={view.tab as Kind} />
   return null
 }

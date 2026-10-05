@@ -1,0 +1,36 @@
+{
+  "task": "TASK-0047",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T04:02:07+00:00",
+  "branch": "reqforge/TASK-0047",
+  "target": "main",
+  "target_head": "dfc20f7237cb4d73a5cd4678c6dae14a9031eb5d",
+  "task_head": "66a8904ec5bc655328a0a89b4c433888d911220c",
+  "eval_scope": "story",
+  "evals": [
+    {
+      "id": "E1",
+      "name": "decision records and exercised status",
+      "command": "cargo test --manifest-path server/Cargo.toml --test decisions",
+      "status": "passed",
+      "seconds": 0.8
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: decisions",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-decisions.xml --suite decisions",
+      "status": "passed",
+      "seconds": 7.8
+    }
+  ],
+  "merge_commit": "9f0ea535e53c6ab5160a2a4ad64f38f3fad91195",
+  "changed": [
+    "TASK-0047",
+    "STORY-0019"
+  ],
+  "cleanup_warnings": [],
+  "ended": "2026-10-05T04:02:18+00:00",
+  "outcome": "completed",
+  "run_id": "COMPLETE-TASK-0047-20261005T040218107",
+  "kind": "complete"
+}

@@ -209,7 +209,7 @@ pub fn tags_in_mode(rel: &str, text: &str, component: &str, explicit_only: bool)
 }
 
 pub fn git_head(root: &Path) -> Option<String> {
-    let o = Command::new("git").arg("-C").arg(root).args(["rev-parse", "HEAD"]).output().ok()?;
+    let o = Command::new("git").env("GIT_OPTIONAL_LOCKS", "0").arg("-C").arg(root).args(["rev-parse", "HEAD"]).output().ok()?;
     o.status.success().then(|| String::from_utf8_lossy(&o.stdout).trim().to_string())
 }
 

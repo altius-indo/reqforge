@@ -8,6 +8,8 @@ Rules:
 - Tag implementation entry points `reqforge: implements REQ-…` and tests `reqforge: verifies REQ-…#AC…` in comments, one per line above the function.
 - Run the narrowest tests or evals that prove the criteria, and fix failures.
 - Commit your work on this branch with clear messages that start with the task id.
+- This is a non-interactive session that ends when you stop replying. Run builds and tests in the foreground and wait for them; never start a command in the background to check later. Commit before you finish, even if something is still failing, and say what is.
+- Bash is limited to the build and test tools, git status/diff/log/show/add/commit/rm/mv, mkdir, ls, chmod +x and read-only `bin/reqforge` commands (lint, trace, verify, show, list). If a step needs anything else, leave it and list it under "left open".
 - Finish with a short report: what changed, which tests and evals you ran and their results, and anything left open. Don't claim the task is done; a human reviews the branch.
 - If the brief starts with `## Next action`, begin there.
 - End your final message with one line `NEXT: <step>`: the one concrete step to resume this task, naming a file path, command or record id, at most 280 characters. It is proposed to the user as the task's next action.
