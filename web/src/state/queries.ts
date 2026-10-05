@@ -186,7 +186,13 @@ export function useDesignDoc(slug: string | null) {
 /** every decision with its status, linked requirements and exercised flag (GET /decisions/exercised) */
 export function useDecisions() {
   const api = useApi()
-  return useQuery({ queryKey: ["p", api.key, "decisions"], queryFn: api.decisions })
+  return useQuery({
+    queryKey: ["p", api.key, "decisions"],
+    queryFn: api.decisions,
+    // decisions change only through changesets (chat, MCP, CLI) and their exercised flag through code scans and CI
+    // evidence, all outside this tab: re-fetch whenever the Decisions tab mounts
+    staleTime: 0,
+  })
 }
 
 /** every task id + title + status, for pickers (depends_on) */

@@ -148,6 +148,15 @@ function findChrome() {
   die("Chrome not found: set CHROME to a Chrome/Chromium executable");
 }
 
+// An x64 Node on an Apple-silicon Mac runs under Rosetta, and a universal Chrome it spawns inherits the x86_64 slice:
+// translated V8 runs the UI one to two orders of magnitude slower (the help panel's first render took ~20 s instead
+// of well under 1 s), so timing checks fail for reasons unrelated to the UI. Launch the native arm64 slice instead.
+function chromeCommand(chrome, args) {
+  if (process.platform !== "darwin" || process.arch !== "x64" || !fs.existsSync("/usr/bin/arch")) return [chrome, args];
+  const arm = spawnSync("/usr/sbin/sysctl", ["-n", "hw.optional.arm64"], { encoding: "utf8" });
+  return arm.stdout?.trim() === "1" ? ["/usr/bin/arch", ["-arm64", chrome, ...args]] : [chrome, args];
+}
+
 // ------------------------------------------------------------------------------------------------ test data
 function makeCtx(bin, tmp) {
   const env = { ...process.env, REQFORGE_CLI: bin, REQFORGE_BIN: bin, PYTHONDONTWRITEBYTECODE: "1" };
@@ -497,7 +506,7 @@ async function runSuite(name, ctx, opts) {
       "--no-first-run", "--no-default-browser-check", "--disable-extensions", "--disable-background-networking", "--disable-sync",
       "--disable-features=Translate,MediaRouter", "--password-store=basic", "--use-mock-keychain"];
     if (process.platform === "linux") chromeArgs.push("--disable-dev-shm-usage", ...(process.getuid?.() === 0 ? ["--no-sandbox"] : []));
-    chrome = start(ctx.chrome, [...chromeArgs, base + s.route], path.join(dir, "chrome.log"), process.env);
+    chrome = start(...chromeCommand(ctx.chrome, [...chromeArgs, base + s.route]), path.join(dir, "chrome.log"), process.env);
 
     const deadline = Date.now() + timeoutS * 1000;
     cdp = await cdpAttach(profile, chrome, Math.min(deadline, Date.now() + 30000)).catch(() => null);
