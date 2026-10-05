@@ -6,9 +6,9 @@
   "depends_on": [],
   "description": "Write design/decisions.md (design document format) defining the decisions kind schema and file layout, changeset and MCP support, CSV columns, DEC tag grammar in the code scan, the exercised computation from evidence, and the 14-day lint rule.",
   "done_when": "design/decisions.md is committed with realises [REQ-0060, REQ-0061], has a section addressing each of their acceptance criteria, and lint reports 0 unknown realises ids.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-05T02:46:29+00:00",
-  "updated": "2026-10-05T02:46:29+00:00"
+  "updated": "2026-10-05T02:46:32+00:00"
 }
