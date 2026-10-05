@@ -86,6 +86,38 @@ fn context_preamble(ctx: &Value) -> String {
     lines.join("\n") + "\n\n"
 }
 
+/// The task the UI context is about: an open task drawer (`view.task`), or the tasks tab with
+/// exactly one task selected.
+fn focused_task(ctx: &Value) -> Option<String> {
+    let view = ctx.get("view")?;
+    if let Some(t) = view.get("task").and_then(Value::as_str).filter(|t| t.starts_with("TASK-")) {
+        return Some(t.to_string());
+    }
+    let sel: Vec<&str> = ctx.get("selected").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str).collect();
+    let total = ctx.get("selected_total").and_then(Value::as_u64).unwrap_or(sel.len() as u64);
+    (view.get("tab").and_then(Value::as_str) == Some("tasks") && sel.len() == 1 && total == 1 && sel[0].starts_with("TASK-")).then(|| sel[0].to_string())
+}
+
+/// The prompt sent on a chat turn. The first turn of a session starts with the task section (when
+/// the chat is about one task) and the project snapshot, verbatim (REQ-0058#AC1); resumed turns
+/// already have it in the conversation.
+// reqforge: implements REQ-0058
+pub fn turn_prompt(root: &std::path::Path, message: &str, first_turn: bool, ctx: &Value) -> String {
+    let mut out = String::new();
+    if first_turn {
+        let task = focused_task(ctx).and_then(|id| crate::store::Store::open(root).ok()?.get(crate::model::Kind::Tasks, &id).ok());
+        if let Some(t) = task {
+            out.push_str(&crate::agent::task_section(&t));
+            out.push_str("\n\n");
+        }
+        if let Some(c) = crate::snapshot::read(root) {
+            out.push_str(&crate::snapshot::context_block(&c));
+            out.push_str("\n\n");
+        }
+    }
+    out + &context_preamble(ctx) + message
+}
+
 fn tool_brief(name: &str, inp: &Value) -> String {
     let short = name.replace(MCP, "");
     let g = |k: &str| inp.get(k).and_then(Value::as_str).unwrap_or("").to_string();
@@ -223,9 +255,16 @@ impl ChatRunner {
         json!({"available": c.is_some(), "claude": c})
     }
 
+    /// With `REQFORGE_SNAPSHOT_RESUPPLY=system` every turn's system prompt also carries the current
+    /// snapshot (fallback for the compaction hook, REQ-0058#AC3).
+    // reqforge: implements REQ-0058
     pub fn command_args(&self, session_id: Option<&str>) -> Vec<String> {
+        let mut system = SYSTEM_PROMPT.to_string();
+        if let Some(c) = crate::snapshot::read(&self.root).filter(|_| crate::snapshot::resupply_in_system_prompt()) {
+            system.push_str(&format!("\n\n{}", crate::snapshot::context_block(&c)));
+        }
         let mut a: Vec<String> = vec!["-p".into(), "--output-format".into(), "stream-json".into(), "--verbose".into(),
-            "--append-system-prompt".into(), SYSTEM_PROMPT.into(),
+            "--append-system-prompt".into(), system,
             "--allowedTools".into(), allowed().join(","), "--disallowedTools".into(), denied().join(",")];
         if let Some(p) = plugin_root() {
             a.extend(["--plugin-dir".into(), p.display().to_string()]);
@@ -352,7 +391,8 @@ impl ChatRunner {
             let _ = tx.send(json!({"type": "error", "text": "The `claude` CLI was not found on PATH. Install Claude Code or set REQFORGE_CLAUDE_BIN."})).await;
             return;
         };
-        let prompt = context_preamble(&context) + &message;
+        let first_turn = session_id.as_deref().map(str::is_empty).unwrap_or(true);
+        let prompt = turn_prompt(&self.root, &message, first_turn, &context);
         let child = Command::new(&bin)
             .args(self.command_args(session_id.as_deref()))
             .current_dir(&self.root)

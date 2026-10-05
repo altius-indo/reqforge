@@ -22,6 +22,7 @@ pub mod model;
 pub mod query;
 pub mod queue;
 pub mod research;
+pub mod snapshot;
 pub mod store;
 pub mod taskflow;
 pub mod trace;
