@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|history|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|snapshot|history|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design", "history"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design", "snapshot", "history"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,7 +36,7 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|history|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|snapshot|history|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
@@ -336,6 +336,23 @@ const SUITES = {
       ctx.importProject(ws, path.join(ws, "bare"), "BARE");
       return { serve: ["--workspace", ws], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/p/SHOP/sessions", route: "/#/p/SHOP",
         workspaceName: "ws" };
+    },
+  },
+  // Project snapshot (REQ-0057/REQ-0058): SHOP demo without state/HOT.md; fake-claude.py drafts one as a changeset
+  snapshot: {
+    timeout: 180,
+    setup(ctx, dir) {
+      const shop = ctx.seedDemo(path.join(dir, "shop"), "--no-code");
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
+        after: () => {
+          // AC2: the file on disk is the applied content, and the only commit that wrote it is the apply commit
+          const log = ctx.git(shop, "log", "--format=%s", "--", "state/HOT.md").trim().split("\n").filter(Boolean);
+          const file = path.join(shop, "state", "HOT.md");
+          const text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
+          return [{ name: "[REQ-0057#AC2] Apply committed state/HOT.md and 0 other commits wrote it",
+            ok: log.length === 1 && /^CS-\d+: apply — Draft project snapshot$/.test(log[0]) && /^## Next$/m.test(text) && /- Ship guest checkout/.test(text),
+            detail: `commits touching state/HOT.md: ${JSON.stringify(log)}; file: ${text.slice(0, 120)}` }];
+        } };
     },
   },
   // Session history gaps (REQ-0062#AC4): SHOP demo whose history holds one chat session that ended 30 days ago, so

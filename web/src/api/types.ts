@@ -322,8 +322,9 @@ export interface ChangesetOp {
 /** An op after simulation (ids resolved, field diffs computed). */
 export interface ResolvedOp {
   i: number
-  op: "create" | "update" | "delete"
-  kind: Kind
+  op: "create" | "update" | "delete" | "snapshot"
+  kind: Kind | "snapshot"
+  /** record id, or state/HOT.md for a snapshot op */
   id: string
   ref?: string | null
   title?: string | null
@@ -332,7 +333,32 @@ export interface ResolvedOp {
   data?: Record<string, unknown>
   /** update: field -> [old, new] */
   changes?: Record<string, [unknown, unknown]>
-  base_version?: number | null
+  /** record version, or the old snapshot's sha256 ("absent" when there was none) */
+  base_version?: number | string | null
+  /** snapshot: size of the new content in bytes */
+  bytes?: number
+  /** snapshot: Last reconciled date of the new content */
+  last_reconciled?: string | null
+  /** snapshot: line diff of state/HOT.md, old -> new */
+  diff?: SnapshotDiffLine[]
+}
+
+/** One line of a snapshot diff: unchanged, added or removed. */
+export interface SnapshotDiffLine {
+  t: " " | "+" | "-"
+  line: string
+}
+
+/** GET snapshot: the project snapshot (state/HOT.md); only `exists` when there is none. */
+export interface SnapshotStatus {
+  exists: boolean
+  path?: string
+  content?: string
+  bytes?: number
+  last_reconciled?: string | null
+  age_days?: number | null
+  stale?: boolean
+  errors?: string[]
 }
 
 export interface TraceDelta {

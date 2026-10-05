@@ -1,20 +1,44 @@
 import { useEffect, useRef } from "react"
-import { CircleHelp, RotateCcw, Send, Square, X } from "lucide-react"
+import { CircleHelp, FileText, RotateCcw, Send, Square, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { useChat } from "@/state/chat"
 import { useHelp } from "@/state/help"
-import { useChatStatus } from "@/state/queries"
+import { useChatStatus, useSnapshot } from "@/state/queries"
 import { cn } from "@/lib/utils"
 import { ChatMessage } from "./ChatMessage"
 import { GapPrompt } from "./GapPrompt"
+
+/** What "Ask Claude to draft one" puts in the chat input. */
+export const DRAFT_SNAPSHOT_PROMPT =
+  "Draft a project snapshot (state/HOT.md) from the current requirements, stories and tasks: " +
+  "## Now, ## Next (exactly one item) and ## Watch, plus 'Last reconciled: <today>'. Propose it as a changeset with a snapshot op."
+
+/** Shown while the project has no state/HOT.md; sessions still start normally (REQ-0058#AC4). */
+// reqforge: implements REQ-0058
+function NoSnapshot({ onDraft }: { onDraft: () => void }) {
+  return (
+    <div
+      data-testid="chat-no-snapshot"
+      role="status"
+      className="flex items-center gap-2 border-b bg-muted/40 px-3 py-1.5 text-[12px] text-muted-foreground"
+    >
+      <FileText className="size-3.5 shrink-0" />
+      <span className="min-w-0 flex-1">No project snapshot</span>
+      <Button size="xs" variant="outline" onClick={onDraft} data-testid="chat-draft-snapshot">
+        Ask Claude to draft one
+      </Button>
+    </div>
+  )
+}
 
 // reqforge: implements REQ-0032
 export function ChatPanel() {
   const chat = useChat()
   const help = useHelp()
   const status = useChatStatus()
+  const snapshot = useSnapshot()
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -72,6 +96,7 @@ export function ChatPanel() {
           <X />
         </Button>
       </div>
+      {snapshot.data && !snapshot.data.exists && <NoSnapshot onDraft={() => chat.ask(DRAFT_SNAPSHOT_PROMPT)} />}
       <div ref={listRef} data-testid="chat-messages" className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3">
         <GapPrompt />
         {chat.log.length ? (

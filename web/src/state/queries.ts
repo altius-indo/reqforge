@@ -183,6 +183,12 @@ export function useDesignDoc(slug: string | null) {
   return useQuery({ queryKey: ["p", api.key, "design", slug], queryFn: () => api.designDoc(slug!), enabled: !!slug })
 }
 
+/** the project snapshot (state/HOT.md): exists, content, date, validation errors */
+export function useSnapshot() {
+  const api = useApi()
+  return useQuery({ queryKey: ["p", api.key, "snapshot"], queryFn: api.snapshot })
+}
+
 /** every task id + title + status, for pickers (depends_on) */
 export function useTaskOptions(enabled = true) {
   const api = useApi()
