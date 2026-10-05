@@ -15,6 +15,7 @@ Call the reqforge MCP `taxonomy` tool. It defines the types, categories, enums a
 - Every quality requirement carries a number, plus its measurement conditions.
 - Every requirement gets 1–4 acceptance criteria `{id: "AC1", text}`. Each is an observable pass/fail check, and Given/When/Then is welcome. These ACs are what evals will cover later, so make them executable in principle.
 - Fill `rationale` and `standards` (e.g. "OWASP ASVS 4.0.3 V2.1.1"), plus `source` (the ELI session id the caller gives you).
+- The research comes with graded findings, each with a ref (e.g. `f3`) or an existing id (`RF-0012`). Cite the findings a requirement rests on in its `standards` as `"$f3"` or `"RF-0012"`. Never rest a requirement on a REFUTED finding; when the only support is THIN, say so in `rationale`.
 - Decompose: if a need has several parts, create a parent requirement and children (`parent`). Children must not restate the parent.
 - Priority uses MoSCoW. Status is `proposed`.
 - Collective exhaustiveness: walk every cell of the taxonomy. For each cell, either draft a requirement or list the cell under `not_applicable` with a one-line reason (it becomes a coverage waiver). Every cell ends up covered by one of the two.
