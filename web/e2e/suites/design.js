@@ -15,7 +15,8 @@ const docSlug = () => $(T("design-doc"))?.dataset.slug;
 const bodyReady = () => until(() => $(`${T("design-body")} .md`), 8000);
 const selectDoc = async (slug) => {
   $(`${T("design-item")}[data-slug="${slug}"]`).click();
-  return until(() => docSlug() === slug, 4000) && bodyReady();
+  // until() returns a promise: await the slug first, or bodyReady() would see the previous document's body
+  return (await until(() => docSlug() === slug, 4000)) && (await bodyReady());
 };
 const drawerShows = (id) => until(() => $(T("drawer")) && new RegExp(id + " · v").test(txt(T("drawer-title"))), 8000);
 const closeDrawer = async () => { press(document.body, "Escape"); await until(() => !$(T("drawer")), 3000) };
