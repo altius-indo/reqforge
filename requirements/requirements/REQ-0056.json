@@ -1,11 +1,11 @@
 {
   "id": "REQ-0056",
   "title": "Complete task from agent branch",
-  "statement": "The system shall let a user complete a task whose agent branch is ready by reviewing it, merging it after the story's evals pass on the merged result, and marking the task done in 1 action.",
+  "statement": "The system shall let a user complete a task whose agent branch is ready by reviewing it, merging it after the task's evals pass on the merged result, and marking the task done in 1 action.",
   "type": "functional",
   "category": "task-execution",
   "priority": "should",
-  "status": "implemented",
+  "status": "approved",
   "rationale": "Agent work otherwise stays on local branches and tasks never reach done.",
   "acceptance_criteria": [
     {
@@ -22,7 +22,7 @@
     },
     {
       "id": "AC4",
-      "text": "The story's evals then run in the task worktree; Complete is refused while any of them fails, listing the failing evals and their output tail"
+      "text": "The evals listed on the task then run in the task worktree, or all of the story's evals when it is the story's last open task; Complete is refused while any of them fails, listing the failing evals and their output tail, and a task with no listed evals that is not the last open task completes with 'no evals run' shown"
     },
     {
       "id": "AC5",
@@ -31,6 +31,10 @@
     {
       "id": "AC6",
       "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+    },
+    {
+      "id": "AC7",
+      "text": "Tasks have an evals field listing ids of their story's evals; an id not defined on the story is rejected with a field error"
     }
   ],
   "tags": [
@@ -38,7 +42,7 @@
   ],
   "standards": [],
   "stakeholders": [],
-  "version": 3,
+  "version": 4,
   "created": "2026-10-04T17:20:21+00:00",
-  "updated": "2026-10-04T19:08:02+00:00"
+  "updated": "2026-10-05T03:02:21+00:00"
 }

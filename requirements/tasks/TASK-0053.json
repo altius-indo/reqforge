@@ -4,11 +4,11 @@
   "story": "STORY-0019",
   "kind": "design",
   "depends_on": [],
-  "description": "Write design/decisions.md (design document format) defining the decisions kind schema and file layout, changeset and MCP support, CSV columns, DEC tag grammar in the code scan, the exercised computation from evidence, and the 14-day lint rule.",
+  "description": "Write design/decisions.md (design document format) defining the decisions kind schema and file layout, changeset and MCP support, CSV columns, DEC tag grammar in the code scan, the exercised computation from evidence, and the 14-day lint rule. The first run (73acade on reqforge/TASK-0053) counts a decision with no tagged tests as exercised; update it to the amended REQ-0061 (at least 1 passing tagged test) and align with the accepted_at field already built on reqforge/TASK-0046 (53a75a1).",
   "done_when": "design/decisions.md is committed with realises [REQ-0060, REQ-0061], has a section addressing each of their acceptance criteria, and lint reports 0 unknown realises ids.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 3,
   "created": "2026-10-05T02:46:29+00:00",
-  "updated": "2026-10-05T02:46:29+00:00"
+  "updated": "2026-10-05T03:02:21+00:00"
 }

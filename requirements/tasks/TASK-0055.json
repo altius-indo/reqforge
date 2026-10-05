@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0055",
+  "title": "Exclude reqforge's own commits from sandbox violations",
+  "story": "STORY-0013",
+  "kind": "code",
+  "depends_on": [],
+  "description": "The before/after snapshot in server/src/agent.rs:200-227 compares the requirements repo's git status, so run logs and record updates committed by the server or by parallel runs during a run are reported as violations (seen on RUN-TASK-0046, 0048 and 0050). Compare only changes not made by reqforge's own commits. Tag tests REQ-0052#AC6.",
+  "done_when": "agent_sandbox tests pass, including two parallel runs where one finishes first and neither is flagged, and a run that edits the requirements repo itself is still flagged.",
+  "status": "in-progress",
+  "tags": [],
+  "version": 2,
+  "created": "2026-10-05T03:02:21+00:00",
+  "updated": "2026-10-05T03:03:54+00:00"
+}
