@@ -184,7 +184,7 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                     }
                     stamp_accepted(kind, &mut rec, None, &t);
                     if kind == Kind::Tasks {
-                        crate::taskflow::stamp_next_action(None, &mut rec, data.get("next_action_set").is_some());
+                        crate::taskflow::stamp_next_action(None, &mut rec);
                     }
                     rec.insert("version".into(), json!(1));
                     rec.insert("created".into(), json!(t));
@@ -237,8 +237,7 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                         }
                     }
                     if kind == Kind::Tasks {
-                        let patch = op.get("patch").and_then(Value::as_object);
-                        crate::taskflow::stamp_next_action(Some(&cur), &mut rec, patch.is_some_and(|p| p.contains_key("next_action_set")));
+                        crate::taskflow::stamp_next_action(Some(&cur), &mut rec);
                     }
                     let mut changes = Map::new();
                     for (k, v) in &rec {

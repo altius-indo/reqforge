@@ -122,12 +122,14 @@ pub fn next_action_block(task: &Rec) -> Option<String> {
 }
 
 /// Keep `next_action_set` in step with `next_action`: when the next action changes and the write
-/// does not set the date itself, stamp today's date (or clear it with the action).
+/// does not change the date itself, stamp today's date (or clear it with the action). Forms send
+/// every field back, so an unchanged date does not count as setting it.
 // reqforge: implements REQ-0059
-pub fn stamp_next_action(prev: Option<&Rec>, rec: &mut Rec, date_given: bool) {
-    let old = prev.map(|p| s(p, "next_action").trim().to_string()).unwrap_or_default();
+pub fn stamp_next_action(prev: Option<&Rec>, rec: &mut Rec) {
+    let field = |r: Option<&Rec>, k: &str| r.map(|r| s(r, k).trim().to_string()).unwrap_or_default();
     let new = s(rec, "next_action").trim().to_string();
-    if old == new || date_given {
+    let date_given = s(rec, "next_action_set") != field(prev, "next_action_set");
+    if field(prev, "next_action") == new || date_given {
         return;
     }
     let date = if new.is_empty() { Value::Null } else { json!(crate::snapshot::today().to_string()) };

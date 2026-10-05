@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|next-action|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design", "next-action"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,7 +36,7 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|next-action|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
@@ -336,6 +336,20 @@ const SUITES = {
       ctx.importProject(ws, path.join(ws, "bare"), "BARE");
       return { serve: ["--workspace", ws], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/p/SHOP/sessions", route: "/#/p/SHOP",
         workspaceName: "ws" };
+    },
+  },
+  // Next action per task (REQ-0059): SHOP demo with its git component. TASK-0001 has a next action; the fake agent
+  // ends its final message with a NEXT: line for TASK-0001/0003/0004 ("PROPOSE-NEXT"); the chat applies a changeset
+  // ("NEXT-DEMO") so closing the panel / New asks for the wrap-up.
+  "next-action": {
+    timeout: 300,
+    setup(ctx, dir) {
+      const desc = "description=PROPOSE-NEXT: implement the checkout step";
+      const shop = seedTasks(ctx, path.join(dir, "shop"), { extra: false, edits: {
+        "TASK-0001": [desc, "next_action=Open shop/checkout.py and read place_order", "next_action_set=2026-10-01"],
+        "TASK-0003": [desc], "TASK-0004": [desc] } });
+      return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/",
+        env: { REQFORGE_WORKTREES: path.join(dir, "worktrees") } };
     },
   },
   // help panel, its keyboard behaviour, and colour schemes: same BIG repository as core

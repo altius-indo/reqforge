@@ -33,6 +33,9 @@ import { cn } from "@/lib/utils"
 
 type FormValues = Record<string, string>
 
+/** Fields the details form leaves out: the NEXT: proposal is resolved in the next-action panel. */
+const HIDDEN_FIELDS = ["next_action_proposal", "next_action_proposal_run"]
+
 function toForm(schema: Record<string, FieldSchema>, rec: RecordBase | null): FormValues {
   const out: FormValues = {}
   for (const [f, s] of Object.entries(schema)) {
@@ -305,7 +308,9 @@ function DetailsForm({ kind, rec, meta }: { kind: Kind; rec: RecordBase | null; 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex-1 overflow-y-auto px-4 py-3" data-testid="details-form">
-        {Object.entries(schema).map(([f, s]) => (
+        {Object.entries(schema)
+          .filter(([f]) => !HIDDEN_FIELDS.includes(f))
+          .map(([f, s]) => (
           <Field
             key={f}
             kind={kind}
@@ -517,6 +522,119 @@ function LinksTab({ kind, id, meta }: { kind: Kind; id: string; meta: Meta }) {
 }
 
 /** Task drawer actions: Start (REQ-0050), Start with agent (REQ-0051) and Complete (REQ-0056), with what blocks them. */
+/**
+ * The task's next action, shown first in the drawer with the date it was set, and the pending
+ * `NEXT:` proposal of the last agent run with Accept / Edit / Reject.
+ */
+// reqforge: implements REQ-0059
+function NextActionPanel({ rec }: { rec: RecordBase }) {
+  const api = useApi()
+  const { refreshAll } = useApp()
+  const text = String(rec.next_action ?? "").trim()
+  const set = String(rec.next_action_set ?? "").slice(0, 10)
+  const proposal = String(rec.next_action_proposal ?? "").trim()
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(proposal)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState("")
+
+  const resolve = async (action: "accept" | "edit" | "reject") => {
+    setBusy(true)
+    setErr("")
+    try {
+      await api.nextAction(rec.id, action, rec.version, action === "edit" ? draft : undefined)
+      toast.success(action === "reject" ? `${rec.id}: proposal rejected` : `${rec.id}: next action updated`)
+      setEditing(false)
+      refreshAll()
+    } catch (e) {
+      const details = e instanceof ApiError ? e.details.map(String) : []
+      setErr([(e as Error).message, ...details].join("\n"))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div data-testid="next-action" className="border-b px-4 py-2 text-[12.5px]">
+      <div className="flex items-baseline gap-2">
+        <span className="font-medium">Next action</span>
+        {text && set && (
+          <span data-testid="next-action-set" className="text-[11.5px] text-muted-foreground">
+            set {set}
+          </span>
+        )}
+      </div>
+      {text ? (
+        <p data-testid="next-action-text" className="mt-0.5 whitespace-pre-wrap">
+          {text}
+        </p>
+      ) : (
+        <p data-testid="next-action-none" className="mt-0.5 text-muted-foreground">
+          No next action yet.
+        </p>
+      )}
+      {proposal && (
+        <div data-testid="next-proposal" className="mt-1.5 rounded-md border border-dashed bg-muted/40 px-2.5 py-1.5">
+          <div className="text-[11.5px] text-muted-foreground">
+            Proposed by agent run{rec.next_action_proposal_run ? ` ${String(rec.next_action_proposal_run)}` : ""}
+          </div>
+          {editing ? (
+            <Textarea
+              data-testid="next-proposal-input"
+              value={draft}
+              maxLength={280}
+              onChange={(e) => setDraft(e.target.value)}
+              className="mt-1 min-h-[52px] bg-background text-[12.5px]"
+            />
+          ) : (
+            <p data-testid="next-proposal-text" className="mt-0.5 whitespace-pre-wrap">
+              {proposal}
+            </p>
+          )}
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {editing ? (
+              <>
+                <Button size="xs" data-testid="next-proposal-save" disabled={busy || !draft.trim()} onClick={() => resolve("edit")}>
+                  Save
+                </Button>
+                <Button size="xs" variant="ghost" disabled={busy} onClick={() => setEditing(false)}>
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="xs" data-testid="next-proposal-accept" disabled={busy} onClick={() => resolve("accept")}>
+                  Accept
+                </Button>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  data-testid="next-proposal-edit"
+                  disabled={busy}
+                  onClick={() => {
+                    setDraft(proposal)
+                    setEditing(true)
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button size="xs" variant="outline" data-testid="next-proposal-reject" disabled={busy} onClick={() => resolve("reject")}>
+                  Reject
+                </Button>
+              </>
+            )}
+          </div>
+          {err && (
+            <div className="mt-1">
+              <ErrorText testId="next-proposal-error">{err}</ErrorText>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // reqforge: implements REQ-0050
 // reqforge: implements REQ-0051
 // reqforge: implements REQ-0056
@@ -666,6 +784,7 @@ function DrawerBody() {
           <X />
         </Button>
       </div>
+      {isTask && rec && <NextActionPanel key={`${rec.id}-${rec.version}`} rec={rec} />}
       {isTask && rec && (
         <TaskActions rec={rec} agent={agent} review={review} attempt={attempt} onRun={() => setTab("agent")} onComplete={complete} />
       )}

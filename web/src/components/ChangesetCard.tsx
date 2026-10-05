@@ -149,6 +149,7 @@ export function ChangesetCard({ id }: { id: string }) {
       toast.success(`${cs.id} applied`)
       refreshAll()
       if (chat.sessionId) {
+        chat.markApplied()
         const result = {
           assigned_ids: res.assigned_ids,
           lint: res.lint,

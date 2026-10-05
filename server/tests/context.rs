@@ -437,6 +437,8 @@ fn next_action_field_rules() {
     assert_eq!(upd(json!({"next_action": "Run `pytest -x` in tests/"}))["next_action_set"], json!("2026-10-06"));
     assert_eq!(upd(json!({"title": "Renamed"}))["next_action_set"], json!("2026-10-06"), "other edits leave the date alone");
     assert_eq!(upd(json!({"next_action": "Open README.md", "next_action_set": "2026-10-02"}))["next_action_set"], json!("2026-10-02"));
+    // a form sends every field back: an unchanged date with a changed action is re-dated
+    assert_eq!(upd(json!({"next_action": "Open docs/agent-runs.md", "next_action_set": "2026-10-02"}))["next_action_set"], json!("2026-10-06"));
     assert!(reqforge::model::is_empty(upd(json!({"next_action": ""})).get("next_action_set")));
     // changesets follow the same rules (the chat agent proposes next actions as update ops)
     let sim = changes::simulate(&store, &json!({"ops": [{"op": "update", "id": "TASK-0001", "patch": {"next_action": "Think about it"}}]}));

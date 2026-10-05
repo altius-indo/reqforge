@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { CircleHelp, RotateCcw, Send, Square, X } from "lucide-react"
+import { CircleHelp, Loader2, RotateCcw, Send, Square, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
@@ -64,8 +64,15 @@ export function ChatPanel() {
         >
           <CircleHelp />
         </Button>
-        <Button size="xs" variant="outline" title="start a fresh conversation" onClick={chat.reset} data-testid="chat-new">
-          <RotateCcw /> New
+        <Button
+          size="xs"
+          variant="outline"
+          title="start a fresh conversation"
+          onClick={() => void chat.reset()}
+          disabled={chat.wrappingUp}
+          data-testid="chat-new"
+        >
+          {chat.wrappingUp ? <Loader2 className="animate-spin" /> : <RotateCcw />} {chat.wrappingUp ? "Wrapping up…" : "New"}
         </Button>
         <Button size="icon-xs" variant="ghost" aria-label="close chat" onClick={() => chat.setOpen(false)} data-testid="chat-close">
           <X />

@@ -583,7 +583,7 @@ impl Store {
         rec.insert("created".into(), json!(t));
         rec.insert("updated".into(), json!(t));
         if kind == Kind::Tasks {
-            crate::taskflow::stamp_next_action(None, &mut rec, data.contains_key("next_action_set"));
+            crate::taskflow::stamp_next_action(None, &mut rec);
         }
         self.check(kind, &rec)?;
         self.write_unlocked(kind, &rec)?;
@@ -643,7 +643,7 @@ impl Store {
         rec.insert("version".into(), json!(cur_v + 1));
         rec.insert("updated".into(), json!(now()));
         if kind == Kind::Tasks {
-            crate::taskflow::stamp_next_action(Some(&cur), &mut rec, patch.contains_key("next_action_set"));
+            crate::taskflow::stamp_next_action(Some(&cur), &mut rec);
         }
         self.check(kind, &rec)?;
         Ok(rec)

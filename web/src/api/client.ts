@@ -6,6 +6,7 @@ import type {
   AgentQueueUpdate,
   BranchReview,
   CompleteResult,
+  NextActionResult,
   RunLog,
   StartResult,
   TaskReadiness,
@@ -183,6 +184,8 @@ export function projectApi(key: string) {
     // tasks: start, coding-agent runs, agent queue
     readiness: (id: string) => request<TaskReadiness>("GET", `${b}/tasks/${id}/readiness`),
     start: (id: string, version: number) => request<StartResult>("POST", `${b}/tasks/${id}/start`, { _version: version }),
+    nextAction: (id: string, action: "accept" | "edit" | "reject", version: number, text?: string) =>
+      request<NextActionResult>("POST", `${b}/tasks/${id}/next-action`, { action, _version: version, ...(text != null ? { text } : {}) }),
     agentPlan: (id: string) => request<AgentPlan>("GET", `${b}/tasks/${id}/agent`),
     agentCancel: (id: string) => request<{ cancelled: boolean }>("POST", `${b}/tasks/${id}/agent/cancel`, {}),
     agentLive: (id: string, since = 0) => request<AgentLive>("GET", `${b}/tasks/${id}/agent/live?${qs({ since })}`),
