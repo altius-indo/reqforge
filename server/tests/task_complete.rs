@@ -192,7 +192,7 @@ fn task_evals_must_be_defined_on_the_story() {
     assert_eq!(e.details.len(), 1, "{:?}", e.details);
     let msg = e.details[0].as_str().unwrap();
     assert!(msg.starts_with("evals: E9 is not an eval of STORY-0001"), "{msg}");
-    assert!(f.store.get(Kind::Tasks, &second).unwrap()["evals"].as_array().map_or(true, Vec::is_empty), "nothing saved");
+    assert!(f.store.get(Kind::Tasks, &second).unwrap()["evals"].as_array().is_none_or(Vec::is_empty), "nothing saved");
     let ok = set_task_evals(&f, &second, json!(["E1", "E2"])).unwrap();
     assert_eq!(ok["evals"], json!(["E1", "E2"]));
     // creating a task with an unknown eval is rejected too

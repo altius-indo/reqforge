@@ -677,6 +677,7 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
             };
             Ok(Out::Raw(200, csvio::export(&rows, kind), "text/csv; charset=utf-8"))
         }
+        [_, "exercised"] if get && kind == Kind::Decisions => Ok(Out::Json(200, (*crate::decisions::report(store)).clone())),
         [_, id, "readiness"] if get && kind == Kind::Tasks => Ok(Out::Json(200, crate::taskflow::readiness(store, id)?)),
         [_, id, "agent"] if get && kind == Kind::Tasks => Ok(Out::Json(200, crate::agent::plan(store, id)?)),
         [_, id, "runs"] if get && kind == Kind::Tasks => Ok(Out::Json(200, json!(crate::agent::runs(store, id)))),

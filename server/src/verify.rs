@@ -171,6 +171,12 @@ pub fn compute(src: &dyn Source, indexes: &[Index], latest: &BTreeMap<String, Ev
     let (mut unknown, mut deprecated) = (vec![], vec![]);
     for t in indexes.iter().flat_map(|i| i.tags.iter()) {
         let at = format!("{}:{}:{}", t.component, t.file, t.line);
+        if t.req.starts_with("DEC-") {
+            if !src.exists(Kind::Decisions, &t.req) {
+                unknown.push(format!("{at} tags unknown {}", t.req));
+            }
+            continue;
+        }
         match by_id.get(t.req.as_str()) {
             None => unknown.push(format!("{at} tags unknown {}", t.req)),
             Some(r) => {
@@ -239,7 +245,7 @@ pub fn compute(src: &dyn Source, indexes: &[Index], latest: &BTreeMap<String, Ev
     let comp_summary: Vec<Value> = indexes
         .iter()
         .map(|i| {
-            let reqs: BTreeSet<&str> = i.tags.iter().map(|t| t.req.as_str()).collect();
+            let reqs: BTreeSet<&str> = i.tags.iter().map(|t| t.req.as_str()).filter(|r| r.starts_with("REQ-")).collect();
             json!({"component": i.component, "commit": i.commit, "scanned_at": i.scanned_at, "files_scanned": i.files_scanned,
                    "tagged_files": i.files.len(), "implements": i.tags.iter().filter(|t| t.kind == "implements").count(),
                    "verifies": i.tags.iter().filter(|t| t.kind == "verifies").count(), "requirements": reqs.len()})
