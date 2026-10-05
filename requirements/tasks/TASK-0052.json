@@ -9,9 +9,9 @@
   ],
   "description": "Add snapshot staleness and unexercised-decision counts to the scheduled monitor job and the verification dashboard.",
   "done_when": "The daily monitor reports both counts.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 3,
+  "version": 4,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T03:31:56+00:00"
+  "updated": "2026-10-05T03:40:18+00:00"
 }
