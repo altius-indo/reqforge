@@ -165,6 +165,8 @@ pub struct Entry {
 type FileCache = BTreeMap<String, (u128, u64, Arc<Entry>)>;
 /// name -> (repository revision it was computed at, value)
 type Memo = HashMap<String, (Vec<u64>, Arc<Value>)>;
+/// next watch id, and per watch the changed files (path, content hash) seen at write-lock boundaries
+type Watches = (u64, HashMap<u64, BTreeSet<(String, String)>>);
 
 pub struct Store {
     pub root: PathBuf,
@@ -172,8 +174,7 @@ pub struct Store {
     files: Mutex<HashMap<Kind, FileCache>>,
     memo: Mutex<Memo>,
     write: Mutex<()>,
-    /// next watch id, and per watch the changed files (path, content hash) seen at write-lock boundaries
-    watches: Mutex<(u64, HashMap<u64, BTreeSet<(String, String)>>)>,
+    watches: Mutex<Watches>,
 }
 
 pub struct WriteGuard<'a> {
