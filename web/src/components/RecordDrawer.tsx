@@ -592,7 +592,6 @@ function LinksTab({ kind, id, meta }: { kind: Kind; id: string; meta: Meta }) {
   return <LinksPanel kind={kind} ctx={q.data} meta={meta} />
 }
 
-/** Task drawer actions: Start (REQ-0050), Start with agent (REQ-0051) and Complete (REQ-0056), with what blocks them. */
 /**
  * The task's next action, shown first in the drawer with the date it was set, and the pending
  * `NEXT:` proposal of the last agent run with Accept / Edit / Reject.
@@ -706,6 +705,7 @@ function NextActionPanel({ rec }: { rec: RecordBase }) {
   )
 }
 
+/** Task drawer actions: Start (REQ-0050), Start with agent (REQ-0051) and Complete (REQ-0056), with what blocks them. */
 // reqforge: implements REQ-0050
 // reqforge: implements REQ-0051
 // reqforge: implements REQ-0056
