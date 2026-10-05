@@ -1,0 +1,266 @@
+{
+  "run_id": "RUN-TASK-0055-20261005T030458963",
+  "task": "TASK-0055",
+  "story": "STORY-0013",
+  "component": "server",
+  "branch": "reqforge/TASK-0055",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0055",
+  "base": "ad8aea73cbb7aee9fa17b7a0967fab8a942e3156",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:04:58+00:00",
+  "ended": "2026-10-05T03:09:45+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "c3c49c8",
+      "message": "TASK-0055: exclude reqforge's own commits from sandbox violations"
+    }
+  ],
+  "violations": [
+    "the component's checked-out branch moved from ad8aea73cb to d22cc0459a"
+  ],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "6084d736-3072-4708-a877-edc7f8145094"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0055/server/src/agent.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep fn |snapshot|status_porcelain|violation"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0055/server/src/agent.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Reading the store's lock and write paths to design how reqforge's own commits get distinguished from foreign changes."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0055/server/src/store.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep requirements_status|agent::snapshot|violations\\(|Snapshot"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0055/server/src/complete.rs"
+    },
+    {
+      "type": "text",
+      "text": "Implementing now: a dirty-file scan in the store's git module, a run-scoped journal at write-lock boundaries, and the new comparison in `agent.rs`."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Store edits:"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now `agent.rs`:"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now the tests. Adding a `PAUSE` marker to the fake agent so one run can outlast another, then the new REQ-0052#AC6 tests."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0055/server/tests/agent_sandbox.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "All 8 sandbox tests pass. Running E1 and the other suites that touch the store/agent code."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Everything is green. Committing."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The fix for TASK-0055 is committed on `reqforge/TASK-0055` as `c3c49c8`, and the sandbox tests pass, including the two cases the task asked for. A human still needs to review the branch.\n\n**The bug.** The run compared `git status` of the requirements repo before and after, without taking the store's write lock. If it looked while reqforge was halfway through a write and its commit, those files counted against the run. This could be a parallel run's start or run log, or a user's record update. There was also a gap the other way: if a reqforge commit swept up a file the agent had written, the check missed it.\n\n**What changed:**\n- **`server/src/store.rs`**\n  - New `git::dirty`, which lists uncommitted files by content hash.\n  - A run can now register a watch with `watch_foreign` / `unwatch_foreign`. While any run is watching, each time the store's write lock is taken it notes the files left uncommitted. reqforge always commits its own writes before releasing that lock, so anything uncommitted at that moment was changed by someone else.\n- **`server/src/agent.rs`**\n  - `snapshot_begin` / `snapshot_end` take the before/after snapshots under the store lock and start/stop the watch. `run()` uses them.\n  - `violations` now flags any uncommitted file, either at the end or at a lock moment, unless it was already there unchanged before the run. The message names the files.\n- **Tests** (`server/tests/agent_sandbox.rs`, tagged REQ-0052#AC6), plus a `PAUSE` marker added to the fake agent:\n  - `parallel_runs_do_not_flag_each_others_run_logs_or_record_updates`: two parallel runs where one finishes first, plus a record update during the run. Neither run is flagged.\n  - `a_snapshot_never_sees_a_reqforge_write_half_done`: covers the half-finished write directly.\n  - `an_agent_edit_to_the_requirements_repo_is_flagged_even_when_reqforge_commits_it`: the agent writes a file in the requirements repo and a reqforge commit sweeps it into history; the run is still flagged.\n\n**Tests run:**\n- **E3** (`cargo test --test agent_sandbox`): 8/8 passed.\n- **E1** (`cargo test --test agent_run`): 5/5 passed.\n- **Full server suite:** all passed (agent_queue, codetrace, integration, plugin, projects, research, task_complete, unit tests).\n- **E2** (the web end-to-end test) was not run. Only server code changed.\n\n**Still open:**\n- The parallel-runs test probably passes on the old code too, because the timing problem is hard to trigger reliably in a full run. The half-finished-write test is the one that catches the original bug.\n- If `autocommit` is turned off, reqforge's own writes stay uncommitted and are still reported as violations, same as before. The criterion only covers changes reqforge commits.\n- If a file was already uncommitted and untracked before the run and the agent deletes it, the run is not flagged.\n- Writers in other processes are only seen if they use the store's lock file. reqforge's own writers do.\n- The check that Complete runs around each eval (REQ-0052#AC5, `complete.rs`) still uses the unlocked snapshot. I left it alone to keep this change focused.\n- The reqforge MCP server failed to connect, so I worked from the brief alone."
+    },
+    {
+      "type": "done",
+      "session_id": "6084d736-3072-4708-a877-edc7f8145094",
+      "cost": 1.3132635999999998,
+      "turns": 34,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
