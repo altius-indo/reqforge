@@ -7,9 +7,13 @@
   "evals": [],
   "description": "Replace the fixed lg grid columns in web/src/App.tsx:69 with persisted widths; add separator handles (drag, arrow keys, Enter, double-click reset) and collapse controls to Sidebar and ChatPanel; store state in localStorage via src/lib/storage.ts; add e2e suites panels and panels-a11y, registered in web/e2e/run.mjs, and a note in the help guides. Tag tests with the new requirement's acceptance criteria.",
   "done_when": "panels and panels-a11y e2e suites pass.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "next_action": "Run `node web/e2e/run.mjs --suite help-a11y` on a clean main checkout to confirm the CDP stall after Esc closes the record drawer predates TASK-0056, then review branch reqforge/TASK-0056.",
+  "next_action_set": "2026-10-04",
+  "next_action_proposal": "Review branch reqforge/TASK-0056 (commits 71867d9, caf3f05, 2a2577e) and merge main into it, resolving web/e2e/lib/prelude.js in favour of the branch version.",
+  "next_action_proposal_run": "RUN-TASK-0056-20261005T051717241",
+  "version": 5,
   "created": "2026-10-05T04:53:50+00:00",
-  "updated": "2026-10-05T04:53:50+00:00"
+  "updated": "2026-10-05T05:23:21+00:00"
 }

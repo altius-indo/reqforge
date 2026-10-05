@@ -1,8 +1,8 @@
 {
   "component": "web",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "62858a08ceeb4e2c3dbcce029623414fdc9c5422",
-  "scanned_at": "2026-10-05T04:25:50+00:00",
+  "commit": "af81623336074a7f9b4f18ba5bcec777f07b6c09",
+  "scanned_at": "2026-10-05T05:03:58+00:00",
   "files_scanned": 83,
   "files": {
     "web/e2e/suites/agent-queue.js": "3cdc6c6ac55a704534cfeb7f5aad87c8179fc17c814ca1db81375bb400a3f55f",
@@ -10,7 +10,7 @@
     "web/e2e/suites/code.js": "c0fc20d80859110f11199bbef29ef1dce9fb699a079bbd9054bfa5c5a0bb8ed4",
     "web/e2e/suites/core.js": "8c3dfbf3a76ca7f60b09e91fe83aec657e13e818aef6451adebaa97491ebdce2",
     "web/e2e/suites/decisions.js": "f9d73aceb1562aa41717ae0c14d070b8eaa08b794c2a30072f279ba1feab40e2",
-    "web/e2e/suites/design.js": "0f858927861a46877f97463455ae519ce4377406a056cb8e4da4bf20b37c81b2",
+    "web/e2e/suites/design.js": "2ec970a7b44ca85c77af6f36b62e332f7bdeb0b1deb4c315c26dad947214b45d",
     "web/e2e/suites/help-a11y.js": "f6ee2faa6e3e5e872a87611271d5364595daaca2003a6e1ba25c935e8e48da9c",
     "web/e2e/suites/help.js": "d95f4ce9c40b86e7757b08b0cd939be6d4d19df4eaa7709804ad8314c0a02051",
     "web/e2e/suites/history.js": "0fca4233031ebb79ab6f4be2eb411bdc8693a3c064529cf12bc0469b5ae56d7a",
@@ -401,7 +401,7 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "web/e2e/suites/design.js",
-      "line": 40,
+      "line": 41,
       "symbol": "documentList",
       "text": "// reqforge: verifies REQ-0055#AC1",
       "component": "web"
@@ -411,7 +411,7 @@
       "ac": "AC2",
       "kind": "verifies",
       "file": "web/e2e/suites/design.js",
-      "line": 51,
+      "line": 52,
       "symbol": "markdown",
       "text": "// reqforge: verifies REQ-0055#AC2",
       "component": "web"
@@ -421,7 +421,7 @@
       "ac": "AC3",
       "kind": "verifies",
       "file": "web/e2e/suites/design.js",
-      "line": 64,
+      "line": 65,
       "symbol": "recordLinks",
       "text": "// reqforge: verifies REQ-0055#AC3",
       "component": "web"
@@ -431,7 +431,7 @@
       "ac": "AC4",
       "kind": "verifies",
       "file": "web/e2e/suites/design.js",
-      "line": 87,
+      "line": 88,
       "symbol": "drawerLinks",
       "text": "// reqforge: verifies REQ-0055#AC4",
       "component": "web"
@@ -441,7 +441,7 @@
       "ac": "AC1",
       "kind": "verifies",
       "file": "web/e2e/suites/design.js",
-      "line": 116,
+      "line": 117,
       "symbol": "phaseTwo",
       "text": "// reqforge: verifies REQ-0055#AC1",
       "component": "web"
