@@ -86,6 +86,38 @@ fn context_preamble(ctx: &Value) -> String {
     lines.join("\n") + "\n\n"
 }
 
+/// The task the UI context is about: an open task drawer (`view.task`), or the tasks tab with
+/// exactly one task selected.
+fn focused_task(ctx: &Value) -> Option<String> {
+    let view = ctx.get("view")?;
+    if let Some(t) = view.get("task").and_then(Value::as_str).filter(|t| t.starts_with("TASK-")) {
+        return Some(t.to_string());
+    }
+    let sel: Vec<&str> = ctx.get("selected").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str).collect();
+    let total = ctx.get("selected_total").and_then(Value::as_u64).unwrap_or(sel.len() as u64);
+    (view.get("tab").and_then(Value::as_str) == Some("tasks") && sel.len() == 1 && total == 1 && sel[0].starts_with("TASK-")).then(|| sel[0].to_string())
+}
+
+/// The prompt sent on a chat turn. The first turn of a session starts with the task section (when
+/// the chat is about one task) and the project snapshot, verbatim (REQ-0058#AC1); resumed turns
+/// already have it in the conversation.
+// reqforge: implements REQ-0058
+pub fn turn_prompt(root: &std::path::Path, message: &str, first_turn: bool, ctx: &Value) -> String {
+    let mut out = String::new();
+    if first_turn {
+        let task = focused_task(ctx).and_then(|id| crate::store::Store::open(root).ok()?.get(crate::model::Kind::Tasks, &id).ok());
+        if let Some(t) = task {
+            out.push_str(&crate::agent::task_section(&t));
+            out.push_str("\n\n");
+        }
+        if let Some(c) = crate::snapshot::read(root) {
+            out.push_str(&crate::snapshot::context_block(&c));
+            out.push_str("\n\n");
+        }
+    }
+    out + &context_preamble(ctx) + message
+}
+
 fn tool_brief(name: &str, inp: &Value) -> String {
     let short = name.replace(MCP, "");
     let g = |k: &str| inp.get(k).and_then(Value::as_str).unwrap_or("").to_string();
@@ -179,11 +211,27 @@ pub fn translate(msg: &Value, tool_names: &mut HashMap<String, String>) -> Vec<V
     out
 }
 
+/// Metadata of one chat session, kept in memory until it ends and is written to the history
+/// (REQ-0062). Holds no prompt, message or tool-output text.
+#[derive(Debug, Clone)]
+pub struct ChatSession {
+    /// Claude's session id (a placeholder until the first turn reports it)
+    pub id: String,
+    pub start: String,
+    pub end: String,
+    pub proposed: Vec<String>,
+    pub turns: usize,
+    pub errors: usize,
+    busy: bool,
+    last: std::time::Instant,
+}
+
 pub struct ChatRunner {
     root: PathBuf,
     key: String,
     components: Vec<PathBuf>,
     cancels: Mutex<HashMap<String, Arc<Notify>>>,
+    sessions: Mutex<HashMap<String, ChatSession>>,
 }
 
 impl ChatRunner {
@@ -199,7 +247,7 @@ impl ChatRunner {
             .map(|p| std::fs::canonicalize(&p).unwrap_or(p))
             .collect();
         let key = config.get("key").and_then(Value::as_str).unwrap_or("").to_string();
-        ChatRunner { root, key, components, cancels: Mutex::new(HashMap::new()) }
+        ChatRunner { root, key, components, cancels: Mutex::new(HashMap::new()), sessions: Mutex::new(HashMap::new()) }
     }
 
     pub fn status(&self) -> Value {
@@ -207,9 +255,16 @@ impl ChatRunner {
         json!({"available": c.is_some(), "claude": c})
     }
 
+    /// With `REQFORGE_SNAPSHOT_RESUPPLY=system` every turn's system prompt also carries the current
+    /// snapshot (fallback for the compaction hook, REQ-0058#AC3).
+    // reqforge: implements REQ-0058
     pub fn command_args(&self, session_id: Option<&str>) -> Vec<String> {
+        let mut system = SYSTEM_PROMPT.to_string();
+        if let Some(c) = crate::snapshot::read(&self.root).filter(|_| crate::snapshot::resupply_in_system_prompt()) {
+            system.push_str(&format!("\n\n{}", crate::snapshot::context_block(&c)));
+        }
         let mut a: Vec<String> = vec!["-p".into(), "--output-format".into(), "stream-json".into(), "--verbose".into(),
-            "--append-system-prompt".into(), SYSTEM_PROMPT.into(),
+            "--append-system-prompt".into(), system,
             "--allowedTools".into(), allowed().join(","), "--disallowedTools".into(), denied().join(",")];
         if let Some(p) = plugin_root() {
             a.extend(["--plugin-dir".into(), p.display().to_string()]);
@@ -246,6 +301,77 @@ impl ChatRunner {
         }
     }
 
+    /// Track a turn: continue the resumed session, or begin a new one. Returns its key.
+    fn begin_turn(&self, chat_id: &str, session_id: Option<&str>) -> String {
+        let key = session_id.filter(|s| !s.is_empty()).map(String::from).unwrap_or_else(|| format!("pending:{chat_id}"));
+        let mut m = self.sessions.lock().unwrap();
+        let s = m.entry(key.clone()).or_insert_with(|| ChatSession {
+            id: key.clone(),
+            start: crate::store::now(),
+            end: String::new(),
+            proposed: vec![],
+            turns: 0,
+            errors: 0,
+            busy: false,
+            last: std::time::Instant::now(),
+        });
+        s.turns += 1;
+        s.busy = true;
+        key
+    }
+
+    /// Claude reported the session id: re-key the tracked session under it.
+    fn rekey(&self, key: &mut String, sid: &str) {
+        if sid.is_empty() || key == sid {
+            return;
+        }
+        let mut m = self.sessions.lock().unwrap();
+        if let Some(mut s) = m.remove(key.as_str()) {
+            if let Some(prev) = m.remove(sid) {
+                s.start = prev.start.min(s.start);
+                s.turns += prev.turns;
+                s.errors += prev.errors;
+                s.proposed.splice(0..0, prev.proposed);
+            }
+            s.id = sid.to_string();
+            m.insert(sid.to_string(), s);
+        }
+        *key = sid.to_string();
+    }
+
+    fn note(&self, key: &str, f: impl FnOnce(&mut ChatSession)) {
+        if let Some(s) = self.sessions.lock().unwrap().get_mut(key) {
+            f(s);
+        }
+    }
+
+    fn end_turn(&self, key: &str, error: bool) {
+        self.note(key, |s| {
+            s.busy = false;
+            s.end = crate::store::now();
+            s.last = std::time::Instant::now();
+            if error {
+                s.errors += 1;
+            }
+        });
+    }
+
+    /// End a session (new chat, panel closed): it leaves the tracker for the history.
+    pub fn end_session(&self, session_id: &str) -> Option<ChatSession> {
+        let mut s = self.sessions.lock().unwrap().remove(session_id)?;
+        if s.end.is_empty() {
+            s.end = crate::store::now();
+        }
+        Some(s)
+    }
+
+    /// Sessions with no turn running and none for `idle`: they are over.
+    pub fn idle_sessions(&self, idle: std::time::Duration) -> Vec<ChatSession> {
+        let mut m = self.sessions.lock().unwrap();
+        let done: Vec<String> = m.iter().filter(|(_, s)| !s.busy && s.last.elapsed() >= idle).map(|(k, _)| k.clone()).collect();
+        done.into_iter().filter_map(|k| m.remove(&k)).collect()
+    }
+
     pub fn cancel(&self, chat_id: &str) -> bool {
         match self.cancels.lock().unwrap().get(chat_id) {
             Some(n) => {
@@ -265,7 +391,8 @@ impl ChatRunner {
             let _ = tx.send(json!({"type": "error", "text": "The `claude` CLI was not found on PATH. Install Claude Code or set REQFORGE_CLAUDE_BIN."})).await;
             return;
         };
-        let prompt = context_preamble(&context) + &message;
+        let first_turn = session_id.as_deref().map(str::is_empty).unwrap_or(true);
+        let prompt = turn_prompt(&self.root, &message, first_turn, &context);
         let child = Command::new(&bin)
             .args(self.command_args(session_id.as_deref()))
             .current_dir(&self.root)
@@ -285,6 +412,7 @@ impl ChatRunner {
         };
         let notify = Arc::new(Notify::new());
         self.cancels.lock().unwrap().insert(chat_id.clone(), notify.clone());
+        let mut skey = self.begin_turn(&chat_id, session_id.as_deref());
         if let Some(mut stdin) = child.stdin.take() {
             let _ = stdin.write_all(prompt.as_bytes()).await;
         }
@@ -296,15 +424,27 @@ impl ChatRunner {
         });
         let mut lines = BufReader::new(child.stdout.take().unwrap()).lines();
         let mut tool_names = HashMap::new();
-        let (mut got_result, mut cancelled) = (false, false);
+        let (mut got_result, mut cancelled, mut turn_error) = (false, false, false);
         loop {
             tokio::select! {
                 line = lines.next_line() => {
                     let Ok(Some(line)) = line else { break };
                     let Ok(msg) = serde_json::from_str::<Value>(line.trim()) else { continue };
                     for ev in translate(&msg, &mut tool_names) {
-                        if ev["type"] == json!("done") { got_result = true; }
-                        if tx.send(ev).await.is_err() { let _ = child.kill().await; self.cancels.lock().unwrap().remove(&chat_id); return; }
+                        match ev["type"].as_str() {
+                            Some("done") => {
+                                got_result = true;
+                                turn_error |= ev["is_error"] == json!(true);
+                                if let Some(sid) = ev["session_id"].as_str() { self.rekey(&mut skey, sid); }
+                            }
+                            Some("session") => if let Some(sid) = ev["session_id"].as_str() { self.rekey(&mut skey, sid); },
+                            Some("changeset") => if let Some(id) = ev["id"].as_str() {
+                                let id = id.to_string();
+                                self.note(&skey, |s| if !s.proposed.contains(&id) { s.proposed.push(id) });
+                            },
+                            _ => {}
+                        }
+                        if tx.send(ev).await.is_err() { let _ = child.kill().await; self.cancels.lock().unwrap().remove(&chat_id); self.end_turn(&skey, true); return; }
                     }
                 }
                 _ = notify.notified() => { cancelled = true; let _ = child.kill().await; break; }
@@ -313,6 +453,8 @@ impl ChatRunner {
         let status = child.wait().await.ok();
         let err = err_task.await.unwrap_or_default();
         self.cancels.lock().unwrap().remove(&chat_id);
+        let failed = !got_result && status.map(|s| !s.success()).unwrap_or(true);
+        self.end_turn(&skey, cancelled || turn_error || failed);
         if cancelled {
             let _ = tx.send(json!({"type": "error", "text": "cancelled"})).await;
         } else if !got_result && status.map(|s| !s.success()).unwrap_or(true) {

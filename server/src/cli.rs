@@ -117,6 +117,12 @@ pub enum Cmd {
         #[arg(short, long, default_value = "")]
         query: String,
     },
+    /// print the project snapshot (read-only; it changes only through an applied changeset)
+    Snapshot {
+        /// SessionStart hook mode: read the hook JSON on stdin, print additionalContext for $REQFORGE_REPO, always exit 0
+        #[arg(long)]
+        hook: bool,
+    },
     /// MECE/quality lint
     Lint {
         #[arg(long)]
@@ -388,6 +394,16 @@ pub fn run(cli: Cli) -> Res<i32> {
             println!("initialised {}{}", s.root.display(), github.map(|g| format!(" -> github.com/{g}")).unwrap_or_default());
             return Ok(0);
         }
+        // reqforge: implements REQ-0058
+        Cmd::Snapshot { hook: true } => {
+            // the hook JSON on stdin is not needed; drain it so the writer never blocks
+            let _ = std::io::Read::read_to_end(&mut std::io::stdin(), &mut vec![]);
+            let repo = std::env::var("REQFORGE_REPO").ok().filter(|r| !r.is_empty());
+            if let Some(out) = repo.and_then(|r| crate::snapshot::hook_output(std::path::Path::new(&r), std::env::var("REQFORGE_TASK").ok().as_deref())) {
+                println!("{out}");
+            }
+            return Ok(0);
+        }
         Cmd::Taxonomy => {
             for t in &TAXONOMY {
                 println!("{}. {}: {}", t.order, t.name, t.test);
@@ -575,6 +591,13 @@ pub fn run(cli: Cli) -> Res<i32> {
             }
         }
         Cmd::Console => console::run(s),
+        Cmd::Snapshot { .. } => match crate::snapshot::read(&s.root) {
+            Some(c) => print!("{c}"),
+            None => {
+                eprintln!("no project snapshot");
+                return Ok(1);
+            }
+        },
         Cmd::Mcp | Cmd::Init { .. } | Cmd::Taxonomy | Cmd::Project { .. } | Cmd::Serve { .. } => unreachable!(),
     }
     Ok(0)
