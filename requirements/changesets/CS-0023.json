@@ -1,0 +1,1006 @@
+{
+  "id": "CS-0023",
+  "title": "Per-task evals in Complete, stricter exercised rule, sandbox false positives",
+  "summary": "REQ-0056: tasks list the story evals that prove them and Complete runs only those (all of them for the story's last open task). REQ-0061: a decision needs at least 1 passing tagged test. REQ-0052 AC6: reqforge's own commits during a run are not violations. Adds TASK-0054 and TASK-0055 and updates the briefs of TASK-0041 and TASK-0053 so their reruns fix the first runs.",
+  "rationale": "Complete refused TASK-0041 twice because its story's evals are written by later tasks, which would block every multi-task story. Three parallel agent runs (TASK-0046, 0048, 0050) were flagged for requirements-repo changes that the server itself committed (run logs). TASK-0053's design and TASK-0046's code disagreed on decisions with no tagged tests. Product owner decisions on 2026-10-05: per-task eval lists; at least 1 passing tagged test required.",
+  "status": "applied",
+  "created": "2026-10-05T03:02:06+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "REQ-0056",
+      "patch": {
+        "status": "approved",
+        "statement": "The system shall let a user complete a task whose agent branch is ready by reviewing it, merging it after the task's evals pass on the merged result, and marking the task done in 1 action.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "The task drawer lists the agent branch's commits and changed files and shows its diff against the merge base"
+          },
+          {
+            "id": "AC2",
+            "text": "Complete is refused, with the reason shown, while the component checkout has uncommitted changes outside the requirements folder"
+          },
+          {
+            "id": "AC3",
+            "text": "Complete first merges the checked-out branch into the task branch in its worktree; on conflict it aborts, leaves both branches unchanged and lists the conflicting files"
+          },
+          {
+            "id": "AC4",
+            "text": "The evals listed on the task then run in the task worktree, or all of the story's evals when it is the story's last open task; Complete is refused while any of them fails, listing the failing evals and their output tail, and a task with no listed evals that is not the last open task completes with 'no evals run' shown"
+          },
+          {
+            "id": "AC5",
+            "text": "On success the task branch is merged into the checked-out branch with --no-ff, the task becomes done, and its worktree and branch are removed, within 1 action"
+          },
+          {
+            "id": "AC6",
+            "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+          },
+          {
+            "id": "AC7",
+            "text": "Tasks have an evals field listing ids of their story's evals; an id not defined on the story is rejected with a field error"
+          }
+        ]
+      },
+      "reason": "Story evals are written across tasks, so running all of them blocks every task but the last"
+    },
+    {
+      "op": "update",
+      "id": "REQ-0061",
+      "patch": {
+        "statement": "The system shall mark a decision exercised when at least one code location is tagged 'reqforge: implements DEC-NNNN', at least one test is tagged with that id, and every test tagged with that id has passing evidence.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "The code scan records DEC-NNNN implements and verifies tags in the same way as REQ tags"
+          },
+          {
+            "id": "AC2",
+            "text": "Each decision shows exercised yes or no with its tagged locations and the reason; no tagged test, or a failing, suspect or untested tagged test, makes it no"
+          },
+          {
+            "id": "AC3",
+            "text": "Lint warns for every accepted decision not exercised within 14 days of acceptance"
+          },
+          {
+            "id": "AC4",
+            "text": "A Decisions tab lists decisions with status, exercised flag and linked requirements"
+          }
+        ]
+      },
+      "reason": "Product owner: a decision with no tagged tests is not exercised"
+    },
+    {
+      "op": "update",
+      "id": "REQ-0052",
+      "patch": {
+        "status": "approved",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+          },
+          {
+            "id": "AC2",
+            "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+          },
+          {
+            "id": "AC3",
+            "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+          },
+          {
+            "id": "AC4",
+            "text": "Every run is logged with task id, starting user (for queued runs, the user who turned the queue on), whether it was queued, start and end time, branch and exit status"
+          },
+          {
+            "id": "AC5",
+            "text": "Evals that Complete runs on an agent branch write 0 files outside the task worktree and make 0 commits or pushes; any violation refuses Complete and is logged with the task's runs"
+          },
+          {
+            "id": "AC6",
+            "text": "Changes that reqforge itself commits to the requirements repository during a run, such as run logs, history entries and record updates from other runs or users, are not reported as violations of that run, while any other change still is"
+          }
+        ]
+      },
+      "reason": "Parallel runs were flagged for the server's own run-log commits"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0016",
+      "patch": {
+        "status": "in-progress",
+        "evals": [
+          {
+            "id": "E1",
+            "name": "complete flow",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+            "covers": [
+              "REQ-0056#AC2",
+              "REQ-0056#AC3",
+              "REQ-0056#AC4",
+              "REQ-0056#AC5",
+              "REQ-0056#AC6",
+              "REQ-0056#AC7",
+              "REQ-0051#AC7"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: task complete",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+            "covers": [
+              "REQ-0056#AC1",
+              "REQ-0056#AC5",
+              "REQ-0051#AC7"
+            ]
+          },
+          {
+            "id": "E3",
+            "name": "Complete eval-run sandbox",
+            "kind": "security",
+            "command": "cargo test --manifest-path server/Cargo.toml --test task_complete -- eval_run_sandboxed",
+            "covers": [
+              "REQ-0052#AC5"
+            ]
+          }
+        ]
+      },
+      "reason": "Cover REQ-0056 AC7; story reopened"
+    },
+    {
+      "op": "update",
+      "id": "STORY-0013",
+      "patch": {
+        "status": "in-progress",
+        "evals": [
+          {
+            "id": "E1",
+            "name": "agent launcher integration (stub claude)",
+            "kind": "integration",
+            "command": "cargo test --manifest-path server/Cargo.toml --test agent_run",
+            "covers": [
+              "REQ-0051#AC2",
+              "REQ-0051#AC3",
+              "REQ-0051#AC5",
+              "REQ-0051#AC6"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "UI e2e: start with agent",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-start.xml --suite agent-start",
+            "covers": [
+              "REQ-0051#AC1",
+              "REQ-0051#AC4"
+            ]
+          },
+          {
+            "id": "E3",
+            "name": "agent sandbox security",
+            "kind": "security",
+            "command": "cargo test --manifest-path server/Cargo.toml --test agent_sandbox",
+            "covers": [
+              "REQ-0052#AC1",
+              "REQ-0052#AC2",
+              "REQ-0052#AC3",
+              "REQ-0052#AC4",
+              "REQ-0052#AC6"
+            ]
+          }
+        ]
+      },
+      "reason": "Cover REQ-0052 AC6; story reopened"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t1",
+      "data": {
+        "title": "Per-task eval lists in Complete",
+        "story": "STORY-0016",
+        "kind": "code",
+        "description": "Add an evals field to the task schema (ids of the story's evals, validated). Complete runs the task's listed evals, or all of the story's evals for its last open task, and shows 'no evals run' otherwise. Then propose a changeset that backfills evals on open tasks: TASK-0042 [E1], TASK-0043 [E2], TASK-0044 [E1], TASK-0045 [E2], TASK-0046 [E1], TASK-0047 [E2], TASK-0048 [E1], TASK-0049 [E2], TASK-0050 [E1, E2]; design and agent tasks none. Tag tests REQ-0056#AC4 and REQ-0056#AC7.",
+        "done_when": "task_complete integration tests pass, including a story where the first task completes with only its own evals.",
+        "status": "todo"
+      },
+      "reason": "Implements REQ-0056 AC4 and AC7"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t2",
+      "data": {
+        "title": "Exclude reqforge's own commits from sandbox violations",
+        "story": "STORY-0013",
+        "kind": "code",
+        "description": "The before/after snapshot in server/src/agent.rs:200-227 compares the requirements repo's git status, so run logs and record updates committed by the server or by parallel runs during a run are reported as violations (seen on RUN-TASK-0046, 0048 and 0050). Compare only changes not made by reqforge's own commits. Tag tests REQ-0052#AC6.",
+        "done_when": "agent_sandbox tests pass, including two parallel runs where one finishes first and neither is flagged, and a run that edits the requirements repo itself is still flagged.",
+        "status": "todo"
+      },
+      "reason": "Implements REQ-0052 AC6"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0041",
+      "patch": {
+        "description": "Write design/context-management.md (design document format, REQ-0054) defining: (1) the snapshot changeset op and its validation; (2) the layout of the chat prompt and coding-agent brief, in order: task next_action, task section, snapshot, with the snapshot marked as project state; (3) when the chat agent is asked to propose next actions and a snapshot Next; (4) how the snapshot is re-supplied after compaction, verified for headless 'claude -p --resume' chat turns and agent runs, with a fallback (re-supply every turn) if the SessionStart compact hook does not fire. The first run (b85a89d on reqforge/TASK-0041) wrote docs/context.md without front matter and did not test the hook: move and extend it rather than starting over."
+      },
+      "reason": "The first run predates the brief change in CS-0021"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0053",
+      "patch": {
+        "description": "Write design/decisions.md (design document format) defining the decisions kind schema and file layout, changeset and MCP support, CSV columns, DEC tag grammar in the code scan, the exercised computation from evidence, and the 14-day lint rule. The first run (73acade on reqforge/TASK-0053) counts a decision with no tagged tests as exercised; update it to the amended REQ-0061 (at least 1 passing tagged test) and align with the accepted_at field already built on reqforge/TASK-0046 (53a75a1)."
+      },
+      "reason": "Align the design with the amended REQ-0061 and the existing code"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "STORY-0016 and STORY-0013 reopen from done to in-progress for one task each (TASK-0054, TASK-0055); their finished tasks stay done.",
+      "STORY-0019: the exercised rule tightens. TASK-0046's existing code (53a75a1) already matches it; TASK-0053's design must change."
+    ],
+    "code": [
+      "server/src/agent.rs (violation check, lines 200-227), the Complete endpoint and task schema (model.rs, the task-complete code), web task drawer for the 'no evals run' note.",
+      "Existing tests stay valid. New tests are tagged REQ-0056#AC4, REQ-0056#AC7 and REQ-0052#AC6.",
+      "On reqforge/TASK-0046 the decisions tests already assert 'no tagged tests means not exercised'; tag them REQ-0061#AC2."
+    ],
+    "evals": [
+      "STORY-0016/E1 now also covers REQ-0056#AC7; STORY-0013/E3 now also covers REQ-0052#AC6. No new evals."
+    ],
+    "risks": [
+      "REQ-0052 and REQ-0056 drop from implemented to approved until TASK-0054 and TASK-0055 land.",
+      "Until TASK-0054 lands and the eval lists are backfilled, Complete still refuses every task except a story's last; only TASK-0050 (both of its story's evals pass) can complete today.",
+      "Until TASK-0055 lands, violation flags on parallel runs need a manual check: git diff main...reqforge/TASK-NNNN -- requirements/."
+    ]
+  },
+  "base_versions": {
+    "REQ-0056": 3,
+    "REQ-0061": 2,
+    "REQ-0052": 6,
+    "STORY-0016": 4,
+    "STORY-0013": 2,
+    "TASK-0041": 3,
+    "TASK-0053": 2
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0056",
+        "title": "Complete task from agent branch",
+        "reason": "Story evals are written across tasks, so running all of them blocks every task but the last",
+        "changes": {
+          "statement": [
+            "The system shall let a user complete a task whose agent branch is ready by reviewing it, merging it after the story's evals pass on the merged result, and marking the task done in 1 action.",
+            "The system shall let a user complete a task whose agent branch is ready by reviewing it, merging it after the task's evals pass on the merged result, and marking the task done in 1 action."
+          ],
+          "status": [
+            "implemented",
+            "approved"
+          ],
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "The task drawer lists the agent branch's commits and changed files and shows its diff against the merge base"
+              },
+              {
+                "id": "AC2",
+                "text": "Complete is refused, with the reason shown, while the component checkout has uncommitted changes outside the requirements folder"
+              },
+              {
+                "id": "AC3",
+                "text": "Complete first merges the checked-out branch into the task branch in its worktree; on conflict it aborts, leaves both branches unchanged and lists the conflicting files"
+              },
+              {
+                "id": "AC4",
+                "text": "The story's evals then run in the task worktree; Complete is refused while any of them fails, listing the failing evals and their output tail"
+              },
+              {
+                "id": "AC5",
+                "text": "On success the task branch is merged into the checked-out branch with --no-ff, the task becomes done, and its worktree and branch are removed, within 1 action"
+              },
+              {
+                "id": "AC6",
+                "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "The task drawer lists the agent branch's commits and changed files and shows its diff against the merge base"
+              },
+              {
+                "id": "AC2",
+                "text": "Complete is refused, with the reason shown, while the component checkout has uncommitted changes outside the requirements folder"
+              },
+              {
+                "id": "AC3",
+                "text": "Complete first merges the checked-out branch into the task branch in its worktree; on conflict it aborts, leaves both branches unchanged and lists the conflicting files"
+              },
+              {
+                "id": "AC4",
+                "text": "The evals listed on the task then run in the task worktree, or all of the story's evals when it is the story's last open task; Complete is refused while any of them fails, listing the failing evals and their output tail, and a task with no listed evals that is not the last open task completes with 'no evals run' shown"
+              },
+              {
+                "id": "AC5",
+                "text": "On success the task branch is merged into the checked-out branch with --no-ff, the task becomes done, and its worktree and branch are removed, within 1 action"
+              },
+              {
+                "id": "AC6",
+                "text": "When the last open task of a story is completed the story becomes done, and the epic when all its stories are done"
+              },
+              {
+                "id": "AC7",
+                "text": "Tasks have an evals field listing ids of their story's evals; an id not defined on the story is rejected with a field error"
+              }
+            ]
+          ]
+        },
+        "base_version": 3
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0061",
+        "title": "Decisions exercised by code",
+        "reason": "Product owner: a decision with no tagged tests is not exercised",
+        "changes": {
+          "statement": [
+            "The system shall mark a decision exercised when at least one code location is tagged 'reqforge: implements DEC-NNNN' and every test tagged with that id has passing evidence.",
+            "The system shall mark a decision exercised when at least one code location is tagged 'reqforge: implements DEC-NNNN', at least one test is tagged with that id, and every test tagged with that id has passing evidence."
+          ],
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "The code scan records DEC-NNNN implements and verifies tags in the same way as REQ tags"
+              },
+              {
+                "id": "AC2",
+                "text": "Each decision shows exercised yes or no with its tagged locations; a failing or suspect tagged test makes it no"
+              },
+              {
+                "id": "AC3",
+                "text": "Lint warns for every accepted decision not exercised within 14 days of acceptance"
+              },
+              {
+                "id": "AC4",
+                "text": "A Decisions tab lists decisions with status, exercised flag and linked requirements"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "The code scan records DEC-NNNN implements and verifies tags in the same way as REQ tags"
+              },
+              {
+                "id": "AC2",
+                "text": "Each decision shows exercised yes or no with its tagged locations and the reason; no tagged test, or a failing, suspect or untested tagged test, makes it no"
+              },
+              {
+                "id": "AC3",
+                "text": "Lint warns for every accepted decision not exercised within 14 days of acceptance"
+              },
+              {
+                "id": "AC4",
+                "text": "A Decisions tab lists decisions with status, exercised flag and linked requirements"
+              }
+            ]
+          ]
+        },
+        "base_version": 2
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "requirements",
+        "id": "REQ-0052",
+        "title": "Coding agent sandbox",
+        "reason": "Parallel runs were flagged for the server's own run-log commits",
+        "changes": {
+          "status": [
+            "implemented",
+            "approved"
+          ],
+          "acceptance_criteria": [
+            [
+              {
+                "id": "AC1",
+                "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+              },
+              {
+                "id": "AC2",
+                "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+              },
+              {
+                "id": "AC3",
+                "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+              },
+              {
+                "id": "AC4",
+                "text": "Every run is logged with task id, starting user (for queued runs, the user who turned the queue on), whether it was queued, start and end time, branch and exit status"
+              },
+              {
+                "id": "AC5",
+                "text": "Evals that Complete runs on an agent branch write 0 files outside the task worktree and make 0 commits or pushes; any violation refuses Complete and is logged with the task's runs"
+              }
+            ],
+            [
+              {
+                "id": "AC1",
+                "text": "An agent run makes 0 commits or pushes to the default branch and pushes only to reqforge/TASK-* branches"
+              },
+              {
+                "id": "AC2",
+                "text": "An agent run writes 0 files outside its worktree, including the requirements repository"
+              },
+              {
+                "id": "AC3",
+                "text": "The coding agent has 0 reqforge record-write or changeset-apply tools"
+              },
+              {
+                "id": "AC4",
+                "text": "Every run is logged with task id, starting user (for queued runs, the user who turned the queue on), whether it was queued, start and end time, branch and exit status"
+              },
+              {
+                "id": "AC5",
+                "text": "Evals that Complete runs on an agent branch write 0 files outside the task worktree and make 0 commits or pushes; any violation refuses Complete and is logged with the task's runs"
+              },
+              {
+                "id": "AC6",
+                "text": "Changes that reqforge itself commits to the requirements repository during a run, such as run logs, history entries and record updates from other runs or users, are not reported as violations of that run, while any other change still is"
+              }
+            ]
+          ]
+        },
+        "base_version": 6
+      },
+      {
+        "i": 3,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0016",
+        "title": "Complete a task from its agent branch",
+        "reason": "Cover REQ-0056 AC7; story reopened",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "complete flow",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+                "covers": [
+                  "REQ-0056#AC2",
+                  "REQ-0056#AC3",
+                  "REQ-0056#AC4",
+                  "REQ-0056#AC5",
+                  "REQ-0056#AC6",
+                  "REQ-0051#AC7"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "UI e2e: task complete",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+                "covers": [
+                  "REQ-0056#AC1",
+                  "REQ-0056#AC5",
+                  "REQ-0051#AC7"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "Complete eval-run sandbox",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test task_complete -- eval_run_sandboxed",
+                "covers": [
+                  "REQ-0052#AC5"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "complete flow",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+                "covers": [
+                  "REQ-0056#AC2",
+                  "REQ-0056#AC3",
+                  "REQ-0056#AC4",
+                  "REQ-0056#AC5",
+                  "REQ-0056#AC6",
+                  "REQ-0056#AC7",
+                  "REQ-0051#AC7"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "UI e2e: task complete",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+                "covers": [
+                  "REQ-0056#AC1",
+                  "REQ-0056#AC5",
+                  "REQ-0051#AC7"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "Complete eval-run sandbox",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test task_complete -- eval_run_sandboxed",
+                "covers": [
+                  "REQ-0052#AC5"
+                ]
+              }
+            ]
+          ],
+          "status": [
+            "done",
+            "in-progress"
+          ]
+        },
+        "base_version": 4
+      },
+      {
+        "i": 4,
+        "op": "update",
+        "kind": "stories",
+        "id": "STORY-0013",
+        "title": "Start a task with a sandboxed coding agent",
+        "reason": "Cover REQ-0052 AC6; story reopened",
+        "changes": {
+          "evals": [
+            [
+              {
+                "id": "E1",
+                "name": "agent launcher integration (stub claude)",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test agent_run",
+                "covers": [
+                  "REQ-0051#AC2",
+                  "REQ-0051#AC3",
+                  "REQ-0051#AC5",
+                  "REQ-0051#AC6"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "UI e2e: start with agent",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-start.xml --suite agent-start",
+                "covers": [
+                  "REQ-0051#AC1",
+                  "REQ-0051#AC4"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "agent sandbox security",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test agent_sandbox",
+                "covers": [
+                  "REQ-0052#AC1",
+                  "REQ-0052#AC2",
+                  "REQ-0052#AC3",
+                  "REQ-0052#AC4"
+                ]
+              }
+            ],
+            [
+              {
+                "id": "E1",
+                "name": "agent launcher integration (stub claude)",
+                "kind": "integration",
+                "command": "cargo test --manifest-path server/Cargo.toml --test agent_run",
+                "covers": [
+                  "REQ-0051#AC2",
+                  "REQ-0051#AC3",
+                  "REQ-0051#AC5",
+                  "REQ-0051#AC6"
+                ]
+              },
+              {
+                "id": "E2",
+                "name": "UI e2e: start with agent",
+                "kind": "e2e",
+                "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-start.xml --suite agent-start",
+                "covers": [
+                  "REQ-0051#AC1",
+                  "REQ-0051#AC4"
+                ]
+              },
+              {
+                "id": "E3",
+                "name": "agent sandbox security",
+                "kind": "security",
+                "command": "cargo test --manifest-path server/Cargo.toml --test agent_sandbox",
+                "covers": [
+                  "REQ-0052#AC1",
+                  "REQ-0052#AC2",
+                  "REQ-0052#AC3",
+                  "REQ-0052#AC4",
+                  "REQ-0052#AC6"
+                ]
+              }
+            ]
+          ],
+          "status": [
+            "done",
+            "in-progress"
+          ]
+        },
+        "base_version": 2
+      },
+      {
+        "i": 5,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0054",
+        "ref": "t1",
+        "title": "Per-task eval lists in Complete",
+        "reason": "Implements REQ-0056 AC4 and AC7",
+        "data": {
+          "id": "TASK-0054",
+          "status": "todo",
+          "title": "Per-task eval lists in Complete",
+          "story": "STORY-0016",
+          "kind": "code",
+          "description": "Add an evals field to the task schema (ids of the story's evals, validated). Complete runs the task's listed evals, or all of the story's evals for its last open task, and shows 'no evals run' otherwise. Then propose a changeset that backfills evals on open tasks: TASK-0042 [E1], TASK-0043 [E2], TASK-0044 [E1], TASK-0045 [E2], TASK-0046 [E1], TASK-0047 [E2], TASK-0048 [E1], TASK-0049 [E2], TASK-0050 [E1, E2]; design and agent tasks none. Tag tests REQ-0056#AC4 and REQ-0056#AC7.",
+          "done_when": "task_complete integration tests pass, including a story where the first task completes with only its own evals."
+        }
+      },
+      {
+        "i": 6,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0055",
+        "ref": "t2",
+        "title": "Exclude reqforge's own commits from sandbox violations",
+        "reason": "Implements REQ-0052 AC6",
+        "data": {
+          "id": "TASK-0055",
+          "status": "todo",
+          "title": "Exclude reqforge's own commits from sandbox violations",
+          "story": "STORY-0013",
+          "kind": "code",
+          "description": "The before/after snapshot in server/src/agent.rs:200-227 compares the requirements repo's git status, so run logs and record updates committed by the server or by parallel runs during a run are reported as violations (seen on RUN-TASK-0046, 0048 and 0050). Compare only changes not made by reqforge's own commits. Tag tests REQ-0052#AC6.",
+          "done_when": "agent_sandbox tests pass, including two parallel runs where one finishes first and neither is flagged, and a run that edits the requirements repo itself is still flagged."
+        }
+      },
+      {
+        "i": 7,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0041",
+        "title": "Context management design: snapshot op, injection points, compaction hook",
+        "reason": "The first run predates the brief change in CS-0021",
+        "changes": {
+          "description": [
+            "Write design/context-management.md (design document format, REQ-0054) defining: (1) the snapshot changeset op and its validation; (2) the layout of the chat prompt and coding-agent brief, in order: task next_action, task section, snapshot, with the snapshot marked as project state; (3) when the chat agent is asked to propose next actions and a snapshot Next; (4) how the snapshot is re-supplied after compaction, verified for headless 'claude -p --resume' chat turns and agent runs, with a fallback (re-supply every turn) if the SessionStart compact hook does not fire.",
+            "Write design/context-management.md (design document format, REQ-0054) defining: (1) the snapshot changeset op and its validation; (2) the layout of the chat prompt and coding-agent brief, in order: task next_action, task section, snapshot, with the snapshot marked as project state; (3) when the chat agent is asked to propose next actions and a snapshot Next; (4) how the snapshot is re-supplied after compaction, verified for headless 'claude -p --resume' chat turns and agent runs, with a fallback (re-supply every turn) if the SessionStart compact hook does not fire. The first run (b85a89d on reqforge/TASK-0041) wrote docs/context.md without front matter and did not test the hook: move and extend it rather than starting over."
+          ]
+        },
+        "base_version": 3
+      },
+      {
+        "i": 8,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0053",
+        "title": "Decision record design: schema, DEC tags, exercised rule",
+        "reason": "Align the design with the amended REQ-0061 and the existing code",
+        "changes": {
+          "description": [
+            "Write design/decisions.md (design document format) defining the decisions kind schema and file layout, changeset and MCP support, CSV columns, DEC tag grammar in the code scan, the exercised computation from evidence, and the 14-day lint rule.",
+            "Write design/decisions.md (design document format) defining the decisions kind schema and file layout, changeset and MCP support, CSV columns, DEC tag grammar in the code scan, the exercised computation from evidence, and the 14-day lint rule. The first run (73acade on reqforge/TASK-0053) counts a decision with no tagged tests as exercised; update it to the amended REQ-0061 (at least 1 passing tagged test) and align with the accepted_at field already built on reqforge/TASK-0046 (53a75a1)."
+          ]
+        },
+        "base_version": 2
+      }
+    ],
+    "refmap": {
+      "t1": "TASK-0054",
+      "t2": "TASK-0055"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 63,
+        "active": 63,
+        "epics": 11,
+        "stories": 21,
+        "tasks": 53,
+        "evals": 51,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 63,
+        "active": 63,
+        "epics": 11,
+        "stories": 21,
+        "tasks": 55,
+        "evals": 51,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0052",
+        "REQ-0056",
+        "REQ-0061"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0013",
+          "title": "Start a task with a sandboxed coding agent",
+          "status": "in-progress",
+          "component": "server",
+          "via": [
+            "REQ-0052"
+          ]
+        },
+        {
+          "id": "STORY-0016",
+          "title": "Complete a task from its agent branch",
+          "status": "in-progress",
+          "component": "server",
+          "via": [
+            "REQ-0052",
+            "REQ-0056"
+          ]
+        },
+        {
+          "id": "STORY-0019",
+          "title": "Decision records exercised by code",
+          "status": "in-progress",
+          "component": "server",
+          "via": [
+            "REQ-0061"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0027",
+          "title": "Agent run design: brief, worktree, tool policy, run log",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0013"
+        },
+        {
+          "id": "TASK-0028",
+          "title": "Agent launcher and sandbox in the server",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0013"
+        },
+        {
+          "id": "TASK-0029",
+          "title": "Start with agent dialog and run view",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0013"
+        },
+        {
+          "id": "TASK-0038",
+          "title": "Complete-flow design: merge order, eval run, cleanup, parallel-task warning",
+          "kind": "design",
+          "status": "done",
+          "story": "STORY-0016"
+        },
+        {
+          "id": "TASK-0039",
+          "title": "Complete endpoint in the server",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0016"
+        },
+        {
+          "id": "TASK-0040",
+          "title": "Review & complete UI in the task drawer",
+          "kind": "code",
+          "status": "done",
+          "story": "STORY-0016"
+        },
+        {
+          "id": "TASK-0046",
+          "title": "Decision record kind and DEC trace tags",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0019"
+        },
+        {
+          "id": "TASK-0047",
+          "title": "Decisions tab",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0019"
+        },
+        {
+          "id": "TASK-0053",
+          "title": "Decision record design: schema, DEC tags, exercised rule",
+          "kind": "design",
+          "status": "in-progress",
+          "story": "STORY-0019"
+        },
+        {
+          "id": "TASK-0054",
+          "title": "Per-task eval lists in Complete",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0016"
+        },
+        {
+          "id": "TASK-0055",
+          "title": "Exclude reqforge's own commits from sandbox violations",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0013"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0013",
+          "id": "E1",
+          "name": "agent launcher integration (stub claude)",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test agent_run",
+          "covers": [
+            "REQ-0051#AC2",
+            "REQ-0051#AC3",
+            "REQ-0051#AC5",
+            "REQ-0051#AC6"
+          ]
+        },
+        {
+          "story": "STORY-0013",
+          "id": "E2",
+          "name": "UI e2e: start with agent",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-agent-start.xml --suite agent-start",
+          "covers": [
+            "REQ-0051#AC1",
+            "REQ-0051#AC4"
+          ]
+        },
+        {
+          "story": "STORY-0013",
+          "id": "E3",
+          "name": "agent sandbox security",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test agent_sandbox",
+          "covers": [
+            "REQ-0052#AC1",
+            "REQ-0052#AC2",
+            "REQ-0052#AC3",
+            "REQ-0052#AC4",
+            "REQ-0052#AC6"
+          ]
+        },
+        {
+          "story": "STORY-0016",
+          "id": "E1",
+          "name": "complete flow",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test task_complete",
+          "covers": [
+            "REQ-0056#AC2",
+            "REQ-0056#AC3",
+            "REQ-0056#AC4",
+            "REQ-0056#AC5",
+            "REQ-0056#AC6",
+            "REQ-0056#AC7",
+            "REQ-0051#AC7"
+          ]
+        },
+        {
+          "story": "STORY-0016",
+          "id": "E2",
+          "name": "UI e2e: task complete",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-task-complete.xml --suite task-complete",
+          "covers": [
+            "REQ-0056#AC1",
+            "REQ-0056#AC5",
+            "REQ-0051#AC7"
+          ]
+        },
+        {
+          "story": "STORY-0016",
+          "id": "E3",
+          "name": "Complete eval-run sandbox",
+          "kind": "security",
+          "command": "cargo test --manifest-path server/Cargo.toml --test task_complete -- eval_run_sandboxed",
+          "covers": [
+            "REQ-0052#AC5"
+          ]
+        },
+        {
+          "story": "STORY-0019",
+          "id": "E1",
+          "name": "decision records and exercised status",
+          "kind": "integration",
+          "command": "cargo test --manifest-path server/Cargo.toml --test decisions",
+          "covers": [
+            "REQ-0060#AC1",
+            "REQ-0060#AC2",
+            "REQ-0060#AC3",
+            "REQ-0061#AC1",
+            "REQ-0061#AC2",
+            "REQ-0061#AC3"
+          ]
+        },
+        {
+          "story": "STORY-0019",
+          "id": "E2",
+          "name": "UI e2e: decisions",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-decisions.xml --suite decisions",
+          "covers": [
+            "REQ-0061#AC4"
+          ]
+        }
+      ],
+      "components": [
+        "server"
+      ],
+      "in_progress_work": [
+        "TASK-0027",
+        "TASK-0028",
+        "TASK-0029",
+        "TASK-0038",
+        "TASK-0039",
+        "TASK-0040",
+        "TASK-0053",
+        "STORY-0013",
+        "STORY-0016",
+        "STORY-0019"
+      ]
+    }
+  },
+  "applied_at": "2026-10-05T03:02:21+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "t1": "TASK-0054",
+    "t2": "TASK-0055"
+  }
+}

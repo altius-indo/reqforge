@@ -5,7 +5,7 @@
   "type": "quality",
   "category": "security",
   "priority": "must",
-  "status": "implemented",
+  "status": "approved",
   "rationale": "Unlike the chat agent (REQ-0041), the coding agent edits code and runs commands, so its blast radius must be bounded and its runs auditable.",
   "acceptance_criteria": [
     {
@@ -27,6 +27,10 @@
     {
       "id": "AC5",
       "text": "Evals that Complete runs on an agent branch write 0 files outside the task worktree and make 0 commits or pushes; any violation refuses Complete and is logged with the task's runs"
+    },
+    {
+      "id": "AC6",
+      "text": "Changes that reqforge itself commits to the requirements repository during a run, such as run logs, history entries and record updates from other runs or users, are not reported as violations of that run, while any other change still is"
     }
   ],
   "parent": null,
@@ -39,7 +43,7 @@
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
   "notes": null,
-  "version": 6,
+  "version": 7,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T19:08:02+00:00"
+  "updated": "2026-10-05T03:02:21+00:00"
 }

@@ -46,6 +46,7 @@ You get a message with the apply result (assigned ids, lint counts, failing trac
 `{"op":"create","kind":"requirements|epics|stories|tasks","ref":"r1","data":{...},"reason":"..."}`
 `{"op":"update","id":"REQ-0007","patch":{...},"add":{"tags":["x"]},"remove":{"requirements":["REQ-0009"]},"reason":"..."}`
 `{"op":"delete","id":"REQ-0009","reason":"..."}`
+`{"op":"finding","ref":"f1","data":{"claim":"...","grade":"VERIFIED|THIN|REFUTED","sources":["https://..."],"date":"YYYY-MM-DD","perishability":"fast|slow","supersedes":"RF-0003"},"reason":"..."}` records a research finding (RF-NNNN). Findings are append-only: to re-check one, add a new finding that `supersedes` it. Cite findings from a requirement's `standards` (e.g. `"RF-0004"`).
 Use `"$r1"` (or `"$r1#AC1"` inside eval covers) to refer to a record created earlier in the same changeset.
 
 # Style

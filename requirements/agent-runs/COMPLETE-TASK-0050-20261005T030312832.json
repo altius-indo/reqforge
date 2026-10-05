@@ -1,0 +1,34 @@
+{
+  "task": "TASK-0050",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:03:11+00:00",
+  "branch": "reqforge/TASK-0050",
+  "target": "main",
+  "target_head": "e2492af70dd38649b369706d4500a61b214e98cc",
+  "task_head": "238fa3fd67e4e01f46cf2fc1e59cc4285e1cf887",
+  "evals": [
+    {
+      "id": "E1",
+      "name": "findings store and lint",
+      "command": "cargo test --manifest-path server/Cargo.toml --test research",
+      "status": "passed",
+      "seconds": 0.5
+    },
+    {
+      "id": "E2",
+      "name": "findings sanitised",
+      "command": "cargo test --manifest-path server/Cargo.toml --test research -- findings_sanitised",
+      "status": "passed",
+      "seconds": 0.2
+    }
+  ],
+  "merge_commit": "f4469163bd7b9bc47a72e6345cf98d07b0d23884",
+  "changed": [
+    "TASK-0050"
+  ],
+  "cleanup_warnings": [],
+  "ended": "2026-10-05T03:03:12+00:00",
+  "outcome": "completed",
+  "run_id": "COMPLETE-TASK-0050-20261005T030312832",
+  "kind": "complete"
+}

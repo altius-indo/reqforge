@@ -4,11 +4,11 @@
   "story": "STORY-0017",
   "kind": "design",
   "depends_on": [],
-  "description": "Define the snapshot changeset op, where the snapshot enters chat_prompt and agent_prompt, and the plugin SessionStart (compact) hook that re-supplies it.",
-  "done_when": "Design covers r1 and r2 acceptance criteria.",
+  "description": "Write design/context-management.md (design document format, REQ-0054) defining: (1) the snapshot changeset op and its validation; (2) the layout of the chat prompt and coding-agent brief, in order: task next_action, task section, snapshot, with the snapshot marked as project state; (3) when the chat agent is asked to propose next actions and a snapshot Next; (4) how the snapshot is re-supplied after compaction, verified for headless 'claude -p --resume' chat turns and agent runs, with a fallback (re-supply every turn) if the SessionStart compact hook does not fire. The first run (b85a89d on reqforge/TASK-0041) wrote docs/context.md without front matter and did not test the hook: move and extend it rather than starting over.",
+  "done_when": "design/context-management.md is committed with realises [REQ-0057, REQ-0058, REQ-0059], has a section addressing each acceptance criterion of REQ-0057 and REQ-0058 and REQ-0059 AC3-AC4, records the compaction-hook test result, and lint reports 0 unknown realises ids.",
   "status": "in-progress",
   "tags": [],
-  "version": 2,
+  "version": 4,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:34:52+00:00"
+  "updated": "2026-10-05T03:02:21+00:00"
 }

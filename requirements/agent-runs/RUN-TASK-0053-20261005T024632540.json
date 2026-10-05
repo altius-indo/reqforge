@@ -1,0 +1,288 @@
+{
+  "run_id": "RUN-TASK-0053-20261005T024632540",
+  "task": "TASK-0053",
+  "story": "STORY-0019",
+  "component": "server",
+  "branch": "reqforge/TASK-0053",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0053",
+  "base": "a761d3ef94fd8d9e649ba36f313b34a9d88678f3",
+  "user": "jyoti.sanyal (queue)",
+  "started": "2026-10-05T02:46:32+00:00",
+  "ended": "2026-10-05T02:50:08+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "73acade",
+      "message": "TASK-0053: add design/decisions.md for decision records and the exercised rule"
+    }
+  ],
+  "violations": [],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "7d716dfe-0f60-4694-b467-4310798ab4f9"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I'm writing a design doc for the decision kind, so first I'm reading the model, code-scan, verify, lint, CSV, MCP and chat code to make sure it matches how the code actually works."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now changesets, MCP, CSV, chat proposals, lint, and the UI tabs."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Still surveying: checking REST routes, MCP write tools, and reference handling so the design names the right hooks."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep \\(\\\"(GET|POST|PATCH|PUT|DELETE)\\\""
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep tool\\(\"[a-z_]+\""
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep fn references_to"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep \"/api/|path\\.as_slice|\\[\\\"api\\\""
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0053/requirements/design/data-model.md"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep fn route|=> .*store\\.(create|update|delete|upsert_many|bulk_update)|csvio::parse"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep \"title\""
+    },
+    {
+      "type": "text",
+      "text": "I have enough context and am writing `requirements/design/decisions.md` now."
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "text",
+      "text": "Now checking the realises lint."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0053/bin/reqforge"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Build succeeded; running lint on the requirements repo."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0053/server/src/design.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep \"(id|status)\""
+    },
+    {
+      "type": "text",
+      "text": "Both ids exist, so the realises check should pass. Committing."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I've written the design document `requirements/design/decisions.md` and committed it as `73acade`. Neither eval can run yet because the test and suite they call don't exist, and the \"0 unknown realises ids\" lint check wasn't run directly.\n\n**What the document covers**\n\nIt lists `realises: [REQ-0060, REQ-0061]` at the top and has a table mapping each of the seven acceptance criteria to the section that handles it:\n- **Schema and storage:** a new `decisions` kind with `DEC-NNNN` ids, stored as `decisions/DEC-NNNN.json`. `title`, `context` and `decision` are required, and status defaults to `proposed`.\n- **Accepted date:** a timestamp the system sets when a decision is accepted, which the 14-day rule uses.\n- **Validation:** linked requirements must exist. A superseded decision must name the decision that replaces it, and supersession loops are rejected, including ones created within one changeset.\n- **Changeset-only writes:** direct create, edit, delete and CSV import return a 403 everywhere (REST, CLI and MCP). The only way to change a decision is applying a changeset, and the chat agent can still only propose.\n- **Search, CSV, drawer and MCP:** adding the kind to the kind list makes these work. The record drawer gets an \"Exercised\" section.\n- **Code scan:** tags and test names can carry `DEC-NNNN` the same way they carry `REQ-NNNN`.\n- **Exercised flag:** a decision is exercised when at least one code location implements it and every test tagged with its id has current passing evidence. A failing, suspect or not-yet-run test makes it \"no\", and a reason is recorded.\n- **Lint rule:** a warning for any accepted decision that is still not exercised more than 14 days after acceptance.\n- **Decisions tab:** a table with status, exercised, linked requirements and accepted date, plus filters.\n- **Tests:** a list of what the E1 integration test should cover.\n\n**Tests and evals**\n- **E1** (`cargo test … --test decisions`) fails because the test file `server/tests/decisions.rs` doesn't exist yet. TASK-0046 is meant to build it.\n- **E2** (`node web/e2e/run.mjs … --suite decisions`) wasn't run; there is no `decisions` suite in `web/e2e/suites/` yet. TASK-0047 is meant to add it.\n- **Realises lint:** I couldn't run it. The reqforge MCP server failed to connect, and running the reqforge binary needed approval this session didn't have. I read the check's code instead: it fails only if an id is badly formed or isn't an existing requirement. `REQ-0060` and `REQ-0061` both exist (status approved), and the header uses the same format as `data-model.md`. To confirm, run `reqforge lint`.\n- `cargo build --release` succeeded, and `cargo test design` passed 4 of 4, but those tests don't read this repository's documents.\n\n**Decisions for you**\n- **Decisions with no tagged tests:** read literally, REQ-0061 counts these as exercised if code implements them, because \"every tagged test passes\" is true when there are none. The story says \"only when tested code relies on them\", which suggests at least one tagged test should be required. I followed the requirement and made the reason say \"no tagged tests\". If you want the stricter version, REQ-0061 needs to change through a changeset.\n- **Additions beyond the requirement wording:** I added an optional `consequences` field, made `superseded_by` an error unless the status is superseded, and added a lint warning for code tags naming a decision that doesn't exist.\n- **Grace period:** the 14 days is a fixed constant, not a project setting."
+    },
+    {
+      "type": "done",
+      "session_id": "7d716dfe-0f60-4694-b467-4310798ab4f9",
+      "cost": 1.1954194,
+      "turns": 38,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
