@@ -52,6 +52,8 @@ The run log is written to `requirements/agent-runs/RUN-<TASK>-<yyyymmddThhmmss>.
 
 `GET /api/p/{K}/tasks/{id}/runs` lists a task's runs.
 
+The same commit appends one metadata-only entry for the run to `requirements/history/sessions.jsonl` (REQ-0062). The entry holds kind `agent`, the run id, project, user, start and end, and an outcome: success, failed, cancelled, timeout or violation. Its records touched is the task. Chat sessions are added to the same file when `POST /api/chat/end {session_id}` is called or after 30 idle minutes. History is compacted once a day into monthly summaries, covering entries older than 365 days. See `server/src/history.rs`.
+
 ## Agent queue (STORY-0014, REQ-0053, TASK-0030)
 
 **Setting.** Per project, stored in `reqforge.json` as `agent_queue: {enabled, limit, changed_by, changed_at}`:
