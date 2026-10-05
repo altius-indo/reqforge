@@ -169,6 +169,8 @@ Each story carries `evals: [{id, name, kind, command, covers: ["REQ-0007#AC1"], 
 | post-deploy | smoke | after deploy on main |
 | monitor | synthetic-monitor | cron |
 
+The monitor job also runs `reqforge monitor --md`, which reports how many days the project snapshot (`state/HOT.md`) is past its 21-day limit and how many accepted decisions are unexercised (and how many of those are past the 14-day grace period). The Verification dashboard shows the same two counts.
+
 Before any stage runs, a `traceability` job gates on `reqforge lint --gate` and `reqforge trace --gate`. Each stage job runs `reqforge evals run --stage <s>`, so **adding an eval to a story extends the pipeline without regenerating the workflow**. A failed eval reports the requirement IDs at risk. CI builds the reqforge binary from the server sources vendored into `.reqforge/server` (cached), or from `cicd.reqforge_git` if you set it.
 
 Trace checks: requirement→story coverage, orphan stories, non-empty epics, tasks per story, evals on every code story, runnable commands, acceptance-criteria→eval coverage, quality requirements verified by a matching eval kind (performance→performance, security→security, …), lifecycle coverage (design/deployment/monitoring), and valid eval references. Thresholds are in `reqforge.json → gates`.
