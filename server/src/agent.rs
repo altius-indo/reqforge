@@ -576,6 +576,18 @@ impl AgentRunner {
             std::fs::create_dir_all(&dir).map_err(|e| StoreError::bad(e.to_string()))?;
             let _g = s3.lock()?;
             std::fs::write(dir.join(format!("{rid}.json")), dump(&log2)).map_err(|e| StoreError::bad(e.to_string()))?;
+            let viol = log2["violations"].as_array().map(Vec::len).unwrap_or(0);
+            crate::history::append_unlocked(&s3, &crate::history::Entry {
+                kind: "agent".into(),
+                id: rid.clone(),
+                project: s3.config_value()["key"].as_str().unwrap_or("").into(),
+                user: log2["user"].as_str().unwrap_or("").into(),
+                start: log2["started"].as_str().unwrap_or("").into(),
+                end: log2["ended"].as_str().unwrap_or("").into(),
+                outcome: crate::history::agent_outcome(&log2["exit_status"], viol).into(),
+                records_touched: vec![log2["task"].as_str().unwrap_or("").into()],
+                ..Default::default()
+            })?;
             s3.commit(&format!("{}: agent run {} ({})", log2["task"].as_str().unwrap_or(""), rid, log2["exit_status"]));
             Ok(())
         })

@@ -14,6 +14,7 @@ pub mod decisions;
 pub mod design;
 pub mod evidence;
 pub mod evals;
+pub mod history;
 pub mod impact;
 pub mod lint;
 pub mod mcp;

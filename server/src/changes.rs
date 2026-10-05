@@ -556,6 +556,23 @@ pub fn apply(store: &Store, id: &str, exclude: &[usize]) -> Res<Value> {
               "lint": l["counts"], "trace_ok": t["ok"], "trace_metrics": t["metrics"], "failing_checks": failing}))
 }
 
+/// Ids of the records an applied changeset wrote (excluded ops left out, refs resolved).
+pub fn touched_ids(cs: &Value) -> BTreeSet<String> {
+    let refmap = cs["assigned_ids"].as_object().cloned().unwrap_or_default();
+    let ex: Vec<u64> = cs["excluded_ops"].as_array().into_iter().flatten().filter_map(Value::as_u64).collect();
+    cs["ops"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .enumerate()
+        .filter(|(i, _)| !ex.contains(&(*i as u64)))
+        .filter_map(|(_, op)| match op.get("op").and_then(Value::as_str) {
+            Some("create") => op.get("ref").and_then(Value::as_str).and_then(|r| refmap.get(r)).and_then(Value::as_str).map(String::from),
+            _ => op.get("id").map(|i| resolve(i, &refmap)).and_then(|i| i.as_str().map(String::from)),
+        })
+        .collect()
+}
+
 pub fn reject(store: &Store, id: &str, reason: &str) -> Res<Value> {
     let _g = store.lock()?;
     let mut cs = get(store, id)?;
