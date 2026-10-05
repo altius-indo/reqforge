@@ -1,0 +1,396 @@
+{
+  "id": "CS-0024",
+  "title": "Collapsible and resizable side panels",
+  "summary": "Adds a requirement (REQ-0064 in the simulation) for collapsing and resizing the sidebar and chat panel on wide screens, with persisted widths and keyboard-operable resize handles, plus STORY-0022 under EPIC-0007 with 1 task and 2 evals (e2e and accessibility).",
+  "rationale": "Product owner request 2026-10-05. The sidebar (270 px) and chat column (410 px) have fixed widths today (web/src/App.tsx:69), and no existing requirement covers layout. Keyboard resizing follows WCAG 2.2 SC 2.1.1 and SC 2.5.7, which requires an alternative to dragging.",
+  "status": "pending",
+  "created": "2026-10-05T04:53:18+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "create",
+      "kind": "requirements",
+      "ref": "r1",
+      "data": {
+        "title": "Collapsible, resizable side panels",
+        "statement": "The system shall let a user collapse and resize the sidebar and the chat panel on wide screens, keeping each panel's width and collapsed state across reloads.",
+        "type": "interface",
+        "category": "user-interface",
+        "priority": "should",
+        "status": "proposed",
+        "rationale": "Fixed side panels waste space on large screens and crowd the list on small ones.",
+        "acceptance_criteria": [
+          {
+            "id": "AC1",
+            "text": "The sidebar and the chat panel each have a collapse control; a collapsed sidebar leaves a rail at most 48 px wide with an expand control, a collapsed chat panel is reopened from the header Chat button, and the list takes the freed width"
+          },
+          {
+            "id": "AC2",
+            "text": "Dragging a panel's inner edge resizes it between 200 and 480 px for the sidebar and 320 and 720 px for the chat panel, and never leaves the main area narrower than 480 px"
+          },
+          {
+            "id": "AC3",
+            "text": "Each resize handle is focusable with role separator and aria-valuenow, aria-valuemin and aria-valuemax; arrow keys change the width by 16 px and Enter toggles collapse, so resizing needs no dragging"
+          },
+          {
+            "id": "AC4",
+            "text": "Widths and collapsed states persist in the browser across reloads and project switches, and double-clicking a handle restores the default width (270 px sidebar, 410 px chat)"
+          },
+          {
+            "id": "AC5",
+            "text": "Below the lg breakpoint the sidebar and chat keep their current sheet and full-screen behaviour"
+          }
+        ],
+        "tags": [
+          "layout"
+        ],
+        "standards": [
+          "WCAG 2.2 SC 2.1.1 Keyboard",
+          "WCAG 2.2 SC 2.5.7 Dragging Movements"
+        ],
+        "source": "product owner request 2026-10-05"
+      },
+      "reason": "New UI capability"
+    },
+    {
+      "op": "update",
+      "id": "EPIC-0007",
+      "add": {
+        "requirements": [
+          "$r1"
+        ]
+      },
+      "reason": "Web UI epic"
+    },
+    {
+      "op": "create",
+      "kind": "stories",
+      "ref": "s1",
+      "data": {
+        "title": "Collapsible, resizable sidebar and chat panel",
+        "epic": "EPIC-0007",
+        "narrative": "As a product owner, I want to collapse and resize the sidebar and chat panel so that I can give the list or the chat the space I need.",
+        "requirements": [
+          "$r1"
+        ],
+        "deliverable": "code",
+        "component": "web",
+        "status": "todo",
+        "points": 3,
+        "evals": [
+          {
+            "id": "E1",
+            "name": "UI e2e: panels",
+            "kind": "e2e",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-panels.xml --suite panels",
+            "covers": [
+              "$r1#AC1",
+              "$r1#AC2",
+              "$r1#AC4",
+              "$r1#AC5"
+            ]
+          },
+          {
+            "id": "E2",
+            "name": "Panel resize keyboard and a11y",
+            "kind": "accessibility",
+            "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-panels-a11y.xml --suite panels-a11y",
+            "covers": [
+              "$r1#AC3"
+            ]
+          }
+        ]
+      },
+      "reason": "Delivers the requirement"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t1",
+      "data": {
+        "title": "Resizable, collapsible sidebar and chat panel",
+        "story": "$s1",
+        "kind": "code",
+        "description": "Replace the fixed lg grid columns in web/src/App.tsx:69 with persisted widths; add separator handles (drag, arrow keys, Enter, double-click reset) and collapse controls to Sidebar and ChatPanel; store state in localStorage via src/lib/storage.ts; add e2e suites panels and panels-a11y, registered in web/e2e/run.mjs, and a note in the help guides. Tag tests with the new requirement's acceptance criteria.",
+        "done_when": "panels and panels-a11y e2e suites pass.",
+        "status": "todo"
+      },
+      "reason": "Web work"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "New STORY-0022 (web, 3 points) under EPIC-0007. No existing story changes scope."
+    ],
+    "code": [
+      "web/src/App.tsx (grid columns at line 69), web/src/components/Sidebar.tsx, web/src/components/chat/ChatPanel.tsx, web/src/lib/storage.ts, web/src/components/help guides; new e2e suites web/e2e/suites/panels.js and panels-a11y.js registered in web/e2e/run.mjs.",
+      "No existing trace tags change."
+    ],
+    "evals": [
+      "2 new evals: STORY-0022/E1 (e2e) and E2 (accessibility)."
+    ],
+    "risks": [
+      "The record drawer (600 px overlay) is not included; say if it should resize too.",
+      "Once TASK-0054 lands, set TASK-0056's evals to [E1, E2]."
+    ]
+  },
+  "base_versions": {
+    "EPIC-0007": 9
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "create",
+        "kind": "requirements",
+        "id": "REQ-0064",
+        "ref": "r1",
+        "title": "Collapsible, resizable side panels",
+        "reason": "New UI capability",
+        "data": {
+          "id": "REQ-0064",
+          "priority": "should",
+          "status": "proposed",
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "text": "The sidebar and the chat panel each have a collapse control; a collapsed sidebar leaves a rail at most 48 px wide with an expand control, a collapsed chat panel is reopened from the header Chat button, and the list takes the freed width"
+            },
+            {
+              "id": "AC2",
+              "text": "Dragging a panel's inner edge resizes it between 200 and 480 px for the sidebar and 320 and 720 px for the chat panel, and never leaves the main area narrower than 480 px"
+            },
+            {
+              "id": "AC3",
+              "text": "Each resize handle is focusable with role separator and aria-valuenow, aria-valuemin and aria-valuemax; arrow keys change the width by 16 px and Enter toggles collapse, so resizing needs no dragging"
+            },
+            {
+              "id": "AC4",
+              "text": "Widths and collapsed states persist in the browser across reloads and project switches, and double-clicking a handle restores the default width (270 px sidebar, 410 px chat)"
+            },
+            {
+              "id": "AC5",
+              "text": "Below the lg breakpoint the sidebar and chat keep their current sheet and full-screen behaviour"
+            }
+          ],
+          "tags": [
+            "layout"
+          ],
+          "standards": [
+            "WCAG 2.2 SC 2.1.1 Keyboard",
+            "WCAG 2.2 SC 2.5.7 Dragging Movements"
+          ],
+          "title": "Collapsible, resizable side panels",
+          "statement": "The system shall let a user collapse and resize the sidebar and the chat panel on wide screens, keeping each panel's width and collapsed state across reloads.",
+          "type": "interface",
+          "category": "user-interface",
+          "rationale": "Fixed side panels waste space on large screens and crowd the list on small ones.",
+          "source": "product owner request 2026-10-05"
+        }
+      },
+      {
+        "i": 1,
+        "op": "update",
+        "kind": "epics",
+        "id": "EPIC-0007",
+        "title": "Web UI at scale",
+        "reason": "Web UI epic",
+        "changes": {
+          "requirements": [
+            [
+              "REQ-0016",
+              "REQ-0017",
+              "REQ-0030",
+              "REQ-0031",
+              "REQ-0032",
+              "REQ-0045",
+              "REQ-0048",
+              "REQ-0054",
+              "REQ-0055"
+            ],
+            [
+              "REQ-0016",
+              "REQ-0017",
+              "REQ-0030",
+              "REQ-0031",
+              "REQ-0032",
+              "REQ-0045",
+              "REQ-0048",
+              "REQ-0054",
+              "REQ-0055",
+              "REQ-0064"
+            ]
+          ]
+        },
+        "base_version": 9
+      },
+      {
+        "i": 2,
+        "op": "create",
+        "kind": "stories",
+        "id": "STORY-0022",
+        "ref": "s1",
+        "title": "Collapsible, resizable sidebar and chat panel",
+        "reason": "Delivers the requirement",
+        "data": {
+          "id": "STORY-0022",
+          "requirements": [
+            "REQ-0064"
+          ],
+          "deliverable": "code",
+          "evals": [
+            {
+              "id": "E1",
+              "name": "UI e2e: panels",
+              "kind": "e2e",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-panels.xml --suite panels",
+              "covers": [
+                "REQ-0064#AC1",
+                "REQ-0064#AC2",
+                "REQ-0064#AC4",
+                "REQ-0064#AC5"
+              ]
+            },
+            {
+              "id": "E2",
+              "name": "Panel resize keyboard and a11y",
+              "kind": "accessibility",
+              "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-panels-a11y.xml --suite panels-a11y",
+              "covers": [
+                "REQ-0064#AC3"
+              ]
+            }
+          ],
+          "status": "todo",
+          "title": "Collapsible, resizable sidebar and chat panel",
+          "epic": "EPIC-0007",
+          "narrative": "As a product owner, I want to collapse and resize the sidebar and chat panel so that I can give the list or the chat the space I need.",
+          "component": "web",
+          "points": 3
+        }
+      },
+      {
+        "i": 3,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0056",
+        "ref": "t1",
+        "title": "Resizable, collapsible sidebar and chat panel",
+        "reason": "Web work",
+        "data": {
+          "id": "TASK-0056",
+          "status": "todo",
+          "title": "Resizable, collapsible sidebar and chat panel",
+          "story": "STORY-0022",
+          "kind": "code",
+          "description": "Replace the fixed lg grid columns in web/src/App.tsx:69 with persisted widths; add separator handles (drag, arrow keys, Enter, double-click reset) and collapse controls to Sidebar and ChatPanel; store state in localStorage via src/lib/storage.ts; add e2e suites panels and panels-a11y, registered in web/e2e/run.mjs, and a note in the help guides. Tag tests with the new requirement's acceptance criteria.",
+          "done_when": "panels and panels-a11y e2e suites pass."
+        }
+      }
+    ],
+    "refmap": {
+      "r1": "REQ-0064",
+      "s1": "STORY-0022",
+      "t1": "TASK-0056"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 63,
+        "active": 63,
+        "epics": 11,
+        "stories": 21,
+        "tasks": 55,
+        "evals": 51,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 64,
+        "active": 64,
+        "epics": 11,
+        "stories": 22,
+        "tasks": 56,
+        "evals": 53,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [
+        "REQ-0064"
+      ],
+      "children": [],
+      "stories": [
+        {
+          "id": "STORY-0022",
+          "title": "Collapsible, resizable sidebar and chat panel",
+          "status": "todo",
+          "component": "web",
+          "via": [
+            "REQ-0064"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-0056",
+          "title": "Resizable, collapsible sidebar and chat panel",
+          "kind": "code",
+          "status": "todo",
+          "story": "STORY-0022"
+        }
+      ],
+      "evals": [
+        {
+          "story": "STORY-0022",
+          "id": "E1",
+          "name": "UI e2e: panels",
+          "kind": "e2e",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-panels.xml --suite panels",
+          "covers": [
+            "REQ-0064#AC1",
+            "REQ-0064#AC2",
+            "REQ-0064#AC4",
+            "REQ-0064#AC5"
+          ]
+        },
+        {
+          "story": "STORY-0022",
+          "id": "E2",
+          "name": "Panel resize keyboard and a11y",
+          "kind": "accessibility",
+          "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-panels-a11y.xml --suite panels-a11y",
+          "covers": [
+            "REQ-0064#AC3"
+          ]
+        }
+      ],
+      "components": [
+        "web"
+      ],
+      "in_progress_work": []
+    }
+  }
+}
