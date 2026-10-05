@@ -1,0 +1,452 @@
+{
+  "run_id": "RUN-TASK-0042-20261005T032335927",
+  "task": "TASK-0042",
+  "story": "STORY-0017",
+  "component": "server",
+  "branch": "reqforge/TASK-0042",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042",
+  "base": "cbae9c866b7bb8fb6361c5331b47ebaff1fd2748",
+  "user": "jyoti.sanyal (queue)",
+  "started": "2026-10-05T03:23:35+00:00",
+  "ended": "2026-10-05T03:30:31+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "373682b",
+      "message": "TASK-0042: snapshot op, validation, lint and context injection"
+    }
+  ],
+  "violations": [
+    "the component's checked-out branch moved from 59f68ea462 to a4756684e9"
+  ],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "b02cf5cc-c32b-43e7-9fc9-5bd2b47cc697"
+    },
+    {
+      "type": "text",
+      "text": "I'll start by getting oriented in the repo."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The design doc from TASK-0041 is the spec. Reading it first."
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/requirements/design/context-management.md"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/scripts/check-compact-hook.sh"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Scope: E1 is this task; web card/banner is TASK-0043. Now reading the core files."
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/server/src/changes.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/server/src/lint.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/server/src/chat.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/server/src/lib.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/server/src/agent.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/server/src/taskflow.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Still reading the code; the design doc lays out the plan. Next I'll look at the test harness and the API, then write `snapshot.rs`."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Mapping where `command_args` is called before I change its signature."
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep command_args|agent::brief|task_section"
+    },
+    {
+      "type": "text",
+      "text": "Writing `server/src/snapshot.rs` now."
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "text",
+      "text": "Now wiring it into `lib.rs`, the `Source` trait, and the store revision."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the `snapshot` op in `changes.rs`."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Expected — now adding `taskflow::next_action_block` and restructuring the agent brief."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Builds. Now chat: first-turn injection and the system-prompt fallback."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the CLI `snapshot` command, the read-only API route, and the plugin hook file."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Builds. Now the prompt text additions."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0042/server/src/chat_prompt.md"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the E1 test file. Checking how existing integration tests build a store and drive chat."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Writing `server/tests/context.rs` with the nine `snapshot_*` tests from the design."
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "text",
+      "text": "Running E1."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Doc comments mention the path; that isn't a write. I'll make the scan skip comment lines."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "E1 passes 9/9. Now running the full server test suite to check for regressions."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "All 124 server tests pass. A quick clippy pass, then I'll commit."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Splitting the commands so each one runs on its own."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I've built the server side of the project snapshot following the TASK-0041 design (`requirements/design/context-management.md`). The E1 eval passes: 9 of 9 `snapshot_*` tests, and all 124 server tests pass. It's committed on `reqforge/TASK-0042` as `373682b`. I didn't run E2, which tests the web UI work in TASK-0043.\n\n**What changed**\n- **New `server/src/snapshot.rs`** handles `state/HOT.md`. Validation checks:\n  - the size limit of 8,192 bytes;\n  - that the `## Now`, `## Next` and `## Watch` headings each appear once, in that order;\n  - that Next has exactly one item;\n  - that there is one real `Last reconciled: YYYY-MM-DD` date;\n  - that the text doesn't contain the `<project-state>` markers used when it is injected.\n\n  The module also builds the line diff, the block that gets injected into sessions, the compaction hook's output, the data for the read-only API endpoint, and the lint findings.\n- **Changesets (`changes.rs`):** a changeset can carry one `{\"op\":\"snapshot\",\"content\":…}` op. Simulate shows its diff and its size and validation errors. Apply rejects the changeset as stale if the file changed since it was proposed, and otherwise writes the file in the same commit as the other changes. Apply is the only code that writes the file, and a test scans the source to check that.\n- **Lint:** warns `snapshot-stale` when Last reconciled is more than 21 days old, and `snapshot-invalid` for a file someone hand-edited into a bad state. A missing file gives no warning. I added `state/` to the store's change tracking so cached lint results refresh when the snapshot changes.\n- **Chat (`chat.rs`):** the first turn starts with the snapshot text, unchanged. When the chat is about a single task, the task section comes first. Resumed turns don't repeat it.\n- **Agent brief (`agent.rs`):** a `## Project snapshot` section now comes after `## Done when`. Without a file it says `(none: this project has no state/HOT.md yet)`.\n- **Fallback:** setting `REQFORGE_SNAPSHOT_RESUPPLY=system` also puts the snapshot in the system prompt for chat and agent runs.\n- **After compaction:** new `hooks/hooks.json` registers a SessionStart hook for `compact` that runs `reqforge snapshot --hook`. The command always exits 0 and prints nothing when `REQFORGE_REPO` is unset or there's no file. Without `--hook`, `reqforge snapshot` just prints the file.\n- **Also added:** `GET /api/p/{K}/snapshot`, which TASK-0043 will use, and guidance in both prompts that `state/HOT.md` must never be written directly.\n\n**Left open**\n- **Next action not built yet:** `taskflow::next_action_block` reads `next_action` / `next_action_set` from the task, but those fields don't exist in the task schema yet (REQ-0059#AC1). It returns nothing until they do; the tests set them directly on a task.\n- **Possible hook timeout:** `bin/reqforge` rebuilds the binary when the source is newer than it. The first compaction after a code change could exceed the hook's 10-second limit. The session carries on, but the snapshot isn't re-supplied that time.\n- **Web card:** the changeset card doesn't render the new `snapshot` op yet; that's TASK-0043.\n- **Hook not tested live:** the tests check the hook registration and the command's output, not a real Claude Code compaction. `scripts/check-compact-hook.sh` is the manual check for that.\n- **Leftover temp file:** `/tmp/task-0042-commit-msg.txt` is still there because deleting outside the worktree needed approval."
+    },
+    {
+      "type": "done",
+      "session_id": "b02cf5cc-c32b-43e7-9fc9-5bd2b47cc697",
+      "cost": 2.9220165999999996,
+      "turns": 57,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}

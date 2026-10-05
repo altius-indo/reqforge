@@ -16,6 +16,7 @@ pub fn facet_fields(kind: Kind) -> &'static [&'static str] {
         Kind::Stories => &["epic", "status", "deliverable", "component", "tags"],
         Kind::Tasks => &["kind", "status", "tags"],
         Kind::Components => &["language", "owners", "tags"],
+        Kind::Decisions => &["status", "requirements", "tags"],
     }
 }
 
@@ -34,6 +35,9 @@ fn annotate(kind: Kind, rec: &Rec, lk: &Value) -> Value {
         Kind::Stories => {
             r.insert("_tasks".into(), json!(link_count(lk, "story_tasks", id)));
             r.insert("_evals".into(), json!(rec.get("evals").and_then(Value::as_array).map(Vec::len).unwrap_or(0)));
+        }
+        Kind::Decisions => {
+            r.insert("_exercised".into(), lk["decisions_exercised"][id].clone());
         }
         _ => {}
     }

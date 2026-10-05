@@ -42,15 +42,15 @@ pub fn tools() -> Vec<Value> {
 }
 
 fn base_tools() -> Vec<Value> {
-    let kind = json!({"type": "string", "enum": ["requirements", "epics", "stories", "tasks"]});
+    let kind = json!({"type": "string", "enum": ["requirements", "epics", "stories", "tasks", "components", "decisions"]});
     let obj = json!({"type": "object"});
     let strs = json!({"type": "array", "items": {"type": "string"}});
     let s = json!({"type": "string"});
     vec![
         tool("taxonomy", "Requirement taxonomy (decision-ordered types and categories), field schemas, enums and project config. Call before classifying or creating records.", json!({}), &[]),
         tool("search", "Search records. q is free text; tokens like status:approved or type:quality|data filter exactly.", json!({"kind": kind, "q": s, "where": obj}), &["kind"]),
-        tool("get", "Get one record by id (REQ-0001, EPIC-0001, STORY-0001, TASK-0001).", json!({"id": s}), &["id"]),
-        tool("create", "Create one record; id is assigned. Returns the record.", json!({"kind": kind, "data": obj}), &["kind", "data"]),
+        tool("get", "Get one record by id (REQ-0001, EPIC-0001, STORY-0001, TASK-0001, COMP-0001, DEC-0001).", json!({"id": s}), &["id"]),
+        tool("create", "Create one record; id is assigned. Returns the record. Decisions (DEC) are created and changed only through changesets.", json!({"kind": kind, "data": obj}), &["kind", "data"]),
         tool("upsert_many", "Create or update many records of one kind (rows with an existing id are patched). Use for writing a whole elicited requirement set or a whole plan.", json!({"kind": kind, "rows": {"type": "array", "items": obj}, "message": s}), &["kind", "rows"]),
         tool("update", "Patch a record. Pass version for optimistic concurrency.", json!({"id": s, "patch": obj, "version": {"type": "integer"}}), &["id", "patch"]),
         tool("bulk_update", "Mass update records selected by ids or by q/where. set replaces fields; add/remove edit list fields (e.g. tags). All-or-nothing; use dry_run first.", json!({"kind": kind, "ids": strs, "q": s, "where": obj, "set": obj, "add": obj, "remove": obj, "dry_run": {"type": "boolean"}}), &["kind"]),
@@ -61,14 +61,14 @@ fn base_tools() -> Vec<Value> {
         tool("save_session", "Persist an elicitation session transcript (markdown: request, research findings with sources, questions and answers, decisions). Returns session id ELI-NNNN.", json!({"title": s, "markdown": s, "id": s}), &["title", "markdown"]),
         tool("config", "Read, or patch with `patch`, the project config (gates, coverage_waivers, components, cicd).", json!({"patch": obj}), &[]),
         tool("sync", "Commit pending changes, pull --rebase and push the requirements repo to GitHub.", json!({"message": s}), &[]),
-        tool("context", "A record plus its links: parent/children, stories, tasks, evals and components it affects (impact), and its lint findings.", json!({"id": s}), &["id"]),
+        tool("context", "A record plus its links: parent/children, stories, tasks, evals and components it affects (impact), and its lint findings. For a decision: whether it is exercised, with its tagged code and tests.", json!({"id": s}), &["id"]),
         tool("simulate_changeset", "Dry-run a changeset on an in-memory copy: validation errors, dangling references, lint (MECE) delta, traceability delta and blast radius. Writes nothing; iterate until clean. changeset = {title, summary, rationale, ops: [{op: create, kind, ref, data} | {op: update, id, patch, add, remove} | {op: delete, id} | {op: finding, ref, data: {claim, grade: VERIFIED|THIN|REFUTED, sources: [url], date, perishability: fast|slow, supersedes}}], impact}. Use \"$ref\" to point at records or findings created earlier in the same changeset (e.g. cite a new finding from a requirement's standards as \"$f1\"). Findings are append-only: re-check one with a new finding that supersedes it.", json!({"changeset": obj}), &["changeset"]),
         tool("propose_changeset", "Store a changeset for the user to review and apply in the UI. Returns changeset_id. Nothing is written to records until the user applies.", json!({"changeset": obj}), &["changeset"]),
         tool("get_changeset", "Get a stored changeset with its analysis and status.", json!({"id": s}), &["id"]),
         tool("list_changesets", "List changesets, optionally by status (pending, applied, rejected, stale).", json!({"status": s}), &[]),
         tool("apply_changeset", "Apply a pending changeset atomically (only after the user explicitly confirmed it). exclude = op indexes to skip.", json!({"id": s, "exclude": {"type": "array", "items": {"type": "integer"}}}), &["id"]),
         tool("reject_changeset", "Reject a pending changeset.", json!({"id": s, "reason": s}), &["id"]),
-        tool("verification", "Verification report: per requirement and acceptance criterion, its status (verified / pending / untested / suspect / failing), tagged tests, implementing code locations, covering evals and evidence. Without `req`: summary, gate checks and a status per requirement.", json!({"req": s}), &[]),
+        tool("verification", "Verification report: per requirement and acceptance criterion, its status (verified / pending / untested / suspect / failing), tagged tests, implementing code locations, covering evals and evidence. Without `req`: summary, gate checks and a status per requirement. With a decision id (DEC-0001): whether it is exercised, with its implementing locations and tagged tests.", json!({"req": s}), &[]),
         tool("impact", "Impact of a code change in a component checkout: changed files, requirements touched (via trace tags), tests and evals to re-run, verified criteria put at risk, untraced changes.", json!({"component": s, "base": s, "root": s}), &[]),
         tool("scan_code", "Scan component sources for trace tags and store the code index (writes code/<component>.json and commits).", json!({"components": strs, "root": s}), &[]),
         tool("ingest_evidence", "Ingest CI result files (JUnit XML or reqforge eval report JSON, by path) as verification evidence.", json!({"paths": strs, "component": s, "commit": s, "run": s}), &["paths"]),
@@ -160,6 +160,9 @@ pub fn call(name: &str, a: &Value) -> Res<Value> {
         "verification" => {
             let full = crate::verify::report(s);
             match a.get("req").and_then(Value::as_str) {
+                Some(r) if r.starts_with("DEC-") => {
+                    crate::decisions::report(s)["decisions"].get(r).cloned().ok_or_else(|| StoreError::new(format!("{r} not found"), 404))?
+                }
                 Some(r) => full["requirements"].get(r).cloned().ok_or_else(|| StoreError::new(format!("{r} not found"), 404))?,
                 None => {
                     let mut v = crate::verify::summary(&full);

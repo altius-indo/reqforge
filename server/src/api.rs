@@ -25,6 +25,9 @@
 //! GET    /api/sessions | GET /api/sessions/{id} | POST /api/sessions {title, markdown}
 //! POST   /api/sync | PATCH /api/config
 //! GET    /api/chat/status | POST /api/chat (SSE) | POST /api/chat/cancel {chat_id}
+//! POST   /api/chat/end {session_id}        end a chat session: its metadata goes to the history
+//! GET    /api/history | GET /api/history/gap | POST /api/history/gap {reason} | POST /api/history/pause {reason}
+//! POST   /api/history/compact              fold entries older than 365 days into monthly summaries (once a day)
 //! GET    /api/verification[?req=ID|full=1]  per-criterion status: verified/pending/untested/suspect/failing
 //! GET    /api/verification/history?limit=30  verified-ratio snapshots, one per evidence ingest
 //! GET    /api/code | /api/code/{component} | POST /api/code/scan {components?, root?}
@@ -63,6 +66,8 @@ pub struct AppState {
     pub chats: std::sync::Mutex<HashMap<String, Arc<ChatRunner>>>,
     pub agents: std::sync::Mutex<HashMap<String, Arc<crate::agent::AgentRunner>>>,
     pub token: String,
+    /// last day the history housekeeping ran, per project
+    pub history_day: std::sync::Mutex<HashMap<String, String>>,
 }
 
 impl AppState {
@@ -95,7 +100,7 @@ pub fn workspace_router(ws: Arc<Workspace>, token: String) -> Router {
 }
 
 pub fn app_state(ws: Arc<Workspace>, token: String) -> Arc<AppState> {
-    Arc::new(AppState { ws, chats: Default::default(), agents: Default::default(), token })
+    Arc::new(AppState { ws, chats: Default::default(), agents: Default::default(), token, history_day: Default::default() })
 }
 
 pub fn router_for(state: Arc<AppState>) -> Router {
@@ -115,10 +120,34 @@ impl AppState {
         for k in keys {
             if let Ok(store) = self.ws.store(&k) {
                 started.extend(crate::queue::tick(&store, &self.agents_for(&k), &user));
+                self.history_tick(&k, &store, &user);
             }
         }
         started
     }
+}
+
+impl AppState {
+    /// Write idle chat sessions to the history, and compact it once a day (REQ-0062).
+    // reqforge: implements REQ-0062
+    pub fn history_tick(&self, key: &str, store: &Store, user: &str) {
+        let chat = self.chats.lock().unwrap().get(key).cloned();
+        if let Some(chat) = chat {
+            for s in chat.idle_sessions(chat_idle()) {
+                let _ = crate::history::append(store, &crate::history::chat_entry(store, &s, user));
+            }
+        }
+        let today = chrono::Utc::now().format("%Y-%m-%d").to_string();
+        if self.history_day.lock().unwrap().insert(key.to_string(), today.clone()).as_deref() != Some(today.as_str()) {
+            let _ = crate::history::compact(store, chrono::Utc::now());
+        }
+    }
+}
+
+/// A chat session with no turn for this long is over (REQFORGE_CHAT_IDLE_MIN, default 30).
+fn chat_idle() -> std::time::Duration {
+    let mins = std::env::var("REQFORGE_CHAT_IDLE_MIN").ok().and_then(|v| v.parse().ok()).unwrap_or(30u64);
+    std::time::Duration::from_secs(mins * 60)
 }
 
 /// Background agent-queue scheduler (REQ-0053#AC3): ticks every REQFORGE_QUEUE_TICK_MS (default 5000).
@@ -289,7 +318,9 @@ async fn dispatch(State(st): State<Arc<AppState>>, method: Method, uri: Uri, hea
     };
     let chat = st.chat(&key, &store);
     if rest == ["chat".to_string()] && method == Method::POST {
-        return chat_sse(chat, jbody);
+        let new_session = jbody.get("session_id").and_then(Value::as_str).filter(|s| !s.is_empty()).is_none();
+        let gap = if new_session { crate::history::pending_gap(&store, chrono::Utc::now()) } else { None };
+        return chat_sse(chat, jbody, gap);
     }
     let agents = st.agents_for(&key);
     if rest == ["agent-queue".to_string()] {
@@ -344,8 +375,12 @@ async fn dispatch(State(st): State<Arc<AppState>>, method: Method, uri: Uri, hea
     }
 }
 
-fn chat_sse(chat: Arc<ChatRunner>, b: Value) -> Response {
+fn chat_sse(chat: Arc<ChatRunner>, b: Value, gap: Option<Value>) -> Response {
     let (tx, rx) = tokio::sync::mpsc::channel::<Value>(64);
+    // a new session after 14+ quiet days starts by showing the gap (REQ-0062#AC4)
+    if let Some(g) = gap {
+        let _ = tx.try_send(json!({"type": "gap", "gap": g}));
+    }
     let chat_id = b.get("chat_id").and_then(Value::as_str).filter(|s| !s.is_empty()).unwrap_or("default").to_string();
     let message = b.get("message").and_then(Value::as_str).unwrap_or("").to_string();
     let session = b.get("session_id").and_then(Value::as_str).map(String::from);
@@ -369,6 +404,10 @@ fn agent_sse(agents: Arc<crate::agent::AgentRunner>, store: Arc<Store>, task: St
         .header(header::CACHE_CONTROL, "no-cache")
         .body(Body::from_stream(stream))
         .unwrap()
+}
+
+fn user() -> String {
+    std::env::var("USER").unwrap_or_else(|_| "local".into())
 }
 
 fn obj(v: &Value, k: &str) -> Rec {
@@ -488,6 +527,24 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
             let id = b.get("chat_id").and_then(Value::as_str).unwrap_or("default");
             return Ok(Out::Json(200, json!({"cancelled": chat.cancel(id)})));
         }
+        ["chat", "end"] if post => {
+            let sid = b.get("session_id").and_then(Value::as_str).ok_or_else(|| StoreError::bad("session_id required"))?;
+            let Some(s) = chat.end_session(sid) else { return Ok(Out::Json(200, json!({"ended": false}))) };
+            let e = crate::history::chat_entry(store, &s, &user());
+            crate::history::append(store, &e)?;
+            return Ok(Out::Json(200, json!({"ended": true, "entry": e})));
+        }
+        ["history"] if get => return Ok(Out::Json(200, crate::history::view(store, chrono::Utc::now()))),
+        ["history", "gap"] if get => return Ok(Out::Json(200, json!({"gap": crate::history::pending_gap(store, chrono::Utc::now())}))),
+        ["history", "gap"] if post => {
+            let reason = b.get("reason").and_then(Value::as_str).unwrap_or("");
+            return Ok(Out::Json(201, crate::history::record_gap(store, &user(), reason, chrono::Utc::now())?));
+        }
+        ["history", "pause"] if post => {
+            let reason = b.get("reason").and_then(Value::as_str).unwrap_or("");
+            return Ok(Out::Json(201, crate::history::pause(store, &user(), reason, chrono::Utc::now())?));
+        }
+        ["history", "compact"] if post => return Ok(Out::Json(200, crate::history::compact(store, chrono::Utc::now())?)),
         ["context", id] => return Ok(Out::Json(200, changes::context(store, id)?)),
         ["verification", "history"] if get => {
             return Ok(Out::Json(200, json!(crate::evidence::history(&store.root, num(&qs, "limit", 30)))));
@@ -622,6 +679,7 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
             };
             Ok(Out::Raw(200, csvio::export(&rows, kind), "text/csv; charset=utf-8"))
         }
+        [_, "exercised"] if get && kind == Kind::Decisions => Ok(Out::Json(200, (*crate::decisions::report(store)).clone())),
         [_, id, "readiness"] if get && kind == Kind::Tasks => Ok(Out::Json(200, crate::taskflow::readiness(store, id)?)),
         [_, id, "agent"] if get && kind == Kind::Tasks => Ok(Out::Json(200, crate::agent::plan(store, id)?)),
         [_, id, "runs"] if get && kind == Kind::Tasks => Ok(Out::Json(200, json!(crate::agent::runs(store, id)))),

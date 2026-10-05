@@ -185,6 +185,9 @@ pub fn lint(src: &dyn Source) -> Value {
     // ---- design documents: every realises entry must name an existing requirement
     findings.extend(crate::design::lint_findings(src));
 
+    // ---- decisions: accepted ones must be exercised by tested code within the grace period
+    findings.extend(crate::decisions::lint_findings(src, chrono::Utc::now()));
+
     // ---- research: cited findings must be neither refuted nor past their refresh_by date
     findings.extend(crate::research::lint_findings(src, &reqs, chrono::Utc::now().date_naive()));
 

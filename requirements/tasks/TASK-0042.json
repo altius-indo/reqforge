@@ -11,9 +11,9 @@
   ],
   "description": "Snapshot op in changes.rs with size/heading checks, staleness lint, injection in chat.rs and agent.rs, SessionStart compact hook in the plugin.",
   "done_when": "context snapshot integration tests pass.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 3,
+  "version": 4,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T03:20:06+00:00"
+  "updated": "2026-10-05T03:23:35+00:00"
 }
