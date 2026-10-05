@@ -251,9 +251,9 @@ and passes a case only if the hook log shows `source: "compact"` and the final a
 
 | date | Claude Code | chat (`-p --resume`) | agent run (single `-p`) |
 |---|---|---|---|
-| 2026-10-04 | not run | **not run** | **not run** |
+| 2026-10-04 | 2.1.289 | **PASS** (hook fired 1x, codeword in the next turn) | **PASS** (hook fired 1x, codeword in the next turn) |
 
-The check could not be run from the TASK-0041 agent session: launching `claude` from inside that run needs interactive approval, and the run is non-interactive. So whether the hook fires in headless mode is **unverified**. Run `scripts/check-compact-hook.sh` on a developer machine and record the result here (version from `claude --version`). Until both cases pass, the fallback below is on by default.
+Run on a developer machine with `scripts/check-compact-hook.sh` (model haiku): the SessionStart `compact` hook fires in both headless shapes and its additional context reaches the next turn, so `hook` is the default. Re-run the check when the supported Claude Code version changes and add a row; if either case fails, switch the default back to `system`.
 
 #### Fallback: re-supply every turn
 
@@ -262,9 +262,9 @@ If the hook does not fire (or does not reach the next model turn) in either shap
 - **chat:** `ChatRunner::command_args` appends `"\n\n" + context_block(current file)` to the `--append-system-prompt` value on **every** turn, first and resumed. Because each turn is a new process, a snapshot applied mid-session reaches the next turn. The cost is at most 8 KiB per request, and the system prompt stays cacheable until the snapshot changes.
 - **agent run:** `agent::command_args` appends the same block (plus the next action block) to `--append-system-prompt`. It is read once at process start, which matches the brief.
 
-The switch is `REQFORGE_SNAPSHOT_RESUPPLY` = `system` (default) or `hook`:
+The switch is `REQFORGE_SNAPSHOT_RESUPPLY` = `hook` (default) or `system`:
 - `system` adds the system-prompt copy; the hook still runs and its copy is harmless duplication.
-- `hook` relies on the hook alone. Flip the default once the check passes for both shapes on the supported Claude Code version.
+- `hook` relies on the hook alone. It is the default because the check passed for both shapes on Claude Code 2.1.289 (test result above).
 
 The first-turn and brief copies (REQ-0058#AC1, AC2) are unaffected by the switch.
 
@@ -330,6 +330,6 @@ REQ-0059#AC3-AC4 are verified with STORY-0017's next-action work, not by E1/E2; 
 
 ## Open points
 
-- **Hook unverified.** See the test result above; the `system` fallback is the default until it is recorded as passing.
+- **Hook verified on one version.** The check passed on Claude Code 2.1.289; re-run it on upgrades, and fall back to `system` if it fails.
 - **Stale snapshot in a long chat.** With `REQFORGE_SNAPSHOT_RESUPPLY=hook`, a resumed chat keeps the snapshot from its first turn until the next compaction, even if a newer one is applied. The `system` mode does not have this gap.
 - **Next item is free text.** Stories and tasks have no field linking them to the snapshot.
