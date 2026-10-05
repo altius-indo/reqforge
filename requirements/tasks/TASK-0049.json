@@ -6,11 +6,14 @@
   "depends_on": [
     "TASK-0048"
   ],
+  "evals": [
+    "E2"
+  ],
   "description": "Show a 14-day-plus gap at session start with a field to give a reason; pause action in project settings.",
   "done_when": "history e2e suite passes.",
   "status": "todo",
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:33:16+00:00"
+  "updated": "2026-10-05T03:20:07+00:00"
 }
