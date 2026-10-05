@@ -5,7 +5,7 @@
   "type": "functional",
   "category": "context-management",
   "priority": "should",
-  "status": "proposed",
+  "status": "approved",
   "rationale": "A pointer to the file is not enough; the agent must see the state at start and after compaction.",
   "acceptance_criteria": [
     {
@@ -31,7 +31,7 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-04; adapted from canoe",
-  "version": 1,
+  "version": 2,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:32:26+00:00"
+  "updated": "2026-10-05T02:34:48+00:00"
 }
