@@ -128,9 +128,13 @@ The target is never touched in this step, so both branches stay unchanged.
 
 The merge runs in the worktree, not the checkout. Conflicts are then never visible in the user's checkout, and the evals in step 3 test exactly the tree that will land.
 
-### 3. Run the story's evals on the merged tree (AC4)
+### 3. Run the task's evals on the merged tree (AC4)
 
-- Select the evals of the task's story that have a `command`, from `evals::registry` filtered by story, in eval-id order. Stage is ignored: every eval of the story must pass. Evals without a command are reported as `skipped` and do not block.
+- Select the evals (AC4, AC7):
+  - when this is the story's last open task (every other task of the story is `done`), all of the story's evals;
+  - otherwise the ids in the task's `evals` field. That field only accepts ids of evals defined on the task's story; any other id is rejected with a field error on save. If an id was later removed from the story, it is reported as a failed eval;
+  - otherwise none. Complete goes on with `note: "no evals run"` in the response, and the drawer shows it.
+- Stage is ignored: every selected eval must pass. Evals without a `command` are reported as `skipped` and do not block. The response and the attempt log carry `eval_scope`: `task`, `story` or `none`.
 - Run each one with `evals::run_one` in the worktree, using the eval's `timeout` (default 1800 s), with `REQFORGE_STORY` and `REQFORGE_EVAL` set.
 - No report is written into the worktree. The `reqforge-reports` default of `evals::run` would leave it dirty.
 - If any eval fails or times out, Complete is refused with `{step: "evals", failed: [{id, name, command, seconds, output_tail}]}`. `output_tail` is the last 4000 characters, as captured by `run_one`; the drawer shows its last 40 lines, expandable.
@@ -167,7 +171,7 @@ Ordering matters. The code merge (step 4) happens before the status commit, so a
 
 The status is already `done` at this point, so a cleanup failure does not undo anything. The response carries `cleanup_warnings`, and the drawer shows them with the manual commands.
 
-The response on success is `{task, merge_commit, changed, evals, cleanup_warnings}`. Everything happens in the one user action (AC5): the drawer's Complete button, after a confirmation that names the target branch.
+The response on success is `{task, merge_commit, changed, evals, eval_scope, note?, cleanup_warnings}`. Everything happens in the one user action (AC5): the drawer's Complete button, after a confirmation that names the target branch.
 
 ### Parallel-task warning on Start with agent (AC7)
 

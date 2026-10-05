@@ -1,0 +1,31 @@
+{
+  "task": "TASK-0053",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:14:48+00:00",
+  "branch": "reqforge/TASK-0053",
+  "target": "main",
+  "target_head": "baa74d5c1403f49f9805774c3155812205128de7",
+  "task_head": "819c60a1672187dd9d55d7f00507ef845257ed14",
+  "evals": [
+    {
+      "id": "E1",
+      "name": "decision records and exercised status",
+      "command": "cargo test --manifest-path server/Cargo.toml --test decisions",
+      "status": "failed",
+      "seconds": 0.1,
+      "output_tail": "error: no test target named `decisions` in default-run packages\nhelp: available test targets:\n    agent_queue\n    agent_run\n    agent_sandbox\n    codetrace\n    integration\n    plugin\n    projects\n    research\n    task_complete"
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: decisions",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-decisions.xml --suite decisions",
+      "status": "failed",
+      "seconds": 0.1,
+      "output_tail": "e2e: unknown suite: decisions (core, projects, code, help, help-a11y, theme, task-start, agent-start, agent-queue, task-complete, design, all)"
+    }
+  ],
+  "ended": "2026-10-05T03:14:48+00:00",
+  "outcome": "refused: evals failed",
+  "run_id": "COMPLETE-TASK-0053-20261005T031448858",
+  "kind": "complete"
+}

@@ -1,7 +1,7 @@
 {
   "id": "REQ-0061",
   "title": "Decisions exercised by code",
-  "statement": "The system shall mark a decision exercised when at least one code location is tagged 'reqforge: implements DEC-NNNN' and every test tagged with that id has passing evidence.",
+  "statement": "The system shall mark a decision exercised when at least one code location is tagged 'reqforge: implements DEC-NNNN', at least one test is tagged with that id, and every test tagged with that id has passing evidence.",
   "type": "functional",
   "category": "verification",
   "priority": "should",
@@ -14,7 +14,7 @@
     },
     {
       "id": "AC2",
-      "text": "Each decision shows exercised yes or no with its tagged locations; a failing or suspect tagged test makes it no"
+      "text": "Each decision shows exercised yes or no with its tagged locations and the reason; no tagged test, or a failing, suspect or untested tagged test, makes it no"
     },
     {
       "id": "AC3",
@@ -32,7 +32,7 @@
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-04; adapted from canoe",
-  "version": 2,
+  "version": 3,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:34:48+00:00"
+  "updated": "2026-10-05T03:02:21+00:00"
 }
