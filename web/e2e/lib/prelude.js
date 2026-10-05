@@ -56,7 +56,7 @@ const cdp = (method, params = {}) => new Promise((resolve) => {
   window.__e2eCdp(JSON.stringify({ method, params, id }));
   setTimeout(() => { if (cdpWaiters.delete(id)) resolve(false) }, 5000);
 });
-const KEYS = { Escape: 27, Tab: 9, Enter: 13 };
+const KEYS = { Escape: 27, Tab: 9, Enter: 13, End: 35, Home: 36, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
 const pressKey = async (k, shift = false) => {
   const base = { key: k, code: k, windowsVirtualKeyCode: KEYS[k], nativeVirtualKeyCode: KEYS[k], modifiers: shift ? 8 : 0 };
   await cdp("Input.dispatchKeyEvent", { type: "keyDown", ...base, ...(k === "Enter" ? { text: "\r" } : {}) });

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, type ReactNode } from "react"
+import { lazy, Suspense, useEffect, type CSSProperties, type ReactNode } from "react"
 import { Header, ProjectsHeader } from "@/components/Header"
 import { RecordDrawer } from "@/components/RecordDrawer"
 import { Sidebar } from "@/components/Sidebar"
@@ -7,6 +7,7 @@ import { ErrorText } from "@/components/common"
 import { AppProvider, useApp } from "@/state/app"
 import { ChatProvider, useChat } from "@/state/chat"
 import { HelpProvider } from "@/state/help"
+import { PanelsProvider, usePanels } from "@/state/panels"
 import { useProjects } from "@/state/project"
 import { ChangesView } from "@/views/ChangesView"
 import { DecisionsView } from "@/views/DecisionsView"
@@ -46,9 +47,11 @@ const CreateProjectDialog = lazy(() =>
   import("@/components/ProjectDialogs").then((m) => ({ default: m.CreateProjectDialog })),
 )
 
+// reqforge: implements REQ-0064
 function ProjectApp() {
   const { closeDrawer } = useApp()
   const chat = useChat()
+  const panels = usePanels()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -61,12 +64,15 @@ function ProjectApp() {
   return (
     <div className="flex h-full flex-col">
       <Header />
+      {/* column widths on lg come from the panel layout (state/panels.tsx); below lg the panels are overlays */}
       <div
         data-testid="app-grid"
         data-chat={chat.open ? "open" : "closed"}
+        data-sidebar={panels.sideCollapsed ? "collapsed" : "open"}
+        style={{ "--side-w": `${panels.sideWidth}px`, "--chat-w": `${panels.chatWidth}px` } as CSSProperties}
         className={cn(
-          "grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)]",
-          chat.open ? "lg:grid-cols-[270px_minmax(0,1fr)_410px]" : "lg:grid-cols-[270px_minmax(0,1fr)]",
+          "relative grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)]",
+          chat.open ? "lg:grid-cols-[var(--side-w)_minmax(0,1fr)_var(--chat-w)]" : "lg:grid-cols-[var(--side-w)_minmax(0,1fr)]",
         )}
       >
         <Sidebar />
@@ -112,7 +118,9 @@ export default function App() {
     body = (
       <AppProvider key={p.active}>
         <ChatProvider>
-          <ProjectApp />
+          <PanelsProvider>
+            <ProjectApp />
+          </PanelsProvider>
         </ChatProvider>
       </AppProvider>
     )

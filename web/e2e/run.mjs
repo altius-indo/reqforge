@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // End-to-end UI tests: drive the built web UI (web/dist) in headless Chrome against a real reqforge server.
 //
-//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|snapshot|history|decisions|next-action|all] [--junit <file>] [--keep] [--timeout <seconds>]
+//   node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|snapshot|history|decisions|next-action|panels|panels-a11y|all] [--junit <file>] [--keep] [--timeout <seconds>]
 //
 // For each suite: seed fresh data with the repo's seeders (examples/*.py) in a new os.tmpdir() directory, copy
 // web/dist and inject lib/prelude.js + suites/<suite>.js into its index.html, serve that copy with the reqforge
@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, "..");
 const ROOT = path.resolve(WEB, "..");
 const PYTHON = process.env.PYTHON || "python3";
-const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design", "snapshot", "history", "decisions", "next-action"];
+const SUITE_NAMES = ["core", "projects", "code", "help", "help-a11y", "theme", "task-start", "agent-start", "agent-queue", "task-complete", "design", "snapshot", "history", "decisions", "next-action", "panels", "panels-a11y"];
 
 // ------------------------------------------------------------------------------------------------ arguments
 function parseArgs(argv) {
@@ -36,7 +36,7 @@ function parseArgs(argv) {
     else if (a === "--timeout" || a.startsWith("--timeout=")) o.timeout = +val();
     else if (a === "--keep") o.keep = true;
     else if (a === "-h" || a === "--help") {
-      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|snapshot|history|decisions|next-action|all] [--junit <file>] [--keep] [--timeout <seconds>]");
+      console.log("usage: node web/e2e/run.mjs [--suite core|projects|code|help|help-a11y|theme|task-start|agent-start|agent-queue|task-complete|design|snapshot|history|decisions|next-action|panels|panels-a11y|all] [--junit <file>] [--keep] [--timeout <seconds>]");
       process.exit(0);
     } else die(`unknown argument: ${a}`);
   }
@@ -443,6 +443,22 @@ const SUITES = {
       return { serve: ["--repo", shop], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/sessions", route: "/" };
     },
   },
+  // Collapsible, resizable side panels (REQ-0064): two small projects (SHOP default, BARE), to check that the layout
+  // survives a project switch as well as a reload
+  panels: {
+    timeout: 180,
+    setup(ctx, dir) {
+      const ws = path.join(dir, "ws");
+      fs.mkdirSync(ws);
+      const shop = ctx.seedDemo(path.join(ws, "shop"), "--no-code");
+      ctx.seedDemo(path.join(ws, "bare"), "--no-code");
+      ctx.importProject(ws, shop);
+      ctx.importProject(ws, path.join(ws, "bare"), "BARE");
+      return { serve: ["--workspace", ws], sessionsDir: path.join(shop, "sessions"), sessionsUrl: "/api/p/SHOP/sessions", route: "/#/p/SHOP",
+        workspaceName: "ws" };
+    },
+  },
+  "panels-a11y": { timeout: 180, setup: (ctx, dir) => SUITES.panels.setup(ctx, dir) },
   // help panel, its keyboard behaviour, and colour schemes: same BIG repository as core
   help: { timeout: 180, setup: (ctx, dir) => SUITES.core.setup(ctx, dir) },
   "help-a11y": { timeout: 180, setup: (ctx, dir) => SUITES.core.setup(ctx, dir) },

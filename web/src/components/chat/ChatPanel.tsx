@@ -5,6 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { useChat } from "@/state/chat"
 import { useHelp } from "@/state/help"
+import { CHAT, usePanels } from "@/state/panels"
+import { PanelHandle } from "@/components/PanelHandle"
 import { useChatStatus, useSnapshot } from "@/state/queries"
 import { cn } from "@/lib/utils"
 import { ChatMessage } from "./ChatMessage"
@@ -34,8 +36,10 @@ function NoSnapshot({ onDraft }: { onDraft: () => void }) {
 }
 
 // reqforge: implements REQ-0032
+// reqforge: implements REQ-0064
 export function ChatPanel() {
   const chat = useChat()
+  const panels = usePanels()
   const help = useHelp()
   const status = useChatStatus()
   const snapshot = useSnapshot()
@@ -63,11 +67,35 @@ export function ChatPanel() {
       : "claude CLI not found on the server's PATH"
     : "checking…"
 
+  // collapsing removes the focused control: focus the header's Chat button, which reopens the panel
+  const collapse = () => {
+    chat.setOpen(false)
+    requestAnimationFrame(() => {
+      const a = document.activeElement
+      if (!a || a === document.body) document.getElementById("chat-toggle")?.focus()
+    })
+  }
+
   return (
     <section
+      id="chat-panel"
       data-testid="chat-panel"
       className="fixed inset-0 z-40 flex min-h-0 flex-col bg-card lg:static lg:z-auto lg:border-l"
     >
+      {/* the section is static on lg, so the handle is placed against the app grid, on the panel's inner edge */}
+      <PanelHandle
+        label="Resize chat panel"
+        controls="chat-panel"
+        value={panels.chatWidth}
+        min={CHAT.min}
+        max={panels.chatMax}
+        dir={-1}
+        onResize={panels.setChatWidth}
+        onToggle={collapse}
+        onReset={panels.resetChat}
+        style={{ right: panels.chatWidth - 4 }}
+        testId="chat-handle"
+      />
       <div className="flex items-center gap-2 border-b px-3 py-2">
         <span
           data-testid="chat-status"
@@ -99,7 +127,16 @@ export function ChatPanel() {
         >
           {chat.wrappingUp ? <Loader2 className="animate-spin" /> : <RotateCcw />} {chat.wrappingUp ? "Wrapping up…" : "New"}
         </Button>
-        <Button size="icon-xs" variant="ghost" aria-label="close chat" onClick={() => chat.setOpen(false)} data-testid="chat-close">
+        <Button
+          size="icon-xs"
+          variant="ghost"
+          aria-label="collapse chat panel"
+          aria-expanded
+          aria-controls="chat-panel"
+          title="Collapse the chat (reopen it with Chat with Claude)"
+          onClick={collapse}
+          data-testid="chat-close"
+        >
           <X />
         </Button>
       </div>
