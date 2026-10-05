@@ -11,9 +11,9 @@
   ],
   "description": "Show a 14-day-plus gap at session start with a field to give a reason; pause action in project settings.",
   "done_when": "history e2e suite passes.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 3,
+  "version": 4,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T03:20:07+00:00"
+  "updated": "2026-10-05T03:26:35+00:00"
 }

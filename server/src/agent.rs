@@ -19,7 +19,7 @@ use tokio::sync::{mpsc, Notify};
 
 use crate::chat::{claude_bin, plugin_root, translate, MCP};
 use crate::codetrace::{component_by_key, component_root};
-use crate::model::{objs, s, strs, Kind};
+use crate::model::{objs, s, strs, Kind, Rec};
 use crate::store::{dump, now, Res, Store, StoreError};
 
 pub const CODING_PROMPT: &str = include_str!("agent_prompt.md");
@@ -69,18 +69,38 @@ pub fn worktrees_root() -> PathBuf {
         .unwrap_or_else(|| std::env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from(".")).join(".reqforge/worktrees"))
 }
 
-/// The brief handed to the agent (REQ-0051#AC3).
+/// The task section of a brief or a task-focused chat: title, next action (if any), kind,
+/// what to do and done when.
+pub fn task_section(t: &Rec) -> String {
+    let mut out = vec![format!("# Task {}: {}", s(t, "id"), s(t, "title")), String::new()];
+    if let Some(n) = crate::taskflow::next_action_block(t) {
+        out.extend([n, String::new()]);
+    }
+    out.extend([
+        format!("Kind: {}", s(t, "kind")),
+        String::new(),
+        format!("## What to do\n{}", if s(t, "description").is_empty() { "(no description)" } else { s(t, "description") }),
+        String::new(),
+        format!("## Done when\n{}", if s(t, "done_when").is_empty() { "(not specified)" } else { s(t, "done_when") }),
+    ]);
+    out.join("\n")
+}
+
+/// The brief handed to the agent (REQ-0051#AC3): the task section, then the project snapshot
+/// (REQ-0058#AC2), then story, evals, requirements and conventions.
 // reqforge: implements REQ-0051
+// reqforge: implements REQ-0058
 pub fn brief(store: &Store, task_id: &str) -> Res<String> {
     let t = store.get(Kind::Tasks, task_id)?;
     let st = store.get(Kind::Stories, s(&t, "story"))?;
+    let snap = match crate::snapshot::read(&store.root) {
+        Some(c) => crate::snapshot::context_block(&c),
+        None => format!("(none: this project has no {} yet)", crate::snapshot::PATH),
+    };
     let mut out = vec![
-        format!("# Task {task_id}: {}", s(&t, "title")),
-        format!("Kind: {}", s(&t, "kind")),
+        task_section(&t),
         String::new(),
-        format!("## What to do\n{}", if s(&t, "description").is_empty() { "(no description)" } else { s(&t, "description") }),
-        String::new(),
-        format!("## Done when\n{}", if s(&t, "done_when").is_empty() { "(not specified)" } else { s(&t, "done_when") }),
+        format!("## Project snapshot\n{snap}"),
         String::new(),
         format!("## Story {}: {}", s(&st, "id"), s(&st, "title")),
         s(&st, "narrative").to_string(),
@@ -342,10 +362,22 @@ impl Drop for Reservation<'_> {
     }
 }
 
-pub fn command_args() -> Vec<String> {
+/// Arguments for the agent's `claude -p`. With `REQFORGE_SNAPSHOT_RESUPPLY=system` the system
+/// prompt also carries the task's next action and the snapshot (fallback for the compaction hook).
+// reqforge: implements REQ-0058
+pub fn command_args(store: &Store, task_id: &str) -> Vec<String> {
+    let mut system = CODING_PROMPT.to_string();
+    if crate::snapshot::resupply_in_system_prompt() {
+        if let Some(c) = crate::snapshot::read(&store.root) {
+            if let Some(n) = store.get(Kind::Tasks, task_id).ok().and_then(|t| crate::taskflow::next_action_block(&t)) {
+                system.push_str(&format!("\n\n{n}"));
+            }
+            system.push_str(&format!("\n\n{}", crate::snapshot::context_block(&c)));
+        }
+    }
     let mut a: Vec<String> = vec![
         "-p".into(), "--output-format".into(), "stream-json".into(), "--verbose".into(),
-        "--append-system-prompt".into(), CODING_PROMPT.into(),
+        "--append-system-prompt".into(), system,
         "--permission-mode".into(), "acceptEdits".into(),
         "--allowedTools".into(), allowed_tools().join(","),
         "--disallowedTools".into(), denied_tools().join(","),
@@ -477,7 +509,7 @@ impl AgentRunner {
 
         let mut events: Vec<Value> = vec![];
         let child = Command::new(&bin)
-            .args(command_args())
+            .args(command_args(&store, &task_id))
             .current_dir(&p.worktree)
             .env("REQFORGE_REPO", &store.root)
             .env("REQFORGE_TASK", &task_id)

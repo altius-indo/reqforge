@@ -159,6 +159,10 @@ pub trait Source {
     fn findings(&self) -> Vec<Value> {
         vec![]
     }
+    /// The project snapshot (state/HOT.md), if there is one.
+    fn snapshot(&self) -> Option<String> {
+        None
+    }
 }
 
 /// Decisions are created and changed only through changesets.
@@ -213,6 +217,9 @@ impl Source for Store {
     }
     fn findings(&self) -> Vec<Value> {
         crate::research::list(&self.root)
+    }
+    fn snapshot(&self) -> Option<String> {
+        crate::snapshot::read(&self.root)
     }
 }
 
@@ -494,10 +501,10 @@ impl Store {
             .unwrap_or(0);
         let mut sig = vec![cfg_m];
         // derived artefacts that verification and lint depend on: code indexes, evidence, design
-        // docs, research findings; and the date, since findings go stale with it
+        // docs, research findings, the project snapshot; and the date, since findings go stale with it
         let mut h = std::collections::hash_map::DefaultHasher::new();
         chrono::Utc::now().date_naive().hash(&mut h);
-        for d in ["code", "evidence", crate::design::DIR, crate::research::DIR] {
+        for d in ["code", "evidence", "state", crate::design::DIR, crate::research::DIR] {
             for e in fs::read_dir(self.root.join(d)).into_iter().flatten().flatten() {
                 if let Ok(md) = e.metadata() {
                     (e.file_name().to_string_lossy().to_string(), md.len(), md.modified().ok()).hash(&mut h);
