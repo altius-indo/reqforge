@@ -3,7 +3,7 @@
   "title": "Order the EPIC-0011 tasks with depends_on",
   "summary": "Adds depends_on links to 8 EPIC-0011 tasks: design before code, server before UI, monitoring after the features it measures. TASK-0041, TASK-0046, TASK-0048 and TASK-0050 have no dependencies and can start in parallel.",
   "rationale": "The agent queue (REQ-0053) and Start (REQ-0050 AC5) only respect order through depends_on. Without links, the queue could start UI or code before its design or server work.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-05T02:32:47+00:00",
   "valid": true,
   "ops": [
@@ -307,5 +307,8 @@
       "components": [],
       "in_progress_work": []
     }
-  }
+  },
+  "applied_at": "2026-10-05T02:33:16+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }

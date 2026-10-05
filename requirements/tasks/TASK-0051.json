@@ -3,12 +3,14 @@
   "title": "standards-researcher persists graded findings",
   "story": "STORY-0021",
   "kind": "code",
-  "depends_on": [],
+  "depends_on": [
+    "TASK-0050"
+  ],
   "description": "Update the standards-researcher agent and elicit skill to grade claims and propose them as findings in a changeset, citing RF ids in requirements' standards.",
   "done_when": "An elicit run proposes findings with grades and refresh_by dates.",
   "status": "todo",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:32:26+00:00"
+  "updated": "2026-10-05T02:33:16+00:00"
 }
