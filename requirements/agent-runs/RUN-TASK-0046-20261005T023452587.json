@@ -1,0 +1,488 @@
+{
+  "run_id": "RUN-TASK-0046-20261005T023452587",
+  "task": "TASK-0046",
+  "story": "STORY-0019",
+  "component": "server",
+  "branch": "reqforge/TASK-0046",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046",
+  "base": "510a1762b57253e6858ad8ab41a3f54712f3246a",
+  "user": "jyoti.sanyal (queue)",
+  "started": "2026-10-05T02:34:52+00:00",
+  "ended": "2026-10-05T02:41:30+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "53a75a1",
+      "message": "TASK-0046: decision records (DEC) with trace tags, exercised status and lint"
+    }
+  ],
+  "violations": [
+    "files changed in the requirements repository"
+  ],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "012ed030-8332-49a4-93ba-d49ab9924762"
+    },
+    {
+      "type": "text",
+      "text": "I'll start by exploring the repository structure."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/store.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep (?i)decision|DEC-"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Still exploring the codebase (model, store, requirements) before I implement the DEC kind."
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep STORY-0019"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/requirements/stories/STORY-0019.json"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/requirements/tasks/TASK-0047.json"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/changes.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/codetrace.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/verify.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/evidence.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/lint.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep Kind::|KINDS|\"components\"|Components"
+    },
+    {
+      "type": "text",
+      "text": "Now the API and MCP layers, plus existing test helpers."
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/api.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/api.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/mcp.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep components|Kind\\b|KINDS|prefix"
+    },
+    {
+      "type": "text",
+      "text": "Exploration done; now implementing the server side: model/schema first."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I accidentally tagged a nonexistent DEC-0001; removing that line."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now store.rs: changeset-only guard, supersession check, `root()` on Source."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now changes.rs: view root, `accepted_at` stamping, supersession check, decision context."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now codetrace: scan DEC tags like REQ tags."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep REQ-\\\\d|REQ_ID|\\.req\\b"
+    },
+    {
+      "type": "text",
+      "text": "Update verify.rs link integrity so DEC tags resolve against decisions:"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/verify.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now the new `decisions` module (exercised computation + lint findings):"
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "text",
+      "text": "Wiring into lib, lint, query, API and MCP:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Builds clean. Checking the chat prompt so the agent knows decisions go through changesets:"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep changeset|kind"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/src/chat_prompt.md"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now the integration test. Checking how existing tests exercise the MCP chat role and API:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0046/server/tests/integration.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Explicit tag mode, so only fixture strings with `reqforge:` comments need `reqforge:off` fencing. Writing the test file:"
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "All 6 pass. Now the full suite and clippy to check for regressions:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Expected: project artifact counts now include decisions. Updating that assertion:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Everything passes and clippy is clean. Checking whether the E2 e2e suite exists yet:"
+    },
+    {
+      "type": "tool",
+      "name": "Glob",
+      "sub": false,
+      "text": "Glob web/e2e/suites/*"
+    },
+    {
+      "type": "text",
+      "text": "No `decisions` suite yet; that's TASK-0047's Decisions tab. Checking whether the web UI hard-codes the project artifact keys I just extended:"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep code_indexes|\"components\": 0"
+    },
+    {
+      "type": "text",
+      "text": "Nothing to fix there. Committing:"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "## TASK-0046 report\n\nThe decisions kind (DEC) is built on the server side, and eval E1 passes: `cargo test --manifest-path server/Cargo.toml --test decisions` ran 6 tests, all passing. Eval E2 (the e2e decisions suite) was not run because that suite doesn't exist yet. It belongs to TASK-0047. Committed as `53a75a1` on `reqforge/TASK-0046`.\n\n**What changed**\n- **Record and rules (REQ-0060#AC1, AC2):** decisions have `title`, `context` and `decision` (all required), `status` (proposed, accepted or superseded; defaults to proposed), linked `requirements`, `superseded_by`, `accepted_at` and `tags`. A superseded decision must name another decision, and a decision can't supersede itself or form a supersession loop. Links to requirements that don't exist are rejected.\n- **Changesets only (REQ-0060#AC3):** creating, editing, bulk-editing, importing (including CSV) or deleting a decision directly is refused with a 403. Changesets are the only way in. The chat agent can read decisions and propose them; direct creates from it are refused.\n- **Where decisions show up:** search, filter counts, CSV export, the record detail (which includes the exercised result), the kind list and field definitions sent to the UI, the MCP tool schemas, and the `verification` tool when given a DEC id. There is also a new `GET /decisions/exercised` endpoint.\n- **Code scan (REQ-0061#AC1):** `DEC-NNNN` tags are picked up the same way as REQ tags. A tag naming a decision that doesn't exist is flagged as broken.\n- **Exercised (REQ-0061#AC2):** a decision counts as exercised when code is tagged `implements DEC-…`, at least one test is tagged with the id, and every tagged test has a current passing result. A failing, suspect or result-less tagged test makes it \"no\". The code is in the new `server/src/decisions.rs`.\n- **Lint (REQ-0061#AC3):** a `decision-unexercised` warning for each accepted decision not exercised 14 days after acceptance. `accepted_at` is filled in automatically when a decision becomes accepted, unless the change sets it explicitly.\n\n**Tests**\n- New `server/tests/decisions.rs` covers REQ-0060#AC1–AC3 and REQ-0061#AC1–AC3.\n- The full `cargo test` suite passes and `cargo clippy --all-targets` is clean.\n- I updated one existing test, `tests/projects.rs`: deleting a project now also reports a `decisions` count.\n\n**Decisions for you to review**\n- **Zero tagged tests counts as not exercised.** The requirement's \"every tagged test passes\" would technically be true with no tests at all. I followed the story's \"tested code relies on them\" instead.\n- **I added an `accepted_at` field** that isn't in the requirement's field list. The 14-day lint needs an acceptance date, and it falls back to the record's updated or created date when it's missing.\n\n**Still open**\n- **Web UI not touched:** that's TASK-0047 (the Decisions tab and the record drawer view). The API and record detail data the UI will need are in place.\n- **Impact analysis label:** for DEC tags it still shows \"(unknown requirement)\" as the title.\n- **Temp file:** I wrote a helper edit script to `/tmp/reqforge_task0046_wire.py`, outside the worktree. It can be deleted."
+    },
+    {
+      "type": "done",
+      "session_id": "012ed030-8332-49a4-93ba-d49ab9924762",
+      "cost": 3.4227836000000003,
+      "turns": 63,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
