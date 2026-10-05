@@ -1,0 +1,35 @@
+{
+  "task": "TASK-0049",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:39:20+00:00",
+  "branch": "reqforge/TASK-0049",
+  "target": "main",
+  "target_head": "d3b0694a8f5eab26a1449e4b7e5d3e4f78bc4e56",
+  "task_head": "c0d0595f62c249c77765af5483f2b644c6868292",
+  "eval_scope": "story",
+  "evals": [
+    {
+      "id": "E1",
+      "name": "history append, privacy and compaction",
+      "command": "cargo test --manifest-path server/Cargo.toml --test history",
+      "status": "passed",
+      "seconds": 1.0
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: gap prompt",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-history.xml --suite history",
+      "status": "violation",
+      "violations": [
+        "the eval changed ref refs/heads/reqforge/TASK-0044 (commit, branch or push)"
+      ]
+    }
+  ],
+  "violations": [
+    "the eval changed ref refs/heads/reqforge/TASK-0044 (commit, branch or push)"
+  ],
+  "ended": "2026-10-05T03:40:17+00:00",
+  "outcome": "refused: sandbox violation",
+  "run_id": "COMPLETE-TASK-0049-20261005T034017744",
+  "kind": "complete"
+}

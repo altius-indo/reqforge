@@ -10,6 +10,9 @@ import type {
   StartResult,
   TaskReadiness,
   VerificationSnapshot,
+  HistoryGap,
+  HistoryPause,
+  PendingGap,
   ApplyResult,
   BulkRequest,
   BulkResult,
@@ -179,6 +182,11 @@ export function projectApi(key: string) {
     codeImpact: (component: string, base: string) =>
       request<CodeImpact>("GET", `${b}/impact?${qs({ component, base })}`),
     chatCancel: (chatId: string) => request<{ cancelled: boolean }>("POST", `${b}/chat/cancel`, { chat_id: chatId }),
+    chatEnd: (sessionId: string) => request<{ ended: boolean }>("POST", `${b}/chat/end`, { session_id: sessionId }),
+    // session history (REQ-0062): the pending gap, recording it with a reason, pausing the project
+    pendingGap: () => request<{ gap: PendingGap | null }>("GET", `${b}/history/gap`),
+    recordGap: (reason: string) => request<HistoryGap>("POST", `${b}/history/gap`, { reason }),
+    pause: (reason: string) => request<HistoryPause>("POST", `${b}/history/pause`, { reason }),
     verificationHistory: (limit = 30) =>
       request<VerificationSnapshot[]>("GET", `${b}/verification/history?${qs({ limit })}`),
     // tasks: start, coding-agent runs, agent queue

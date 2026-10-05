@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from "react"
 import { TriangleAlert } from "lucide-react"
 import { toast } from "sonner"
-import { projectsApi } from "@/api/client"
+import { projectApi, projectsApi } from "@/api/client"
 import type { DeleteProjectResult, Project } from "@/api/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -352,6 +352,81 @@ function RenameBody({ project, onClose }: { project: Project; onClose: () => voi
           </Button>
           <Button type="submit" disabled={!can} data-testid="rename-save">
             Save
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  )
+}
+
+// ------------------------------------------------------------------ pause
+
+/** Pause the project with a reason: the next gap of 14 days or more is recorded as deliberate. */
+export function PauseProjectDialog({ project, onClose }: { project: Project | null; onClose: () => void }) {
+  return (
+    <Dialog open={!!project} onOpenChange={(o) => !o && onClose()}>
+      {project && <PauseBody key={project.key} project={project} onClose={onClose} />}
+    </Dialog>
+  )
+}
+
+// reqforge: implements REQ-0062
+function PauseBody({ project, onClose }: { project: Project; onClose: () => void }) {
+  const [reason, setReason] = useState("")
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState("")
+  const can = !!reason.trim() && !busy
+
+  const save = async () => {
+    if (!can) return
+    setBusy(true)
+    setErr("")
+    try {
+      await projectApi(project.key).pause(reason.trim())
+      toast.success(`paused ${project.key}`, { description: "The next quiet spell of 14 days or more is recorded as deliberate." })
+      onClose()
+    } catch (e) {
+      setErr((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <DialogContent data-testid="pause-dialog">
+      <DialogHeader>
+        <DialogTitle>
+          Pause <span className="id-mono">{project.key}</span>
+        </DialogTitle>
+        <DialogDescription>
+          Say why work stops for a while. A gap of 14 days or more before the next session is then recorded as deliberate
+          rather than unexplained. Nothing else changes; the project stays usable.
+        </DialogDescription>
+      </DialogHeader>
+      <form
+        className="grid gap-3"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void save()
+        }}
+      >
+        <Label htmlFor="pause-reason">Reason</Label>
+        <Input
+          id="pause-reason"
+          data-testid="pause-reason"
+          value={reason}
+          maxLength={280}
+          placeholder="e.g. waiting for the security review"
+          onChange={(e) => setReason(e.target.value)}
+          autoFocus
+        />
+        {err && <p className="text-[12.5px] text-err">{err}</p>}
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!can} data-testid="pause-save">
+            Pause project
           </Button>
         </DialogFooter>
       </form>
