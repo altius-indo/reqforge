@@ -33,6 +33,11 @@ const WRITE_TOOLS: &[&str] = &[
 ];
 const BASH_ALLOWED: &[&str] = &[
     "cargo", "npm", "npx", "node", "python3", "pytest", "go", "make", "git status", "git diff", "git log", "git show", "git add", "git commit",
+    // file moves inside the worktree
+    "git rm", "git mv", "mkdir", "ls", "chmod +x",
+    // read-only reqforge commands; never plain bin/reqforge, whose edit/bulk/import would write records
+    "bin/reqforge lint", "bin/reqforge trace", "bin/reqforge verify", "bin/reqforge show", "bin/reqforge list",
+    "./bin/reqforge lint", "./bin/reqforge trace", "./bin/reqforge verify", "./bin/reqforge show", "./bin/reqforge list",
 ];
 const BASH_DENIED: &[&str] = &[
     "git push", "git checkout", "git switch", "git reset", "git rebase", "git merge", "git worktree", "rm -rf", "curl", "wget",
