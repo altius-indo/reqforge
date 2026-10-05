@@ -9,11 +9,11 @@
   "done_when": "panels and panels-a11y e2e suites pass.",
   "status": "in-progress",
   "tags": [],
-  "next_action": "Review branch reqforge/TASK-0056 (commits 71867d9, caf3f05, 2a2577e) and merge main into it, resolving web/e2e/lib/prelude.js in favour of the branch version.",
+  "next_action": "Run `git merge main` on reqforge/TASK-0056, resolve web/e2e/lib/prelude.js with `git checkout --ours`, commit, then rerun the panels and panels-a11y e2e suites.",
   "next_action_set": "2026-10-04",
-  "next_action_proposal": "Run `git merge main` on reqforge/TASK-0056, resolve web/e2e/lib/prelude.js with `git checkout --ours`, commit, then rerun the panels and panels-a11y e2e suites.",
-  "next_action_proposal_run": "RUN-TASK-0056-20261005T052509907",
-  "version": 7,
+  "next_action_proposal": null,
+  "next_action_proposal_run": null,
+  "version": 8,
   "created": "2026-10-05T04:53:50+00:00",
-  "updated": "2026-10-05T05:26:15+00:00"
+  "updated": "2026-10-05T05:26:50+00:00"
 }
