@@ -3,7 +3,7 @@
   "title": "Pause TASK-0046 until its design (TASK-0053) is done",
   "summary": "Sets TASK-0046 (decision record kind and DEC trace tags) back from in-progress to todo. It can restart once TASK-0053 is done.",
   "rationale": "Product owner decision: TASK-0046 was already in progress when CS-0021 made it depend on design task TASK-0053, which is still todo. Pausing it keeps the code from running ahead of its design.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-05T02:47:16+00:00",
   "valid": true,
   "ops": [
@@ -106,5 +106,8 @@
       "components": [],
       "in_progress_work": []
     }
-  }
+  },
+  "applied_at": "2026-10-05T02:47:22+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {}
 }

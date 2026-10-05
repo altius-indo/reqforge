@@ -8,9 +8,9 @@
   ],
   "description": "Add the decisions kind (DEC prefix) to model, store, MCP tool schemas and changesets; scan DEC tags; compute exercised from evidence; lint for unexercised accepted decisions.",
   "done_when": "decisions integration tests pass.",
-  "status": "in-progress",
+  "status": "todo",
   "tags": [],
-  "version": 3,
+  "version": 4,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:46:29+00:00"
+  "updated": "2026-10-05T02:47:22+00:00"
 }
