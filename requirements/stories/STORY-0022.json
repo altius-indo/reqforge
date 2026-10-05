@@ -1,0 +1,41 @@
+{
+  "id": "STORY-0022",
+  "title": "Collapsible, resizable sidebar and chat panel",
+  "epic": "EPIC-0007",
+  "narrative": "As a product owner, I want to collapse and resize the sidebar and chat panel so that I can give the list or the chat the space I need.",
+  "requirements": [
+    "REQ-0064"
+  ],
+  "deliverable": "code",
+  "component": "web",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "UI e2e: panels",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-panels.xml --suite panels",
+      "covers": [
+        "REQ-0064#AC1",
+        "REQ-0064#AC2",
+        "REQ-0064#AC4",
+        "REQ-0064#AC5"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "Panel resize keyboard and a11y",
+      "kind": "accessibility",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-panels-a11y.xml --suite panels-a11y",
+      "covers": [
+        "REQ-0064#AC3"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 3,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T04:53:50+00:00",
+  "updated": "2026-10-05T04:53:50+00:00"
+}

@@ -3,7 +3,7 @@
   "title": "Collapsible and resizable side panels",
   "summary": "Adds a requirement (REQ-0064 in the simulation) for collapsing and resizing the sidebar and chat panel on wide screens, with persisted widths and keyboard-operable resize handles, plus STORY-0022 under EPIC-0007 with 1 task and 2 evals (e2e and accessibility).",
   "rationale": "Product owner request 2026-10-05. The sidebar (270 px) and chat column (410 px) have fixed widths today (web/src/App.tsx:69), and no existing requirement covers layout. Keyboard resizing follows WCAG 2.2 SC 2.1.1 and SC 2.5.7, which requires an alternative to dragging.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-05T04:53:18+00:00",
   "valid": true,
   "ops": [
@@ -392,5 +392,12 @@
       ],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-05T04:53:50+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "r1": "REQ-0064",
+    "s1": "STORY-0022",
+    "t1": "TASK-0056"
   }
 }

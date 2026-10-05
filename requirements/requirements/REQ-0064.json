@@ -1,0 +1,44 @@
+{
+  "id": "REQ-0064",
+  "title": "Collapsible, resizable side panels",
+  "statement": "The system shall let a user collapse and resize the sidebar and the chat panel on wide screens, keeping each panel's width and collapsed state across reloads.",
+  "type": "interface",
+  "category": "user-interface",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "Fixed side panels waste space on large screens and crowd the list on small ones.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The sidebar and the chat panel each have a collapse control; a collapsed sidebar leaves a rail at most 48 px wide with an expand control, a collapsed chat panel is reopened from the header Chat button, and the list takes the freed width"
+    },
+    {
+      "id": "AC2",
+      "text": "Dragging a panel's inner edge resizes it between 200 and 480 px for the sidebar and 320 and 720 px for the chat panel, and never leaves the main area narrower than 480 px"
+    },
+    {
+      "id": "AC3",
+      "text": "Each resize handle is focusable with role separator and aria-valuenow, aria-valuemin and aria-valuemax; arrow keys change the width by 16 px and Enter toggles collapse, so resizing needs no dragging"
+    },
+    {
+      "id": "AC4",
+      "text": "Widths and collapsed states persist in the browser across reloads and project switches, and double-clicking a handle restores the default width (270 px sidebar, 410 px chat)"
+    },
+    {
+      "id": "AC5",
+      "text": "Below the lg breakpoint the sidebar and chat keep their current sheet and full-screen behaviour"
+    }
+  ],
+  "tags": [
+    "layout"
+  ],
+  "standards": [
+    "WCAG 2.2 SC 2.1.1 Keyboard",
+    "WCAG 2.2 SC 2.5.7 Dragging Movements"
+  ],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-05",
+  "version": 1,
+  "created": "2026-10-05T04:53:50+00:00",
+  "updated": "2026-10-05T04:53:50+00:00"
+}

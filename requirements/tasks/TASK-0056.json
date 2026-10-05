@@ -1,0 +1,15 @@
+{
+  "id": "TASK-0056",
+  "title": "Resizable, collapsible sidebar and chat panel",
+  "story": "STORY-0022",
+  "kind": "code",
+  "depends_on": [],
+  "evals": [],
+  "description": "Replace the fixed lg grid columns in web/src/App.tsx:69 with persisted widths; add separator handles (drag, arrow keys, Enter, double-click reset) and collapse controls to Sidebar and ChatPanel; store state in localStorage via src/lib/storage.ts; add e2e suites panels and panels-a11y, registered in web/e2e/run.mjs, and a note in the help guides. Tag tests with the new requirement's acceptance criteria.",
+  "done_when": "panels and panels-a11y e2e suites pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T04:53:50+00:00",
+  "updated": "2026-10-05T04:53:50+00:00"
+}
