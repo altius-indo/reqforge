@@ -9,9 +9,11 @@
   "done_when": "panels and panels-a11y e2e suites pass.",
   "status": "in-progress",
   "tags": [],
-  "next_action_proposal": "Run `node web/e2e/run.mjs --suite help-a11y` on a clean main checkout to confirm the CDP stall after Esc closes the record drawer predates TASK-0056, then review branch reqforge/TASK-0056.",
-  "next_action_proposal_run": "RUN-TASK-0056-20261005T045435410",
-  "version": 3,
+  "next_action": "Run `node web/e2e/run.mjs --suite help-a11y` on a clean main checkout to confirm the CDP stall after Esc closes the record drawer predates TASK-0056, then review branch reqforge/TASK-0056.",
+  "next_action_set": "2026-10-04",
+  "next_action_proposal": null,
+  "next_action_proposal_run": null,
+  "version": 4,
   "created": "2026-10-05T04:53:50+00:00",
-  "updated": "2026-10-05T05:15:53+00:00"
+  "updated": "2026-10-05T05:16:49+00:00"
 }
