@@ -41,7 +41,7 @@ fn agents_have_valid_frontmatter() {
 #[test]
 fn elicit_skill_orchestrates_research_questions_and_review() {
     let text = fs::read_to_string(root().join("skills/elicit/SKILL.md")).unwrap();
-    for needle in ["standards-researcher", "requirements-analyst", "mece-reviewer", "AskUserQuestion", "4 rounds", "upsert_many", "save_session", "lint", "sync"] {
+    for needle in ["standards-researcher", "requirements-analyst", "mece-reviewer", "AskUserQuestion", "4 rounds", "propose_changeset", "save_session", "lint", "sync"] {
         assert!(text.contains(needle), "elicit skill must mention {needle}");
     }
     let mut skills: Vec<String> = fs::read_dir(root().join("skills")).unwrap().flatten().filter(|e| e.path().is_dir()).map(|e| e.file_name().to_string_lossy().to_string()).collect();
@@ -50,6 +50,20 @@ fn elicit_skill_orchestrates_research_questions_and_review() {
     for sk in &skills {
         let fm = frontmatter(&fs::read_to_string(root().join(format!("skills/{sk}/SKILL.md"))).unwrap());
         assert!(fm.iter().any(|(k, v)| k == "name" && v == sk), "{sk}: name");
+    }
+}
+
+// reqforge: verifies REQ-0063#AC1
+// reqforge: verifies REQ-0063#AC2
+#[test]
+fn elicit_persists_graded_findings_through_a_changeset() {
+    let agent = fs::read_to_string(root().join("agents/standards-researcher.md")).unwrap();
+    for needle in ["VERIFIED", "THIN", "REFUTED", "perishability", "sources", "supersedes", "date"] {
+        assert!(agent.contains(needle), "standards-researcher must grade findings: {needle}");
+    }
+    let skill = fs::read_to_string(root().join("skills/elicit/SKILL.md")).unwrap();
+    for needle in ["\"op\": \"finding\"", "supersedes", "\"$f3\"", "standards", "RF-NNNN", "simulate_changeset", "apply_changeset"] {
+        assert!(skill.contains(needle), "elicit skill must propose cited findings in a changeset: {needle}");
     }
 }
 
