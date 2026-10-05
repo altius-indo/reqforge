@@ -2,7 +2,7 @@ var e=Object.assign({"../../../help/01-browse-and-filter.md":`---
 id: browse-and-filter
 title: Browse and filter
 tabs: requirements, epics, stories, tasks
-keywords: list, search, tree, category, facet, filter, sort, page, crumbs, children, export, csv
+keywords: list, search, tree, category, facet, filter, sort, page, crumbs, children, export, csv, sidebar, panel, resize, collapse, width
 ---
 Every record list (Requirements, Epics, Stories, Tasks, Components) shares the same toolbar, table and sidebar.
 Filters combine: the tree, the facet chips and the search box all narrow the same list.
@@ -40,6 +40,22 @@ Filters combine: the tree, the facet chips and the search box all narrow the sam
 
 1. Set up the filters and search you want.
 2. Click **Export CSV**: the download contains exactly the rows that match the current view.
+
+### Make room: collapse or resize the side panels
+
+On wide screens you can give the list, the sidebar or the chat the space you need.
+
+1. Click the **collapse** button at the top of the sidebar to shrink it to a narrow rail; click the rail's **expand**
+   button to bring it back. Close the chat with its **×**; **Chat with Claude** in the header reopens it. The list
+   takes the freed width.
+2. Drag the inner edge of the sidebar (200–480 px) or the chat panel (320–720 px) to resize it. The list always keeps
+   at least 480 px.
+3. From the keyboard, Tab to the edge, then use the **arrow keys** (16 px a step), **Home** / **End** for the
+   smallest / largest width, and **Enter** to collapse.
+4. Double-click an edge to restore its default width (270 px sidebar, 410 px chat).
+
+Widths and collapsed panels are remembered in this browser across reloads and projects. On narrow screens the
+sidebar stays a slide-out sheet (the **☰** button) and the chat opens full-screen.
 `,"../../../help/02-edit-and-bulk-update.md":`---
 id: edit-and-bulk-update
 title: Edit and bulk update
