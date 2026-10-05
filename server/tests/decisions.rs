@@ -382,3 +382,30 @@ fn lint_warns_for_accepted_decisions_unexercised_after_14_days() {
     let sim = changes::simulate(s, &json!({"ops": [{"op": "create", "kind": "decisions", "data": dec(json!({"status": "accepted", "accepted_at": old}))}]}));
     assert!(sim["lint"]["new"].as_array().unwrap().iter().any(|f| f["rule"] == json!("decision-unexercised") && f["ids"][0] == json!("DEC-0005")), "{}", sim["lint"]);
 }
+
+// reqforge: verifies REQ-0061#AC3
+#[test]
+fn monitor_counts_unexercised_and_overdue_decisions() {
+    let c = code_fx(); // DEC-0001 accepted now, tagged in code, no evidence
+    let s = &c.f.store;
+    let old = (chrono::Utc::now() - chrono::Duration::days(20)).format("%Y-%m-%dT%H:%M:%S+00:00").to_string();
+    apply(
+        s,
+        json!([
+            {"op": "create", "kind": "decisions", "data": dec(json!({"title": "Old, unexercised", "status": "accepted", "accepted_at": old}))},
+            {"op": "create", "kind": "decisions", "data": dec(json!({"title": "Only proposed"}))},
+        ]),
+    );
+    let state = |s: &Store| verify::report(s)["summary"]["state"]["decisions"].clone();
+    let d = state(s);
+    assert_eq!((d["accepted"].clone(), d["unexercised"].clone(), d["overdue"].clone()), (json!(2), json!(2), json!(1)), "{d}");
+    assert_eq!(d["overdue_ids"], json!(["DEC-0002"]));
+    // overdue is exactly what lint warns about
+    assert_eq!(unexercised_ids(&lint::lint(s)), vec!["DEC-0002"]);
+    // exercising DEC-0001 drops it from the count
+    scan(s, &[], None, true).unwrap();
+    ingest(s, &[("j.xml".into(), junit(true, true))], &IngestOpts { component: Some("app"), commit: None, run: None }).unwrap();
+    let d = state(s);
+    assert_eq!((d["unexercised"].clone(), d["overdue"].clone()), (json!(1), json!(1)), "{d}");
+    assert!(verify::to_markdown(&verify::report(s)).contains("decisions: 1 of 2 accepted unexercised, 1 past the 14-day grace period"));
+}

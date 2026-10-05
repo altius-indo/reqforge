@@ -218,6 +218,38 @@ fn snapshot_lint_stale() {
     assert_eq!(rules(&store), vec!["snapshot-invalid"]);
 }
 
+// reqforge: verifies REQ-0057#AC4
+#[test]
+fn snapshot_staleness_in_monitor_and_verification() {
+    let _g = ENV.lock().unwrap_or_else(|p| p.into_inner());
+    let (_dir, store) = fx();
+    let state = |s: &Store| reqforge::verify::compute(s, &[], &Default::default())["summary"]["state"].clone();
+    let st = state(&store);
+    assert_eq!(st["snapshot"]["exists"], json!(false));
+    assert_eq!((st["snapshot"]["stale"].clone(), st["snapshot"]["days_over"].clone()), (json!(false), json!(0)));
+    assert_eq!(st["decisions"]["unexercised"], json!(0));
+    apply_snapshot(&store, &hot(&["Ship"], "2026-10-04"));
+    std::env::set_var("REQFORGE_TODAY", "2026-10-25");
+    let st = state(&store);
+    assert_eq!((st["snapshot"]["age_days"].clone(), st["snapshot"]["stale"].clone(), st["snapshot"]["days_over"].clone()), (json!(21), json!(false), json!(0)));
+    std::env::set_var("REQFORGE_TODAY", "2026-10-28");
+    let st = state(&store);
+    assert_eq!((st["snapshot"]["age_days"].clone(), st["snapshot"]["stale"].clone(), st["snapshot"]["days_over"].clone()), (json!(24), json!(true), json!(3)));
+    assert_eq!(st["snapshot"]["last_reconciled"], json!("2026-10-04"));
+    // the monitor command prints both counts (the scheduled monitor job appends this to its summary)
+    let out = Command::new(BIN).args(["--repo", store.root.to_str().unwrap(), "monitor", "--md"]).env("REQFORGE_TODAY", "2026-10-28").output().unwrap();
+    std::env::remove_var("REQFORGE_TODAY");
+    assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
+    let md = String::from_utf8_lossy(&out.stdout);
+    assert!(md.contains("snapshot: 24 days old (stale, 3 days over the 21-day limit)"), "{md}");
+    assert!(md.contains("decisions: 0 of 0 accepted unexercised, 0 past the 14-day grace period"), "{md}");
+    // and the generated pipeline's monitor job runs it
+    let wf = reqforge::cicd::workflow(&store, ".");
+    let monitor = &wf[wf.find("\n  monitor:").expect("monitor job")..];
+    assert!(monitor.contains("reqforge evals run --stage monitor"), "{monitor}");
+    assert!(monitor.contains("reqforge monitor --md >> \"$GITHUB_STEP_SUMMARY\""), "{monitor}");
+}
+
 // reqforge:off  (fake claude: records the prompt on stdin per turn kind)
 const FAKE_CHAT: &str = r#"#!/bin/sh
 kind=first

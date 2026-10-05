@@ -599,6 +599,28 @@ export interface ComponentIndexSummary {
   requirements: number
 }
 
+export interface ProjectStateHealth {
+  snapshot: {
+    exists: boolean
+    last_reconciled: string | null
+    age_days: number | null
+    stale: boolean
+    /** days past limit_days (0 when fresh or absent) */
+    days_over: number
+    limit_days: number
+    valid: boolean
+  }
+  decisions: {
+    accepted: number
+    /** accepted decisions not exercised by tagged, passing tests */
+    unexercised: number
+    /** unexercised for at least grace_days (lint warns) */
+    overdue: number
+    overdue_ids: string[]
+    grace_days: number
+  }
+}
+
 export interface VerificationReport {
   ok: boolean
   summary: {
@@ -611,6 +633,8 @@ export interface VerificationReport {
     components: ComponentIndexSummary[]
     /** "type/category" -> counts */
     by_category: Record<string, { requirements: number; verified: number }>
+    /** project state health, as reported by the scheduled monitor */
+    state?: ProjectStateHealth
   }
   checks: TraceCheck[]
   statuses: Record<string, VerificationStatus>
