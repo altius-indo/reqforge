@@ -5,7 +5,7 @@
   "type": "interface",
   "category": "user-interface",
   "priority": "should",
-  "status": "approved",
+  "status": "implemented",
   "rationale": "Fixed side panels waste space on large screens and crowd the list on small ones.",
   "acceptance_criteria": [
     {
@@ -38,7 +38,7 @@
   ],
   "stakeholders": [],
   "source": "product owner request 2026-10-05",
-  "version": 2,
+  "version": 3,
   "created": "2026-10-05T04:53:50+00:00",
-  "updated": "2026-10-05T04:54:31+00:00"
+  "updated": "2026-10-05T05:33:17+00:00"
 }
