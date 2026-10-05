@@ -1,0 +1,326 @@
+{
+  "run_id": "RUN-TASK-0052-20261005T033156111",
+  "task": "TASK-0052",
+  "story": "STORY-0017",
+  "component": "server",
+  "branch": "reqforge/TASK-0052",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0052",
+  "base": "fc29162e0678cdb76f121357b75db61d3b1035ad",
+  "user": "jyoti.sanyal (queue)",
+  "started": "2026-10-05T03:31:56+00:00",
+  "ended": "2026-10-05T03:36:58+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "79d2e64",
+      "message": "TASK-0052: monitor snapshot staleness and unexercised decisions"
+    }
+  ],
+  "violations": [],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "9855ae62-bddc-4445-b762-d887c1afc620"
+    },
+    {
+      "type": "warning",
+      "text": "reqforge MCP server status: pending"
+    },
+    {
+      "type": "text",
+      "text": "I'll start by finding the monitor job and the verification dashboard."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep (?i)monitor|unexercised|stale"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Memo already invalidates on `state/` changes and date. Now the dashboard side."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0052/web/src/views/VerificationView.tsx"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Writing the server changes now: a shared helper in `decisions.rs`, a `state` block in the verification summary, and a monitor step in the generated pipeline."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now a `reqforge monitor` CLI command and the step in the generated monitor job."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the web types and dashboard card."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Builds. Now tests: one in `context.rs` (named `snapshot_…` so E1 runs it) and one in `decisions.rs`."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Adding the tests."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The shell rejected that heredoc, so I'll use the Edit tool instead."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Both pass. Running the full server suite plus clippy, and the web typecheck/lint in parallel."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Typecheck and lint are clean. Next I'll check the E2 e2e eval: there's no `snapshot` suite file in `web/e2e/suites`."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep suite"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep reqforge verify|reqforge lint --md|\\| monitor"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0052/README.md"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Code, tests and README are done. Next I'll commit."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The daily monitor and the Verification dashboard now report both counts: how stale the project snapshot is, and how many accepted decisions are unexercised. E1 and the server tests pass. E2 couldn't run because the `snapshot` e2e suite doesn't exist on this branch. Committed as `79d2e64` on `reqforge/TASK-0052`.\n\n**What changed**\n- **Verification report** (`server/src/verify.rs`): the summary has a new `state` block with two parts:\n  - **Snapshot:** whether it exists, last reconciled date, age in days, whether it's stale, and days over the 21-day limit.\n  - **Decisions:** accepted, unexercised, and overdue (unexercised for 14+ days), with the overdue ids.\n  \n  The Markdown report gains one line, e.g. `snapshot: 24 days old (stale, 3 days over the 21-day limit) — decisions: 1 of 2 accepted unexercised, 1 past the 14-day grace period`.\n- **Count helpers** (`snapshot.rs`, `decisions.rs`): the decision count and the existing `decision-unexercised` lint warning now share one helper, so \"overdue\" always matches what lint warns about.\n- **New command** (`cli.rs`): `reqforge monitor [--md]` prints both counts.\n- **Monitor job** (`cicd.rs`): the generated pipeline's scheduled monitor job now runs `reqforge monitor --md` after the monitor evals and adds the output to the run summary.\n- **Dashboard** (`web/src/views/VerificationView.tsx`, `types.ts`): two new cards, snapshot age and unexercised decisions. They turn amber when the snapshot is stale or a decision is overdue.\n- **README**: describes the new monitor step.\n\n**Tests and evals**\n- **E1** (`cargo test --test context -- snapshot`): 10 of 10 pass, including the new `snapshot_staleness_in_monitor_and_verification` (tagged `verifies REQ-0057#AC4`).\n- **New decisions test**: `monitor_counts_unexercised_and_overdue_decisions` (tagged `verifies REQ-0061#AC3`) passes.\n- **Full server suite and clippy** (`-D warnings`): all pass.\n- **Web typecheck and lint**: clean.\n- **E2** (`node web/e2e/run.mjs --suite snapshot`): fails with `unknown suite: snapshot`. That suite covers the changeset diff card and the \"No project snapshot\" panel, which are outside this task, so I didn't write it.\n\n**Still open**\n- **Schedule:** the monitor job runs on `cicd.monitor_cron`, which defaults to every 30 minutes, not daily. I left it alone; set it to a daily cron if \"daily\" should be literal.\n- **Built web bundle:** I didn't rebuild the committed `web/dist`, so the new cards won't appear in the embedded UI until it's rebuilt.\n- **Date sources:** snapshot age uses local time (or `REQFORGE_TODAY`) and decision age uses UTC, the same as the existing lint rules. Near midnight the two counts can be a day apart.\n- **MCP server:** the `reqforge` MCP server failed to connect, so I read the requirements from the brief and the repo files instead."
+    },
+    {
+      "type": "done",
+      "session_id": "9855ae62-bddc-4445-b762-d887c1afc620",
+      "cost": 1.6008214,
+      "turns": 41,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
