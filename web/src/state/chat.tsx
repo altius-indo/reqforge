@@ -25,6 +25,27 @@ export type ChatEntry =
 const OPEN_KEY = "reqforge.chat.open"
 const MAX_LOG = 200
 
+/** Sent once per session, on New or on closing the panel, after a changeset was applied in it (REQ-0059#AC4). */
+export const WRAP_UP_MESSAGE =
+  "Before we stop: for each task whose state changed in this session, propose an updated next_action (one concrete step naming a file path, command or record id, at most 280 characters, with next_action_set today). Also propose a snapshot op updating the Next item of state/HOT.md and its Last reconciled date. Put everything in one changeset; simulate it first. If nothing needs to change, say so and propose nothing."
+
+/** Per-session wrap-up flags, persisted with the session (reqforge.chat.wrap.<KEY>). */
+interface WrapFlags {
+  applied: boolean
+  wrapUpAsked: boolean
+}
+const NO_FLAGS: WrapFlags = { applied: false, wrapUpAsked: false }
+
+function loadWrap(key: string): WrapFlags {
+  const raw = ls.get<Partial<WrapFlags> | null>(key, null)
+  return { applied: raw?.applied === true, wrapUpAsked: raw?.wrapUpAsked === true }
+}
+
+/** Resolves once no turn is streaming (or the provider unmounted). */
+async function whenIdle(busy: { current: boolean }, alive: { current: boolean }) {
+  while (busy.current && alive.current) await new Promise((r) => setTimeout(r, 100))
+}
+
 function loadLog(key: string): ChatEntry[] {
   const raw = ls.get<unknown[]>(key, [])
   if (!Array.isArray(raw)) return []
@@ -59,7 +80,12 @@ interface ChatCtx {
   lastCost: number | null
   send: (text: string, opts?: SendOpts) => Promise<void>
   stop: () => void
-  reset: () => void
+  /** start a fresh conversation, after the wrap-up turn when one is due */
+  reset: () => Promise<void>
+  /** New was clicked and the wrap-up turn is running before the fresh session starts */
+  wrappingUp: boolean
+  /** a changeset was applied while this session was open */
+  markApplied: () => void
   /** open the chat with a pre-filled prompt (does not send) */
   ask: (text: string) => void
   markAnswered: (k: string, part: number) => void
@@ -82,6 +108,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const project = api.key
   const LOG_KEY = pkey("chat.log", project)
   const SESSION_KEY = pkey("chat.session", project)
+  const WRAP_KEY = pkey("chat.wrap", project)
   const qc = useQueryClient()
   const [open, setOpenState] = useState(() => ls.get<boolean>(OPEN_KEY, false))
   const [log, setLog] = useState<ChatEntry[]>(() => loadLog(LOG_KEY))
@@ -103,6 +130,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [focusNonce, setFocusNonce] = useState(0)
   const [useCtx, setUseCtx] = useState(true)
   const [lastCost, setLastCost] = useState<number | null>(null)
+  // REQ-0059#AC4: whether a changeset was applied in this session, and whether the wrap-up was sent
+  const [savedWrap] = useState(() => loadWrap(WRAP_KEY))
+  const wrapRef = useRef<WrapFlags>(savedWrap)
+  const [wrappingUp, setWrappingUp] = useState(false)
   const [gap, setGap] = useState<GapPrompt | null>(null)
   // the gap (by its start) the user closed without recording: the server records it with the session
   const dismissedRef = useRef<string | null>(null)
@@ -139,11 +170,19 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [SESSION_KEY],
   )
 
-  const setOpen = useCallback((b: boolean) => {
+  const showPanel = useCallback((b: boolean) => {
     setOpenState(b)
     ls.set(OPEN_KEY, b)
     if (b) setFocusNonce((n) => n + 1)
   }, [])
+
+  const saveWrap = useCallback(
+    (f: WrapFlags) => {
+      wrapRef.current = f
+      ls.set(WRAP_KEY, f)
+    },
+    [WRAP_KEY],
+  )
 
   const { view, sel, selAll } = app
   // same query key as the list view, so this reads the cached page rather than refetching
@@ -260,14 +299,47 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (chatIdRef.current) api.chatCancel(chatIdRef.current).catch(() => {})
   }, [api])
 
-  // a fresh conversation ends the current session, which writes its metadata to the history
-  const reset = useCallback(() => {
+  const markApplied = useCallback(() => {
+    if (sessionRef.current && !wrapRef.current.applied) saveWrap({ ...wrapRef.current, applied: true })
+  }, [saveWrap])
+
+  /**
+   * Ask the chat agent, once per session, to propose updated next actions and a snapshot Next.
+   * Only after a changeset was applied in the session; the flag is set before sending, so closing
+   * the panel again (or New) never asks twice. Waits for a turn in progress (the "I applied" follow-up).
+   */
+  // reqforge: implements REQ-0059
+  const wrapUp = useCallback(async () => {
+    const f = wrapRef.current
+    if (!f.applied || f.wrapUpAsked || !sessionRef.current) return
+    saveWrap({ ...f, wrapUpAsked: true })
+    await whenIdle(busyRef, aliveRef)
+    if (aliveRef.current) await send(WRAP_UP_MESSAGE, { noCtx: true })
+  }, [saveWrap, send])
+
+  // closing the panel: the wrap-up turn keeps streaming here; its changeset card waits in the log
+  const setOpen = useCallback(
+    (b: boolean) => {
+      showPanel(b)
+      if (!b) void wrapUp()
+    },
+    [showPanel, wrapUp],
+  )
+
+  // New: wrap up the current session first, then end it (its metadata goes to the history) and start a fresh one
+  const reset = useCallback(async () => {
+    setWrappingUp(true)
+    // send() reports its own errors in the log; it never rejects
+    await wrapUp()
+    if (!aliveRef.current) return
     const sid = sessionRef.current
     if (sid) api.chatEnd(sid).catch(() => {})
     setSession(null)
     setLog([])
     setGap((g) => (g?.recorded ? null : g))
-  }, [api, setSession])
+    saveWrap(NO_FLAGS)
+    setWrappingUp(false)
+  }, [api, setSession, saveWrap, wrapUp])
 
   // reqforge: implements REQ-0062
   const recordGap = useCallback(
@@ -315,6 +387,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       send,
       stop,
       reset,
+      wrappingUp,
+      markApplied,
       ask,
       markAnswered,
       gap,
@@ -322,7 +396,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       dismissGap,
     }),
     [open, setOpen, log, busy, sessionId, draft, focusNonce, useCtx, contextPayload, contextSummary, lastCost, send,
-      stop, reset, ask, markAnswered, gap, recordGap, dismissGap],
+      stop, reset, wrappingUp, markApplied, ask, markAnswered, gap, recordGap, dismissGap],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

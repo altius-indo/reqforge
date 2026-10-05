@@ -142,7 +142,7 @@ pub fn brief(store: &Store, task_id: &str) -> Res<String> {
 }
 
 fn git(dir: &Path, args: &[&str]) -> Result<String, String> {
-    let o = std::process::Command::new("git").arg("-C").arg(dir).args(args).output().map_err(|e| e.to_string())?;
+    let o = std::process::Command::new("git").env("GIT_OPTIONAL_LOCKS", "0").arg("-C").arg(dir).args(args).output().map_err(|e| e.to_string())?;
     if o.status.success() {
         Ok(String::from_utf8_lossy(&o.stdout).trim().to_string())
     } else {
@@ -448,6 +448,7 @@ impl AgentRunner {
     /// Run the agent for a task, streaming UI events to `tx`; always writes a run log.
     // reqforge: implements REQ-0051
     // reqforge: implements REQ-0052
+    // reqforge: implements REQ-0059
     pub async fn run(&self, store: Arc<Store>, task_id: String, user: String, tx: mpsc::Sender<Value>) {
         let send = |v: Value| {
             let tx = tx.clone();
@@ -600,10 +601,13 @@ impl AgentRunner {
         let viol = violations(&before, &after);
         let commits = commits_since(&p.worktree, &base);
         let user2 = user.clone();
+        // REQ-0059#AC2: a `NEXT:` line in the agent's final message becomes a pending proposal on the task
+        let final_message = events.iter().rev().find(|e| e["type"] == json!("text")).and_then(|e| e["text"].as_str()).unwrap_or("").to_string();
         let log = json!({
             "run_id": run_id, "task": task_id, "story": p.story, "component": p.component, "branch": p.branch,
             "worktree": p.worktree.display().to_string(), "base": base, "user": user2, "started": started, "ended": now(),
             "exit_status": exit_status, "commits": commits, "violations": viol, "events": events,
+            "next_proposal": crate::taskflow::next_line(&final_message),
         });
         let s3 = store.clone();
         let log2 = log.clone();
@@ -613,6 +617,7 @@ impl AgentRunner {
             std::fs::create_dir_all(&dir).map_err(|e| StoreError::bad(e.to_string()))?;
             let _g = s3.lock()?;
             std::fs::write(dir.join(format!("{rid}.json")), dump(&log2)).map_err(|e| StoreError::bad(e.to_string()))?;
+            crate::taskflow::propose_next_unlocked(&s3, log2["task"].as_str().unwrap_or(""), &rid, &final_message)?;
             let viol = log2["violations"].as_array().map(Vec::len).unwrap_or(0);
             crate::history::append_unlocked(&s3, &crate::history::Entry {
                 kind: "agent".into(),
@@ -630,7 +635,7 @@ impl AgentRunner {
         })
         .await;
         send(json!({"type": "result", "run_id": run_id, "exit_status": log["exit_status"], "branch": log["branch"],
-                    "commits": log["commits"], "violations": log["violations"], "task_status": store.get(Kind::Tasks, &task_id).map(|t| t["status"].clone()).unwrap_or(Value::Null)})).await;
+                    "commits": log["commits"], "violations": log["violations"], "next_proposal": log["next_proposal"], "task_status": store.get(Kind::Tasks, &task_id).map(|t| t["status"].clone()).unwrap_or(Value::Null)})).await;
     }
 }
 

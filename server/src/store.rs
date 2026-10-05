@@ -582,6 +582,9 @@ impl Store {
         rec.insert("version".into(), json!(1));
         rec.insert("created".into(), json!(t));
         rec.insert("updated".into(), json!(t));
+        if kind == Kind::Tasks {
+            crate::taskflow::stamp_next_action(None, &mut rec);
+        }
         self.check(kind, &rec)?;
         self.write_unlocked(kind, &rec)?;
         Ok(rec)
@@ -639,6 +642,9 @@ impl Store {
         }
         rec.insert("version".into(), json!(cur_v + 1));
         rec.insert("updated".into(), json!(now()));
+        if kind == Kind::Tasks {
+            crate::taskflow::stamp_next_action(Some(&cur), &mut rec);
+        }
         self.check(kind, &rec)?;
         Ok(rec)
     }
@@ -821,7 +827,7 @@ pub mod git {
     use super::*;
 
     fn run(root: &Path, args: &[&str]) -> Option<std::process::Output> {
-        Command::new("git").arg("-C").arg(root).args(args).output().ok()
+        Command::new("git").env("GIT_OPTIONAL_LOCKS", "0").arg("-C").arg(root).args(args).output().ok()
     }
 
     pub fn is_repo(root: &Path) -> bool {

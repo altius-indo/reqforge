@@ -21,8 +21,10 @@ use crate::store::{dump, now, Res, Source, Store, StoreError};
 static COMPLETING: LazyLock<Mutex<HashSet<PathBuf>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
 const DIFF_CAP: usize = 512 * 1024;
 
+/// Every git call the server makes skips optional locks: a status or diff while an agent runs must never
+/// hold the worktree's index.lock when the agent commits ("Unable to create …/index.lock").
 fn git(dir: &Path, args: &[&str]) -> Result<String, String> {
-    let o = std::process::Command::new("git").arg("-C").arg(dir).args(args).output().map_err(|e| e.to_string())?;
+    let o = std::process::Command::new("git").env("GIT_OPTIONAL_LOCKS", "0").arg("-C").arg(dir).args(args).output().map_err(|e| e.to_string())?;
     if o.status.success() {
         Ok(String::from_utf8_lossy(&o.stdout).trim_end().to_string())
     } else {

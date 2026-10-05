@@ -772,6 +772,13 @@ export interface TaskReadiness {
 }
 
 /** POST tasks/{id}/start */
+/** POST /tasks/{id}/next-action: the task after its NEXT: proposal was accepted, edited or rejected (REQ-0059#AC2) */
+export interface NextActionResult {
+  task: RecordBase
+  action: "accept" | "edit" | "reject"
+  proposal: string
+}
+
 export interface StartResult {
   task: RecordBase
   /** ids moved to in-progress: the task, then its story and epic when they were todo */
@@ -824,6 +831,8 @@ export type AgentEvent =
       branch: string
       commits: AgentCommit[]
       violations: string[]
+      /** the NEXT: line of the agent's final message, now pending on the task (REQ-0059#AC2) */
+      next_proposal?: string | null
       task_status: string | null
     }
 

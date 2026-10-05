@@ -35,7 +35,7 @@ export const ls = {
  * Per-project localStorage keys: `reqforge.<name>.<KEY>`.
  * Global keys (token, page size, chat panel open, last project) are not suffixed.
  */
-export const PROJECT_SCOPED = ["tab", "open", "chat.log", "chat.session"] as const
+export const PROJECT_SCOPED = ["tab", "open", "chat.log", "chat.session", "chat.wrap"] as const
 export type ProjectScoped = (typeof PROJECT_SCOPED)[number]
 export const pkey = (name: ProjectScoped, project: string) => `reqforge.${name}.${project}`
 

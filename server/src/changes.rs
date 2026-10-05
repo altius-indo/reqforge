@@ -183,6 +183,9 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                         }
                     }
                     stamp_accepted(kind, &mut rec, None, &t);
+                    if kind == Kind::Tasks {
+                        crate::taskflow::stamp_next_action(None, &mut rec);
+                    }
                     rec.insert("version".into(), json!(1));
                     rec.insert("created".into(), json!(t));
                     rec.insert("updated".into(), json!(t));
@@ -232,6 +235,9 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                         if fresh.contains_key("accepted_at") {
                             rec = fresh;
                         }
+                    }
+                    if kind == Kind::Tasks {
+                        crate::taskflow::stamp_next_action(Some(&cur), &mut rec);
                     }
                     let mut changes = Map::new();
                     for (k, v) in &rec {

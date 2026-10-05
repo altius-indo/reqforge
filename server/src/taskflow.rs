@@ -3,6 +3,9 @@
 //! `start` moves a todo task to in-progress, and its story and epic along with it when they are
 //! still todo, as one versioned commit. A task whose `depends_on` tasks are not all done cannot
 //! start. `readiness` explains, for the UI, whether Start (and Start with agent) is possible.
+//!
+//! Each task also carries one next action (REQ-0059): `next_action` and the date it was set, and
+//! a pending `NEXT:` proposal from the last agent run that the user accepts, edits or rejects.
 
 use serde_json::{json, Value};
 
@@ -116,4 +119,77 @@ pub fn next_action_block(task: &Rec) -> Option<String> {
     let set = s(task, "next_action_set");
     let date = if set.is_empty() { String::new() } else { format!(" (set {})", set.get(..10).unwrap_or(set)) };
     Some(format!("## Next action{date}\n{text}"))
+}
+
+/// Keep `next_action_set` in step with `next_action`: when the next action changes and the write
+/// does not change the date itself, stamp today's date (or clear it with the action). Forms send
+/// every field back, so an unchanged date does not count as setting it.
+// reqforge: implements REQ-0059
+pub fn stamp_next_action(prev: Option<&Rec>, rec: &mut Rec) {
+    let field = |r: Option<&Rec>, k: &str| r.map(|r| s(r, k).trim().to_string()).unwrap_or_default();
+    let new = s(rec, "next_action").trim().to_string();
+    let date_given = s(rec, "next_action_set") != field(prev, "next_action_set");
+    if field(prev, "next_action") == new || date_given {
+        return;
+    }
+    let date = if new.is_empty() { Value::Null } else { json!(crate::snapshot::today().to_string()) };
+    rec.insert("next_action_set".into(), date);
+}
+
+/// The `NEXT:` line of an agent's final message (the last one, if several), without the prefix.
+pub fn next_line(message: &str) -> Option<String> {
+    message
+        .lines()
+        .filter_map(|l| l.trim_start().strip_prefix("NEXT:"))
+        .map(|t| t.trim().to_string())
+        .rfind(|t| !t.is_empty())
+}
+
+/// Record a `NEXT:` line from an agent run's final message as the task's pending proposal
+/// (REQ-0059#AC2). The caller holds the store lock and commits; returns the proposal, if any.
+// reqforge: implements REQ-0059
+pub fn propose_next_unlocked(store: &Store, task_id: &str, run_id: &str, final_message: &str) -> Res<Option<String>> {
+    let Some(text) = next_line(final_message) else { return Ok(None) };
+    let mut patch = Rec::new();
+    patch.insert("next_action_proposal".into(), json!(text));
+    patch.insert("next_action_proposal_run".into(), json!(run_id));
+    let rec = store.apply_unlocked(Kind::Tasks, task_id, &patch, None, None, None)?;
+    store.write_unlocked(Kind::Tasks, &rec)?;
+    Ok(Some(text))
+}
+
+/// Accept, edit or reject the task's pending next-action proposal (REQ-0059#AC2). Accept and
+/// edit make it the next action, dated today; all three clear the proposal.
+// reqforge: implements REQ-0059
+pub fn resolve_next_proposal(store: &Store, id: &str, action: &str, text: Option<&str>, expected_version: Option<i64>) -> Res<Value> {
+    if !["accept", "edit", "reject"].contains(&action) {
+        return Err(StoreError::bad(format!("action: '{action}' not in ['accept', 'edit', 'reject']")));
+    }
+    let _g = store.lock()?;
+    let task = store.get(Kind::Tasks, id)?;
+    let proposal = s(&task, "next_action_proposal").trim().to_string();
+    if proposal.is_empty() {
+        return Err(StoreError::new(format!("{id} has no pending next action proposal"), 409));
+    }
+    let chosen = match action {
+        "accept" => Some(proposal.clone()),
+        "edit" => Some(text.map(str::trim).filter(|t| !t.is_empty()).ok_or_else(|| StoreError::bad("text required to edit the proposal"))?.to_string()),
+        _ => None,
+    };
+    let mut patch = Rec::new();
+    if let Some(t) = &chosen {
+        patch.insert("next_action".into(), json!(t));
+        patch.insert("next_action_set".into(), json!(crate::snapshot::today().to_string()));
+    }
+    patch.insert("next_action_proposal".into(), Value::Null);
+    patch.insert("next_action_proposal_run".into(), Value::Null);
+    let rec = store.apply_unlocked(Kind::Tasks, id, &patch, expected_version, None, None)?;
+    store.write_unlocked(Kind::Tasks, &rec)?;
+    let verb = match action {
+        "accept" => "accepted",
+        "edit" => "edited",
+        _ => "rejected",
+    };
+    store.commit(&format!("{id}: next action proposal {verb}"));
+    Ok(json!({"task": Value::Object(rec), "action": action, "proposal": proposal}))
 }

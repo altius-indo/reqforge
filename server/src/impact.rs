@@ -14,7 +14,7 @@ use crate::model::{objs, s, strs, Kind};
 use crate::store::{Res, Source, Store, StoreError};
 
 fn git(root: &Path, args: &[&str]) -> Res<String> {
-    let o = Command::new("git").arg("-C").arg(root).args(args).output().map_err(|e| StoreError::bad(format!("git: {e}")))?;
+    let o = Command::new("git").env("GIT_OPTIONAL_LOCKS", "0").arg("-C").arg(root).args(args).output().map_err(|e| StoreError::bad(format!("git: {e}")))?;
     if !o.status.success() {
         return Err(StoreError::bad(format!("git {}: {}", args.join(" "), String::from_utf8_lossy(&o.stderr).trim())));
     }

@@ -37,6 +37,7 @@
 //! GET    /api/tasks/{id}/agent (plan + brief) | POST /api/tasks/{id}/agent (SSE run) | POST …/agent/cancel
 //! GET    /api/tasks/{id}/runs  agent run logs | GET /api/tasks/{id}/agent/live?since=n  live progress
 //! GET    /api/agent-queue | POST /api/agent-queue {enabled, limit, confirm}  per-project agent queue
+//! POST   /api/tasks/{id}/next-action {action: accept|edit|reject, text?, _version}  resolve the NEXT: proposal
 //! GET    /api/tasks/{id}/branch (review) | POST /api/tasks/{id}/complete {_version}  complete from the agent branch
 //! Auth: REQFORGE_TOKEN set => /api/* needs `Authorization: Bearer <token>`.
 
@@ -686,6 +687,12 @@ fn route(store: &Store, chat: &ChatRunner, method: &Method, p: &[String], qs: Ha
         [_, id, "start"] if post && kind == Kind::Tasks => {
             let ver = b.get("_version").and_then(Value::as_i64).or_else(|| if_match.as_deref().and_then(|s| s.trim_matches('"').parse().ok()));
             Ok(Out::Json(200, crate::taskflow::start(store, id, ver)?))
+        }
+        // reqforge: implements REQ-0059
+        [_, id, "next-action"] if post && kind == Kind::Tasks => {
+            let ver = b.get("_version").and_then(Value::as_i64).or_else(|| if_match.as_deref().and_then(|s| s.trim_matches('"').parse().ok()));
+            let action = b.get("action").and_then(Value::as_str).ok_or_else(|| StoreError::bad("action required (accept, edit or reject)"))?;
+            Ok(Out::Json(200, crate::taskflow::resolve_next_proposal(store, id, action, b.get("text").and_then(Value::as_str), ver)?))
         }
         [_, id] if get => Ok(Out::Json(200, Value::Object(store.get(kind, id)?))),
         [_, id] if matches!(*method, Method::PATCH | Method::PUT) => {
