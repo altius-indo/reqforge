@@ -11,23 +11,25 @@ realises:
 
 This spec adds a sixth record kind, **decisions** (`DEC-NNNN`). A decision records a design
 choice and links it to the requirements it serves. A decision counts as **exercised** only when
-tagged code implements it and every test tagged with its id has passing evidence. The spec
-covers the schema and file layout, the rule that decisions change only through changesets,
-search, CSV, MCP and the record drawer, the `DEC` tag grammar in the code scan, how the
-exercised flag is computed from evidence, the 14-day lint rule and the Decisions tab.
+tagged code implements it, at least one test is tagged with its id, and every test tagged with
+its id has passing evidence. The spec covers the schema and file layout, the rule that decisions
+change only through changesets, search, CSV, MCP and the record drawer, the `DEC` tag grammar in
+the code scan, how the exercised flag is computed from evidence, the 14-day lint rule and the
+Decisions tab.
 
 It builds on the existing code: `server/src/model.rs` (kinds and schemas), `server/src/store.rs`
 (writes), `server/src/changes.rs` (changesets), `server/src/codetrace.rs` (code scan),
 `server/src/evidence.rs` and `server/src/verify.rs` (evidence and status), `server/src/lint.rs`,
-`server/src/csvio.rs`, `server/src/mcp.rs` and `web/src`. TASK-0046 builds the record kind and
-DEC tags. TASK-0047 builds the Decisions tab.
+`server/src/csvio.rs`, `server/src/query.rs`, `server/src/mcp.rs`, `server/src/api.rs` and
+`web/src`. TASK-0046 builds the record kind, DEC tags, the exercised report and the lint rule
+(commit 53a75a1). TASK-0047 builds the Decisions tab.
 
 ## Realised requirements
 
 | Id | Title | How / where realised |
 |----|-------|----------------------|
-| REQ-0060 | Decision records | New `Kind::Decisions` with schema `DECISIONS` in `model.rs`. Validation is in `model::validate` plus `model::decision_errors`. Writes are refused outside changesets in `Store`. The kind is added to `KINDS`, so search, CSV export, the drawer and the MCP read tools pick it up. |
-| REQ-0061 | Decisions exercised by code | The `codetrace` ID regex accepts `DEC-NNNN`. Evidence targets `DEC-NNNN`. New `decisions::exercise` computes the flag. Lint rule `decision-unexercised` warns after 14 days. A Decisions tab is added in `web/src/views/DecisionsView.tsx`. |
+| REQ-0060 | Decision records | New `Kind::Decisions` with schema `DECISIONS` in `model.rs`. Validation is in `model::validate` plus `model::decision_supersession_errors`. Direct writes are refused by `store::changeset_only`. The kind is added to `KINDS`, so search, CSV export, the drawer and the MCP read tools pick it up. |
+| REQ-0061 | Decisions exercised by code | The `codetrace` id regexes accept `DEC-NNNN`. New `decisions::compute` builds the exercised report from tags and evidence. `decisions::lint_findings` adds rule `decision-unexercised` after 14 days. A Decisions tab is added in `web/src/views/DecisionsView.tsx`. |
 
 ## Acceptance criteria map
 
@@ -47,12 +49,13 @@ DEC tags. TASK-0047 builds the Decisions tab.
 
 | Kind | Prefix | Folder | `singular` | `Kind::parse` aliases |
 |------|--------|--------|------------|-----------------------|
-| decisions | `DEC` | `decisions/` | decision | `decisions`, `decision`, `dec`, `decs` |
+| decisions | `DEC` | `decisions/` | decision | `decisions`, `decision`, `dec` |
 
 `KINDS` becomes `[Requirements, Epics, Stories, Tasks, Components, Decisions]`. `Kind::of_id`
 then resolves `DEC-0001` with no extra code. As for other kinds, each record is one file,
 `requirements/decisions/DEC-NNNN.json`. It is written by `Store::write_unlocked` (temp file, then
-rename), and ids are allocated by `next_id` (max existing + 1, four digits minimum).
+rename), which creates the `decisions/` folder on first write so repositories created before the
+kind existed still work. Ids are allocated by `next_id` (max existing + 1, four digits minimum).
 
 Schema `DECISIONS` (REQ-0060#AC1):
 
@@ -61,30 +64,35 @@ Schema `DECISIONS` (REQ-0060#AC1):
 | title | str | yes | |
 | context | text | yes | The forces and constraints behind the decision |
 | decision | text | yes | What was decided |
-| status | enum | | `proposed`, `accepted`, `superseded`; default `proposed` |
+| status | enum | | `proposed`, `accepted`, `superseded` (`DECISION_STATUSES`); default `proposed` |
 | requirements | reflist -> requirements | | Each id must exist |
 | superseded_by | ref -> decisions | | Required when `status` is `superseded` |
-| consequences | text | | Optional; not required by REQ-0060 |
+| accepted_at | str | | UTC timestamp; stamped when the decision becomes accepted |
 | tags | list | | |
 
 `title`, `context` and `decision` are `req(...)` fields, so `model::validate` reports
 `<field>: required` when they are missing or empty. `status` uses
 `en("status", DECISION_STATUSES, Some("proposed"))`, so `model::defaults` fills in `proposed`
-and any other value fails with the usual enum error.
+and any other value fails with the usual enum error. `enums_json()` exposes the values as
+`decision_status`.
 
-### The `accepted` timestamp
+### `accepted_at`
 
-The 14-day rule needs to know when a decision was accepted. Decisions carry an extra
-system-managed field, `accepted`, in the same UTC form as `created`/`updated`.
-`DECISION_SYSTEM_FIELDS = ["accepted"]` is merged into `is_system` for this kind, so clients
-cannot set it. `changes::materialize` maintains it when it builds the post-op record:
+The 14-day rule needs to know when a decision was accepted. `accepted_at` is an ordinary schema
+field (not a system field), in the same RFC 3339 UTC form as `created`/`updated`.
+`changes::materialize` maintains it through `stamp_accepted`, so simulations and the applied
+record agree:
 
-- When status moves from anything else to `accepted`, `accepted` is set to `store::now()`.
-- When status moves from `accepted` back to `proposed`, `accepted` is removed.
-- When status moves from `accepted` to `superseded`, `accepted` is kept.
+- On create, a decision whose status is `accepted` gets `accepted_at = now` unless the op sets
+  `accepted_at` itself.
+- On update, when status moves from anything else to `accepted` and the op does not change
+  `accepted_at`, it is set to the time of the changeset.
+- An explicit `accepted_at` in the op is kept. This lets a backfill record the real acceptance
+  date (and lets tests seed old dates).
+- Moving from `accepted` to `proposed` or `superseded` does not clear `accepted_at`.
 
-Because `materialize` sets it, simulations and the applied record agree. If an accepted record
-has no `accepted` field (for example, a hand-edited file), the lint falls back to `updated`.
+If an accepted record has no `accepted_at` (for example, a hand-edited file), the lint falls back
+to `updated`, then `created`.
 
 Example `requirements/decisions/DEC-0001.json`:
 
@@ -96,8 +104,8 @@ Example `requirements/decisions/DEC-0001.json`:
   "decision": "Each record is written to <kind>/<ID>.json with stable key order.",
   "status": "accepted",
   "requirements": ["REQ-0037"],
+  "accepted_at": "2026-10-05T03:00:00+00:00",
   "tags": [],
-  "accepted": "2026-10-05T03:00:00+00:00",
   "version": 2,
   "created": "2026-10-05T02:50:00+00:00",
   "updated": "2026-10-05T03:00:00+00:00"
@@ -106,70 +114,75 @@ Example `requirements/decisions/DEC-0001.json`:
 
 ## Validation
 
-Validation runs in `model::validate` and the kind-specific checks in `changes::materialize`,
-alongside `component_key_clash` and `task_dependency_errors`. Every failure is a 422 with
-per-field details (REQ-0060#AC2):
+Validation runs in `model::validate` and the kind-specific checks that run both in
+`changes::materialize` (post-op view, alongside `component_key_clash` and
+`task_dependency_errors`) and in `Store` validation. Every failure is reported per field;
+simulation lists it and apply refuses with 422 (REQ-0060#AC2):
 
 - `requirements` is a `reflist` to requirements, so the existing reference check rejects ids that
   do not exist (`requirements: REQ-9999 does not exist`).
-- New `model::decision_errors(rec, &all_decisions)`:
-  - If `status == "superseded"` and `superseded_by` is empty, it reports
-    `superseded_by: required when status is superseded`.
-  - `superseded_by` must name an existing decision (enforced by the `ref` type) other than the
-    record itself (`superseded_by: a decision cannot supersede itself`).
-  - If `superseded_by` is set and status is not `superseded`, it reports
-    `superseded_by: only allowed when status is superseded`. This keeps the chain meaningful.
+- `model::validate`: if `status == "superseded"` and `superseded_by` is empty, it reports
+  `superseded_by: required when status is superseded`.
+- `superseded_by` is a `ref` to decisions, so it must name an existing decision (or one created
+  earlier in the same changeset).
+- New `model::decision_supersession_errors(rec, &all_decisions)`:
+  - `superseded_by` equal to the record's own id reports
+    `superseded_by: DEC-0001 cannot supersede itself`.
   - Cycles: the check follows `superseded_by` from the record through the post-op view of all
-    decisions (so ops in the same changeset count). If it comes back to a decision already
-    visited, it reports `superseded_by: supersession cycle DEC-0001 -> DEC-0002 -> DEC-0001`.
-    `superseded_by` is a single ref, so the walk is linear and bounded by the number of decisions.
+    decisions (so ops in the same changeset count). If the walk returns to the record, it reports
+    `superseded_by: supersession cycle DEC-0001 -> DEC-0002 -> DEC-0001`. `superseded_by` is a
+    single ref, so the walk is linear and bounded by the number of decisions; a cycle that does
+    not pass through the record is reported when one of its members is validated.
 - `Store::references_to` iterates `KINDS` and schema ref fields. A requirement linked from a
-  decision, or a decision named in another decision's `superseded_by`, therefore cannot be
-  deleted without `force`. A changeset that deletes one shows up as a dangling reference in
-  simulation.
+  decision, or a decision named in another decision's `superseded_by`, therefore shows up as a
+  dangling reference when a changeset deletes it.
 
 ## Changesets only
 
 REQ-0060 requires that decisions are created and changed only through changesets.
-`Kind::changeset_only(self) -> bool` returns true for `Decisions`. The public `Store` write
-methods `create`, `update`, `bulk_update`, `upsert_many` and `delete` return
-`StoreError::new("decisions change only through changesets", 403)` for such kinds.
-`changes::apply` writes with `Store::write_unlocked` and removes files directly, so it is the
-only write path. As a result:
+`store::changeset_only(kind)` returns
+`StoreError("decisions are created and changed only through changesets; propose a changeset", 403)`
+for `Kind::Decisions`. It is called at the top of the public write paths `create_unlocked`,
+`update`, `bulk_update`, `upsert_many` and `delete`. `changes::apply` writes with
+`Store::write_unlocked` and removes files directly, so it is the only write path. As a result:
 
-- REST `POST/PATCH/DELETE /api/decisions[/…]`, CSV import (`/api/decisions/import`,
-  `reqforge import decisions`) and the MCP `create`, `update`, `upsert_many`, `bulk_update` and
-  `delete` tools all fail with 403 and the message above.
+- REST `POST/PATCH/DELETE /api/decisions[/…]`, CSV import (`/api/decisions/import`, which goes
+  through `upsert_many`) and the MCP `create`, `update`, `upsert_many`, `bulk_update` and
+  `delete` tools all fail with 403 and the message above. The MCP `create` description says so.
 - `simulate_changeset`, `propose_changeset` and `apply_changeset` accept ops with
   `"kind": "decisions"` and `DEC-` ids, as they already do for any kind in `KINDS`.
 - The chat agent's tool allowlist (`chat.rs`) already excludes every direct write. It can only
   call `simulate_changeset` and `propose_changeset`, and a human applies. This satisfies "the
-  chat agent can only propose them" (REQ-0060#AC3). `chat_prompt.md` gets one line saying
-  decisions are proposed like any other record, with `context` and `decision` filled in.
+  chat agent can only propose them" (REQ-0060#AC3). `chat_prompt.md` lists `decisions` in the op
+  format and says decisions need `title`, `context` and `decision`, that superseded needs
+  `superseded_by`, and that they are never written directly.
 
 ## Search, CSV, drawer and MCP
 
 Adding the kind to `KINDS` gives the generic paths (REQ-0060#AC3):
 
 - **Search**: `Store::search`, `query::page` and `query::facets` work per kind. Free text matches
-  `title`, `context` and `decision`. Filters use the usual tokens, for example
-  `status:accepted` and `requirements:REQ-0037`. The REST and MCP `search` tools accept
+  `title`, `context` and `decision`. `query::facet_fields(Decisions)` is
+  `["status", "requirements", "tags"]`, so filters such as `status:accepted` and
+  `requirements:REQ-0037` work. `query::annotate` adds `_exercised` to each listed decision from
+  `changes::links(...)["decisions_exercised"]`. The REST and MCP `search` tools accept
   `kind: "decisions"`.
 - **CSV export**: `csvio::export` derives columns from the schema, so the header is
-  `id,title,context,decision,status,requirements,superseded_by,consequences,tags,version`.
-  `requirements` and `tags` are comma-joined. `accepted` is a system field and is not exported.
-  Import is refused (see above).
+  `id,title,context,decision,status,requirements,superseded_by,accepted_at,tags,version`.
+  `requirements` and `tags` are joined with `", "`. Import is refused (see above).
 - **Record drawer**: `RecordDrawer.tsx` renders fields from the schema returned by `taxonomy`.
   For decisions it adds an **Exercised** section showing the flag, the reason and the tagged
-  locations (reusing `CodeEvidence.tsx`). It also lists *superseded by* / *supersedes* links.
-  The requirement drawer adds a *Decisions* list (decisions whose `requirements` contain it).
+  locations and tests (from `context`, reusing `CodeEvidence.tsx`), and *superseded by* links.
   Edit controls for decisions open a "Propose change" flow (chat) instead of saving directly.
-- **MCP**: `mcp.rs` builds `kind` as an enum of every kind. The read tools (`search`, `get`,
-  `context`, `taxonomy`, `trace`) gain `decisions`. The `verification` tool output gains a
-  `decisions` array (see below). The write tools keep the kind in their enum but return the
-  403 above, so agents get a clear message instead of a schema error.
+- **MCP**: the `kind` enum in `mcp.rs` lists every kind, including `components` and
+  `decisions`. The read tools (`search`, `get`, `context`, `taxonomy`) cover decisions. `context`
+  on a decision returns `exercised` (its entry in the exercised report) and its lint findings.
+  `verification` with `req: "DEC-0001"` returns that decision's exercised entry. The write tools
+  keep the kind in their enum but return the 403 above, so agents get a clear message instead of
+  a schema error.
+- **REST**: `GET /api/decisions/exercised` returns the full exercised report (see below).
 - **Trace**: decisions are not part of the requirement → story → eval chain, and `trace` does not
-  score them. `context` for a requirement lists its linked decisions.
+  score them.
 
 ## DEC tags in the code scan
 
@@ -180,152 +193,153 @@ from `REQ-\d{4,}` to `(?:REQ|DEC)-\d{4,}` in the `EXPLICIT` and `ID` regexes (RE
 tag      := "reqforge:" ws verb ws id-list
 verb     := implements | implement | impl | verifies | verify | tests | test
 id-list  := id ( [\s,;]* id )*
-id       := REQ-\d{4,} ( "#" [A-Za-z0-9_.-]+ )?
-          | DEC-\d{4,}
+id       := ( REQ | DEC ) "-" \d{4,} ( "#" [A-Za-z0-9_.-]+ )?
 ```
 
-- `DEC-0001` tags produce `Tag { req: "DEC-0001", ac: None, kind, file, line, symbol, … }`.
-  They use the same struct, symbol attachment and file hashes as REQ tags, so existing indexes
-  and the code view need no format change. A `#fragment` on a DEC id is dropped, because
-  decisions have no acceptance criteria.
+- `DEC-0001` tags produce `Tag { req: "DEC-0001", kind, file, line, symbol, … }`. They use the
+  same struct, symbol attachment, suppression (`reqforge:off/on`, `reqforge:ignore-file`) and
+  file hashes as REQ tags, so existing indexes and the code view need no format change. A
+  `#fragment` on a DEC id is ignored by the exercised computation, because decisions have no
+  acceptance criteria.
 - In `auto` tag mode, a bare `DEC-NNNN` in a test file is a `verifies` tag, just as a bare
   `REQ-NNNN` is. In `explicit` mode, only the comment form counts.
-- The quick pre-filter `line.contains("REQ-")` becomes `line.contains("REQ-") ||
-  line.contains("DEC-")`.
+- The quick pre-filter `line.contains("REQ-")` becomes
+  `line.contains("REQ-") || line.contains("DEC-")`.
 - `ids_in` (used by evidence ingest to read ids from test names) uses the widened `ID` regex, so
   a test named `[DEC-0001] writes atomically` maps to the decision.
-- The scan summary counts DEC tags with the rest. `verify::compute` keeps filtering tags to
-  requirement ids (`starts_with("REQ-")`) for criterion status, so DEC tags never show up as
-  orphan requirement tags.
-- Tags naming a `DEC` id that does not exist are reported by `decisions::exercise` as
-  `unknown_tags` and by lint as `dangling-decision-tag` (warning).
+- `verify::compute` handles DEC tags separately: a tag naming a decision that does not exist is
+  added to the `unknown` tag list (`<component>:<file>:<line> tags unknown DEC-0099`); other DEC
+  tags are skipped, so they never show up as requirement tags. The per-component summary counts
+  only `REQ-` ids under `requirements`.
 
 ## Exercised computation
 
-New module `server/src/decisions.rs` with
-`exercise(src, indexes, latest) -> Vec<Value>`. It is called from `verify::compute` and
-returned as `report["decisions"]`, so the REST verification endpoint, the MCP `verification`
-tool and the UI all read the same result.
+New module `server/src/decisions.rs`:
+
+- `compute(src, indexes, latest) -> Value` builds the report from the decisions in `src`, the
+  code indexes and the latest evidence.
+- `report(store) -> Arc<Value>` memoises `compute` on the store (repository, code index and
+  evidence state). It backs `GET /api/decisions/exercised`, MCP `verification`/`context`, the
+  `_exercised` list annotation and the UI.
 
 ### Evidence for decisions
 
 `evidence::ingest` needs no new branch. A test case matched through a DEC tag (by symbol and
-file, or by an id in its name) calls `targets_for(src, "DEC-0001", None)`. Decisions are not
-requirements, so this returns `["DEC-0001"]`. The record stores
-`source = "test:<comp>:<file>::<name>"` and `hashes_for(indexes, "DEC-0001", test)`: the test
-file plus every file tagged `implements DEC-0001`. Suspect detection therefore works exactly as
-it does for requirements. Eval reports can also list `DEC-NNNN` in `covers`. This counts as
-passing evidence but does not replace the per-test rule below.
+file, or by an id in its name) is stored with `target = "DEC-0001"`,
+`source = "test:<component>:<file>::<name>"` and `hashes` for the test file and the files tagged
+`implements DEC-0001`. Suspect detection therefore works exactly as it does for requirements.
 
 ### Rule (REQ-0061#AC2)
 
 For each decision `D`:
 
-1. `impls` = tags with `req == D` and `kind == "implements"` across all component indexes.
+1. `implements` = tags with `req == D` and `kind == "implements"` across all component indexes.
 2. `tests` = tags with `req == D` and `kind == "verifies"`.
-3. For each test tag `t`, its status comes from the evidence in `latest` with target `D` whose
-   source is `test:<t.component>:<t.file>::…` and whose test name matches `t.symbol`
-   (`evidence::symbol_matches`). The status values are the same as in `verify.rs`:
+3. For each test tag `t`, take the evidence in `latest` with `target == D` that comes from that
+   tag (`from_tag`: the source's component and file match the tag, and the test name matches its
+   symbol). Its status is:
    - `failing`: any matching evidence failed.
-   - `suspect`: there is passing evidence, but every passing record's `hashes` differ from the
-     current file hashes.
-   - `passing`: at least one passing record's hashes all match the current files.
-   - `pending`: there is no evidence yet.
-4. `exercised = !impls.is_empty() && tests.iter().all(|t| status(t) == "passing")`.
+   - `passed`: some passing evidence has all its file hashes equal to the current index hashes.
+   - `suspect`: there is passing evidence, but none of it is fresh (a vouched-for file changed).
+   - `pending`: there is no evidence yet (the tagged test is untested).
+4. `exercised = !implements.is_empty() && !tests.is_empty() && tests.iter().all(|t| t.status == "passed")`.
 
-`reason` records the first rule that failed: `no implements tag`, `DEC-0001 test
-server/tests/x.rs::y failing`, `… suspect`, or `… has no evidence`. A failing or suspect tagged
-test always makes the flag `no`.
+So a decision is exercised only when there is implementing code, **at least one** tagged test,
+and every tagged test has fresh passing evidence. No tagged test, or any failing, suspect or
+pending tagged test, makes it `no`.
 
-Following REQ-0061's statement literally, a decision with implements tags and **no** tagged
-tests is exercised, because "every tagged test passes" holds when there are none. The reason
-then reads `exercised (no tagged tests)` so reviewers can tell this case apart. See Open
-questions.
+`reason` is empty when exercised, otherwise it names the first rule that failed:
 
-Output, one entry per decision:
+| Case | `reason` |
+|------|----------|
+| no implements tag | ``no code is tagged `reqforge: implements DEC-0001` `` |
+| no tagged test | `no test is tagged with DEC-0001` |
+| a test not passed | `tagged tests without fresh passing evidence: tests/store.rs:12 suspect, tests/x.rs:40 pending` |
+
+Output:
 
 ```json
 {
-  "id": "DEC-0001", "title": "…", "status": "accepted", "requirements": ["REQ-0037"],
-  "exercised": false, "reason": "DEC-0001 test server/tests/store.rs::atomic_write suspect",
-  "implements": [{"component": "server", "file": "src/store.rs", "line": 410, "symbol": "write_unlocked"}],
-  "tests": [{"component": "server", "file": "tests/store.rs", "line": 12, "symbol": "atomic_write", "status": "suspect"}],
-  "accepted": "2026-10-05T03:00:00+00:00"
+  "summary": {"decisions": 3, "exercised": 1},
+  "decisions": {
+    "DEC-0001": {
+      "id": "DEC-0001", "title": "…", "status": "accepted", "requirements": ["REQ-0037"],
+      "superseded_by": null, "accepted_at": "2026-10-05T03:00:00+00:00",
+      "exercised": false,
+      "reason": "tagged tests without fresh passing evidence: tests/store.rs:12 suspect",
+      "implements": [{"component": "server", "file": "src/store.rs", "line": 410, "symbol": "write_unlocked"}],
+      "tests": [{"component": "server", "file": "tests/store.rs", "line": 12, "symbol": "atomic_write",
+                 "status": "suspect", "evidence": [{"source": "test:server:tests/store.rs::atomic_write", "status": "passed", "commit": "…", "at": "…"}]}]
+    }
+  }
 }
 ```
 
-Superseded decisions are still computed, but they are excluded from the lint rule. The tab
-shows them dimmed.
+Superseded and proposed decisions are still computed; only the lint rule restricts itself to
+accepted ones.
 
 ## Lint rule: decision-unexercised
 
-`lint::lint(src)` runs over a `Source` that has no code indexes. The `Source` trait gains:
+`Source` gains `fn root(&self) -> Option<PathBuf>` (default `None`). `Store` returns its root and
+`changes::View` carries the base store's root, so simulations judge the same code state.
+`lint::lint` appends `decisions::lint_findings(src, Utc::now())`.
 
-```rust
-/// Exercised flag per decision id, or None when no code scan is available.
-fn decision_exercise(&self) -> Option<BTreeMap<String, bool>> { None }
-```
+Rule (REQ-0061#AC3), with `decisions::GRACE_DAYS = 14`:
 
-`Store` implements it from `verify::report(store)["decisions"]`, which is memoised.
-`changes::View` delegates to the base store's value, so simulations judge the same code state.
+- If `src.root()` is `None` (a detached view), the rule emits nothing.
+- Otherwise compute the exercised report from the indexes and evidence under the root.
+- For every decision with `status == "accepted"` that is not exercised, take
+  `since = accepted_at`, falling back to `updated`, then `created` (RFC 3339 or `YYYY-MM-DD`).
+- If `now - since` is at least 14 whole days, add a `warning` with rule `decision-unexercised`,
+  `ids: ["DEC-…"]` and the message `accepted 20 days ago but not exercised: <reason>`.
+- Proposed and superseded decisions are never warned about. An accepted decision less than 14
+  days old is not warned about yet. With no code scan nothing is exercised, so every accepted
+  decision past 14 days warns with reason "no code is tagged …".
 
-Rule (REQ-0061#AC3), with `DECISION_GRACE_DAYS = 14`:
-
-- For every decision with `status == "accepted"`, compute
-  `since = now - (accepted or updated)`.
-- If `since > 14 days` and the exercised flag is `false` (or the decision is missing from the
-  map), add a `warning` with rule `decision-unexercised`, `ids: [DEC-…]` and the message
-  `DEC-0001 accepted 2026-09-01 is not exercised after 14 days: <reason>`.
-- If `decision_exercise()` is `None` (no component has been scanned yet), the rule still warns
-  after 14 days with the reason `no code scan`. With no scan, nothing is exercised.
-- Proposed and superseded decisions are never warned about. A decision accepted less than 14
-  days ago is not warned about.
-
-The lint also adds `dangling-decision-tag` (warning) for code tags that name a nonexistent DEC
-id.
+The warning shows in the lint dashboard, in `context` for the decision and on the Decisions tab.
 
 ## Decisions tab
 
 The sidebar gets a **Decisions** tab (`view.tab === "decisions"`) that renders
-`web/src/views/DecisionsView.tsx`. It is not the generic `ListView`, because it joins records
-with the verification report (REQ-0061#AC4):
+`web/src/views/DecisionsView.tsx`. It joins `GET /api/decisions` (records with `_exercised`)
+with `GET /api/decisions/exercised` (REQ-0061#AC4):
 
 | Column | Source |
 |--------|--------|
 | Id, Title | decision record |
 | Status | `status` badge: proposed / accepted / superseded (superseded rows dimmed, with "→ DEC-…") |
-| Exercised | `yes` / `no` badge from `report.decisions[i].exercised`, with `reason` as the tooltip |
+| Exercised | `yes` / `no` badge from `exercised`, with `reason` as the tooltip |
 | Requirements | `requirements` as id chips that open the requirement drawer |
-| Accepted | `accepted` date; shows a warning icon when the lint rule fires |
+| Accepted | `accepted_at` date; a warning icon when `decision-unexercised` fires |
 
 The tab has filters for status and exercised (yes/no) and a free-text search over title,
 context and decision. Clicking a row opens the record drawer with the Exercised section. A
 "Propose decision" button opens chat with a prefilled request, because decisions cannot be
-created directly. The e2e suite `web/e2e/suites/decisions` (eval E2) seeds decisions, tags and
-evidence, then checks the columns and badges.
+created directly. The e2e suite `decisions` (eval E2, `node web/e2e/run.mjs --suite decisions`)
+seeds decisions, tags and evidence, then checks the columns and badges.
 
 ## Tests
 
-Eval E1 (`server/tests/decisions.rs`, `cargo test --test decisions`) should cover:
+Eval E1 (`server/tests/decisions.rs`, `cargo test --test decisions`) covers:
 
-- Required fields and the default status (REQ-0060#AC1).
+- Required fields, the default status and `accepted_at` stamping (REQ-0060#AC1).
 - An unknown requirement, superseded without `superseded_by`, self-supersession and a two-step
   cycle created inside one changeset (REQ-0060#AC2).
 - 403 on direct create/update/delete/CSV import. Decisions are found by search, appear in CSV
-  export and in MCP `get`/`search`, and the chat allowlist has no direct write tools
+  export, `context` and MCP `get`/`search`/`verification`, and the chat session can only propose
   (REQ-0060#AC3).
 - DEC implements/verifies tags in comment and auto forms (REQ-0061#AC1).
 - The exercised flag with passing, failing, suspect (file changed after passing) and pending
-  tests, and with no implements tag (REQ-0061#AC2).
-- The lint warning at 15 days and none at 13 days, using a seeded `accepted` timestamp
+  tests, with no implements tag, and with implementing code but **no tagged test** (not
+  exercised) (REQ-0061#AC2).
+- The lint warning for a decision accepted 20 days ago, none for one accepted 13 days ago, and a
+  warning for the latter once its 14 days are up; an explicit `accepted_at` is kept
   (REQ-0061#AC3).
 
 ## Open questions
 
-- **Decisions with no tagged tests.** The requirement's wording makes them exercised when they
-  have implements tags. The story says "only when tested code relies on them", which suggests
-  at least one tagged test should be required. This design follows the requirement and
-  surfaces the case in `reason`. If the product owner wants the stricter reading, change
-  REQ-0061 through a changeset and add `!tests.is_empty()` to step 4.
 - **Grace period.** The 14-day period is a constant. A `decision_grace_days` project config key
   could be added later if teams need a different period.
+- **Clearing `accepted_at`.** Re-proposing an accepted decision keeps its old `accepted_at`. It
+  does not affect the lint (only accepted decisions are checked, and re-accepting re-stamps), but
+  a later change could clear it on the way back to `proposed`.
