@@ -19,6 +19,7 @@ pub mod mcp;
 pub mod model;
 pub mod query;
 pub mod queue;
+pub mod research;
 pub mod store;
 pub mod taskflow;
 pub mod trace;

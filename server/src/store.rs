@@ -151,6 +151,10 @@ pub trait Source {
     fn design_docs(&self) -> Vec<crate::design::DesignDoc> {
         vec![]
     }
+    /// Research findings (research/RF-0001.json), oldest first.
+    fn findings(&self) -> Vec<Value> {
+        vec![]
+    }
 }
 
 pub struct Entry {
@@ -187,6 +191,9 @@ impl Source for Store {
     }
     fn design_docs(&self) -> Vec<crate::design::DesignDoc> {
         crate::design::list(&self.root)
+    }
+    fn findings(&self) -> Vec<Value> {
+        crate::research::list(&self.root)
     }
 }
 
@@ -430,9 +437,11 @@ impl Store {
             .map(|d| d.as_nanos() as u64)
             .unwrap_or(0);
         let mut sig = vec![cfg_m];
-        // derived artefacts that verification and lint depend on: code indexes, evidence, design docs
+        // derived artefacts that verification and lint depend on: code indexes, evidence, design
+        // docs, research findings; and the date, since findings go stale with it
         let mut h = std::collections::hash_map::DefaultHasher::new();
-        for d in ["code", "evidence", crate::design::DIR] {
+        chrono::Utc::now().date_naive().hash(&mut h);
+        for d in ["code", "evidence", crate::design::DIR, crate::research::DIR] {
             for e in fs::read_dir(self.root.join(d)).into_iter().flatten().flatten() {
                 if let Ok(md) = e.metadata() {
                     (e.file_name().to_string_lossy().to_string(), md.len(), md.modified().ok()).hash(&mut h);
