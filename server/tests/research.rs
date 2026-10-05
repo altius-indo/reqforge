@@ -135,6 +135,36 @@ fn finding_ops_can_chain_within_one_changeset() {
     assert_eq!(store.findings()[1]["supersedes"], json!("RF-0001"));
 }
 
+// reqforge: verifies REQ-0063#AC1
+// reqforge: verifies REQ-0063#AC2
+#[test]
+fn elicit_changeset_records_findings_cited_by_new_requirements() {
+    // the shape /reqforge:elicit proposes: graded findings first, then requirements citing them as "$f#"
+    let (_d, store) = fx();
+    let old = req(&store, "use vendor X", &[]);
+    apply(&store, json!([finding("Vendor X supports SSO", "VERIFIED", "2026-01-01", "fast")]));
+    let mut f1 = finding("TLS 1.3 is required by PCI DSS v4.0", "VERIFIED", "2026-10-04", "slow");
+    f1["ref"] = json!("f1");
+    let mut f2 = finding("Vendor X dropped SSO", "REFUTED", "2026-10-04", "fast");
+    f2["ref"] = json!("f2");
+    f2["data"]["supersedes"] = json!("RF-0001");
+    let out = apply(&store, json!([f1, f2,
+        {"op": "create", "kind": "requirements", "ref": "R1", "data": {"title": "Encrypt in transit", "type": "quality", "category": "security",
+            "statement": "The system shall use TLS 1.3.", "acceptance_criteria": [{"id": "AC1", "text": "TLS 1.3 only"}], "standards": ["PCI DSS v4.0 4.2.1", "$f1"]}},
+        {"op": "update", "id": old, "patch": {"standards": ["$f2"]}}
+    ]));
+    assert_eq!(out["assigned_ids"]["f1"], json!("RF-0002"));
+    assert_eq!(out["assigned_ids"]["f2"], json!("RF-0003"));
+    let all = store.findings();
+    assert_eq!(all[1]["grade"], json!("VERIFIED"));
+    assert_eq!(all[1]["refresh_by"], json!("2027-04-02"));
+    assert_eq!(all[2]["refresh_by"], json!("2026-12-03"));
+    assert_eq!(all[2]["supersedes"], json!("RF-0001"));
+    let new_id = out["assigned_ids"]["R1"].as_str().unwrap();
+    assert_eq!(store.get(Kind::Requirements, new_id).unwrap()["standards"], json!(["PCI DSS v4.0 4.2.1", "RF-0002"]));
+    assert_eq!(store.get(Kind::Requirements, &old).unwrap()["standards"], json!(["RF-0003"]));
+}
+
 // reqforge: verifies REQ-0063#AC3
 #[test]
 fn lint_warns_on_refuted_or_stale_citations() {

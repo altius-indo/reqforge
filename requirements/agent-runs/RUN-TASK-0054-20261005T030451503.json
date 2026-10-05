@@ -1,0 +1,290 @@
+{
+  "run_id": "RUN-TASK-0054-20261005T030451503",
+  "task": "TASK-0054",
+  "story": "STORY-0016",
+  "component": "server",
+  "branch": "reqforge/TASK-0054",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0054",
+  "base": "ad8aea73cbb7aee9fa17b7a0967fab8a942e3156",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T03:04:51+00:00",
+  "ended": "2026-10-05T03:08:14+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "c426c0e",
+      "message": "TASK-0054: per-task eval lists in Complete"
+    }
+  ],
+  "violations": [
+    "the component's checked-out branch moved from ad8aea73cb to 52c04ba586"
+  ],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "5949550f-0124-4309-8c05-097c4c27696d"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0054/server/src/complete.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0054/server/tests/task_complete.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0054/server/src/model.rs"
+    },
+    {
+      "type": "text",
+      "text": "Adding the `evals` field to the task schema now, then wiring it into Complete."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the Complete eval selection."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I'll make the edits with the Edit tool instead."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "Now the tests."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "text",
+      "text": "That last tag doesn't belong on that test; reverting it."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "All 13 pass. Now showing \"no evals run\" in the drawer's Complete result."
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Server suite is green. Checking the web typecheck actually ran, and how changesets are stored (the brief asks me to propose one)."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "No `node_modules`, so the web typecheck didn't run. Updating the docs, then looking at the changeset format."
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0054/docs/agent-runs.md"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Edit",
+      "sub": false,
+      "text": "Edit"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Per the agent rules I won't write a changeset; I'll put the proposal in the report. Checking that the target stories define E1/E2 so the proposal will pass validation:"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep \"id\": \"E\\d+\""
+    },
+    {
+      "type": "text",
+      "text": "All defined. Committing."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Tasks now have an `evals` field, and Complete uses it to pick which evals to run. All 13 `task_complete` tests pass, including the new one where the first task of a story completes with only its own evals. The backfill changeset is not filed: it's written out below for someone to submit.\n\n**What changed** (commit `c426c0e`)\n- **Task schema** (`server/src/model.rs`): tasks have an optional `evals` list. A new check, `task_eval_errors`, rejects any id the task's story doesn't define, with a 422 field error such as `evals: E9 is not an eval of STORY-0001 (expected one of ['E1', 'E2'])`. It runs on normal saves (`store.rs`) and when changesets are checked (`changes.rs`).\n- **Complete** (`server/src/complete.rs`, new `evals_to_run`):\n  - If it's the story's last open task, all of the story's evals run.\n  - Otherwise only the evals listed on the task run.\n  - If the task lists none, Complete goes ahead and the response carries `note: \"no evals run\"`.\n  - The response and the attempt log also record which case applied (`eval_scope`: `task`, `story` or `none`).\n  - If a listed id was later deleted from the story, it counts as a failed eval and Complete is refused.\n- **Web**: the Complete result in the task drawer shows the note, and `CompleteResult` has the two new fields.\n- **Docs**: step 3 and the response shape in `docs/agent-runs.md` describe the new behaviour.\n- **New tests**, tagged `REQ-0056#AC4` / `REQ-0056#AC7`:\n  - `first_task_completes_with_only_its_own_evals`\n  - `task_without_evals_that_is_not_last_shows_no_evals_run`\n  - `last_open_task_runs_all_story_evals`\n  - `listed_task_eval_failure_refuses_complete`\n  - `task_evals_must_be_defined_on_the_story`\n\n**Tests and evals**\n- **E1** (`cargo test --test task_complete`): 13 passed, 0 failed.\n- **E3** (`eval_run_sandboxed_*`): passed as part of that run.\n- **Full `cargo test` for the server:** every suite passed.\n- **E2** (the web end-to-end suite): not run, because `web/node_modules` isn't installed in this worktree. For the same reason the web type check didn't run, so the two web edits are unchecked.\n\n**Open items**\n1. **Backfill changeset not filed.** Agents may not write changesets (the agent rules and REQ-0052#AC3), and the reqforge tool server failed to connect this session. Here are the operations to submit. Every listed id exists on its story, so they pass the new check:\n   ```json\n   [\n     {\"op\":\"update\",\"id\":\"TASK-0042\",\"patch\":{\"evals\":[\"E1\"]}},\n     {\"op\":\"update\",\"id\":\"TASK-0043\",\"patch\":{\"evals\":[\"E2\"]}},\n     {\"op\":\"update\",\"id\":\"TASK-0044\",\"patch\":{\"evals\":[\"E1\"]}},\n     {\"op\":\"update\",\"id\":\"TASK-0045\",\"patch\":{\"evals\":[\"E2\"]}},\n     {\"op\":\"update\",\"id\":\"TASK-0046\",\"patch\":{\"evals\":[\"E1\"]}},\n     {\"op\":\"update\",\"id\":\"TASK-0047\",\"patch\":{\"evals\":[\"E2\"]}},\n     {\"op\":\"update\",\"id\":\"TASK-0048\",\"patch\":{\"evals\":[\"E1\"]}},\n     {\"op\":\"update\",\"id\":\"TASK-0049\",\"patch\":{\"evals\":[\"E2\"]}},\n     {\"op\":\"update\",\"id\":\"TASK-0050\",\"patch\":{\"evals\":[\"E1\",\"E2\"]}}\n   ]\n   ```\n   TASK-0050 is already `done`, so its backfill is only a record. The design and agent tasks (TASK-0052 and TASK-0053) get nothing.\n2. **Deleting a story eval doesn't re-check tasks.** A task that already lists that id isn't flagged when the eval is removed; it only shows up as a failure at Complete.\n3. **E2 still needs a run** once the web dependencies are installed."
+    },
+    {
+      "type": "done",
+      "session_id": "5949550f-0124-4309-8c05-097c4c27696d",
+      "cost": 1.0793312,
+      "turns": 36,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}
