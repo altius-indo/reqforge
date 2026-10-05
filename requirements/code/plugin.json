@@ -1,21 +1,21 @@
 {
   "component": "plugin",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "c4cff5951903dce4a3f81c4f16719ff697f7441e",
-  "scanned_at": "2026-10-04T18:53:01+00:00",
-  "files_scanned": 22,
+  "commit": "62858a08ceeb4e2c3dbcce029623414fdc9c5422",
+  "scanned_at": "2026-10-05T04:25:50+00:00",
+  "files_scanned": 23,
   "files": {
     ".github/workflows/test.yml": "63696f63a1e351b3642c372e2ca4a0a1d14a150e0ddb38c1b07da2adb316313c",
     "agents/cicd-engineer.md": "484e6d0d27f50debca06e1517e4b60a5544084157039d971513bacf20b89966f",
     "agents/delivery-planner.md": "f4f6897d919634ba7a2e4d08fb6b62e673f092f33ffcd4cc9b14f8294433dced",
     "agents/eval-designer.md": "cc3995ced9f8fad43eac057105f5f6be031bb900cf0df5d111ec884ee3be7743",
     "agents/mece-reviewer.md": "0eac654292c2d4af25ff76d61f0fe06f716c42ef219ec240a90a500df9466eac",
-    "agents/requirements-analyst.md": "7329d5d479a81c7c7e4661c744c2c197b865b5a77b3d32fa914b0e4202f13400",
+    "agents/requirements-analyst.md": "798057f744b6f9a97721bf0b8080aca554adb233223f31a5c5ef9251bf7e1ebf",
     "agents/requirements-classifier.md": "2282038e59d925227c3ba96450f7adf5864c301065e8a9f7eb9a09ea4e9cf251",
-    "agents/standards-researcher.md": "854b9dd87598c6db7e93c4caea58ce7d7c6e707bea4a49a1f1f0cedea263b059",
+    "agents/standards-researcher.md": "d8b487a867b71ab91b1d59e952109f6065b2d5e7e1f655c6fb5590bf46335372",
     "agents/traceability-evaluator.md": "ca177f994582eaf3e647043d30be90cc9e8ecdc9b8971d490e6617d66d53487c",
     "bin/reqforge": "ce4d1f4a34dfb34dd0f67ab19f3645c89d7c2154ae3f2795445bf3e549871e73",
-    "skills/elicit/SKILL.md": "357f1e884d220acc94cd5b4a84d4974fe1a836f9d8b482a21fa166c516763a9c"
+    "skills/elicit/SKILL.md": "3c6a54f23406368097f42da9f7ec1da15ed32c37306aa05ad16b823a209e7a9b"
   },
   "tags": [
     {
@@ -83,6 +83,14 @@
       "component": "plugin"
     },
     {
+      "req": "REQ-0063",
+      "kind": "implements",
+      "file": "agents/standards-researcher.md",
+      "line": 8,
+      "text": "<!-- reqforge: implements REQ-0063 -->",
+      "component": "plugin"
+    },
+    {
       "req": "REQ-0002",
       "kind": "implements",
       "file": "agents/traceability-evaluator.md",
@@ -104,6 +112,14 @@
       "file": "skills/elicit/SKILL.md",
       "line": 6,
       "text": "<!-- reqforge: implements REQ-0001 -->",
+      "component": "plugin"
+    },
+    {
+      "req": "REQ-0063",
+      "kind": "implements",
+      "file": "skills/elicit/SKILL.md",
+      "line": 7,
+      "text": "<!-- reqforge: implements REQ-0063 -->",
       "component": "plugin"
     }
   ]
