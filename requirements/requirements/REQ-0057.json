@@ -5,7 +5,7 @@
   "type": "data",
   "category": "model",
   "priority": "should",
-  "status": "proposed",
+  "status": "approved",
   "rationale": "A small, always-current summary lets every session start from the project's real state instead of chat history.",
   "acceptance_criteria": [
     {
@@ -25,13 +25,15 @@
       "text": "Lint warns when Last reconciled is more than 21 days old"
     }
   ],
+  "parent": null,
   "tags": [
     "context"
   ],
   "standards": [],
   "stakeholders": [],
   "source": "product owner request 2026-10-04; adapted from canoe",
-  "version": 1,
+  "notes": null,
+  "version": 2,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:32:26+00:00"
+  "updated": "2026-10-05T02:34:16+00:00"
 }
