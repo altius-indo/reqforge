@@ -11,9 +11,9 @@
   ],
   "description": "Add next_action to the task schema, capture 'NEXT:' from agent runs as a pending proposal, put it first in briefs, and prompt the chat agent on New/Close.",
   "done_when": "context next_action integration tests pass.",
-  "status": "in-progress",
+  "status": "done",
   "tags": [],
-  "version": 4,
+  "version": 5,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T03:31:56+00:00"
+  "updated": "2026-10-05T04:20:55+00:00"
 }
