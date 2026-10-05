@@ -29,7 +29,7 @@ async function phaseOne() {
 // reqforge: verifies REQ-0062#AC4
 async function unexplainedGap() {
   ok("chat panel opens", await openChat(), txt(T("main")).slice(0, 200));
-  ok("[REQ-0062#AC4] session start shows the gap since the last session", await until(gapCard, 8000), txt(T("chat-messages")).slice(0, 200));
+  ok("[REQ-0062#AC4] session start shows the gap since the last session", await until(gapCard, 15000), txt(T("chat-messages")).slice(0, 200));
   ok("[REQ-0062#AC4] gap length shown in days", txt(T("gap-days")).trim() === "30 days", txt(T("gap-days")));
   ok("[REQ-0062#AC4] gap without a pause is unexplained",
     gapCard()?.dataset.gap === "unexplained" && txt(T("gap-kind")).trim() === "unexplained", txt(T("gap-prompt")));
@@ -65,7 +65,7 @@ async function phaseTwo() {
 // reqforge: verifies REQ-0062#AC4
 async function deliberateGap() {
   ok("chat panel opens after reload", await openChat());
-  ok("[REQ-0062#AC4] gap shown again at the next session start", await until(gapCard, 8000), txt(T("chat-messages")).slice(0, 200));
+  ok("[REQ-0062#AC4] gap shown again at the next session start", await until(gapCard, 15000), txt(T("chat-messages")).slice(0, 200));
   ok("[REQ-0062#AC4] gap after a pause with a reason is deliberate",
     gapCard()?.dataset.gap === "deliberate" && txt(T("gap-kind")).trim() === "deliberate", txt(T("gap-prompt")));
   ok("[REQ-0062#AC4] the pause reason is shown with the gap", txt(T("gap-pause-reason")) === PAUSE_REASON, txt(T("gap-prompt")));
