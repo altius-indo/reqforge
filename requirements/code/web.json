@@ -1,9 +1,9 @@
 {
   "component": "web",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "af81623336074a7f9b4f18ba5bcec777f07b6c09",
-  "scanned_at": "2026-10-05T05:03:58+00:00",
-  "files_scanned": 83,
+  "commit": "4a318567d40f3c88f502e18fb2553f9e9a22e856",
+  "scanned_at": "2026-10-05T05:27:39+00:00",
+  "files_scanned": 87,
   "files": {
     "web/e2e/suites/agent-queue.js": "3cdc6c6ac55a704534cfeb7f5aad87c8179fc17c814ca1db81375bb400a3f55f",
     "web/e2e/suites/agent-start.js": "99e059eac345a95cd0673f9f03b5c6f74c3e06b6fde3070e97d9fb97caa357a3",
@@ -15,29 +15,34 @@
     "web/e2e/suites/help.js": "d95f4ce9c40b86e7757b08b0cd939be6d4d19df4eaa7709804ad8314c0a02051",
     "web/e2e/suites/history.js": "0fca4233031ebb79ab6f4be2eb411bdc8693a3c064529cf12bc0469b5ae56d7a",
     "web/e2e/suites/next-action.js": "f6b40238a78666b45747e32f0af98bbe15462eddfaec059998419b7aeabbc982",
+    "web/e2e/suites/panels-a11y.js": "9605ef4cedd45bb8ad169daf91a5a2f3db1bcf70d50ff563be2016d8483d312b",
+    "web/e2e/suites/panels.js": "483761a7d60c0d6b74ad72ec357b342a246c5feb2166e214997885effb082cf7",
     "web/e2e/suites/projects.js": "018377a916e2d5d3dc849ba9569eccae082b22b19d39871186fac0d320cde205",
     "web/e2e/suites/snapshot.js": "655a7b5c144370bda17681421b5c2baf402ca2be684406238a4d2d9467185fba",
     "web/e2e/suites/task-complete.js": "2fd62c06a9c1fed5b417e8345726f28846904b38e122d49adce53a673678bd1a",
     "web/e2e/suites/task-start.js": "3f770f1393e987e8fe33aee39dc12e17e405fff9642370d528c5d10cd1d8e605",
     "web/e2e/suites/theme.js": "fdd924cc11441c9d81bb07b6f84ae656601304046d77014481e0b1f1bdab9ca0",
+    "web/src/App.tsx": "54648a00a04a0852b1e2ef05f6cab93aa4eece6c12dc611dc389d345a4f3c657",
     "web/src/components/AgentQueuePanel.tsx": "5bc270ae13a9020852aa3824e143e5046aba71e18fb766d4879d923253533803",
     "web/src/components/ChangesetCard.tsx": "d828ee25a8efbf9f61625be24c0e9b7c76813be71853489e31b74a438be1029a",
     "web/src/components/CodeEvidence.tsx": "02026364e455451d8978acbbe1070ffbc3c3d8c7abea9d4622ed9463264709d4",
+    "web/src/components/PanelHandle.tsx": "734f0ed63da7d14f5e61b82ecca0629a1e5c11358d9dad6f4962c9ffb407ff4c",
     "web/src/components/ProjectDialogs.tsx": "6251fdb5737b7c67533b287deeb63b9328d3bfa849e55c99b88d9439ff9d5f01",
     "web/src/components/ProjectSwitcher.tsx": "62d5b4f2caf11aa59e77680a520d43f17767ca8fd44f2179e0fd3362f817355a",
     "web/src/components/RecordDrawer.tsx": "e23574d8634889928aee2ebaa038d62b46472a9fc1d1d3fe9b39645cb3d97cc8",
-    "web/src/components/Sidebar.tsx": "278cd046bf40725a20dd66463cf79cc910ceaab5cea232dc08693bd32107d23d",
+    "web/src/components/Sidebar.tsx": "bf7adf5fd8364562a4f2080bd740de410a45ddd0248b30b73507272e8e52eff5",
     "web/src/components/TaskAgent.tsx": "adcbbdf40d1fd6e70daeba2f4d00bf186c465d141d4e4dc815d4c8748b8a2e52",
     "web/src/components/TaskComplete.tsx": "0c9c69cdc9ac8c9ce219cc9de13688610bc4ef5860ae0d1d7ae9dd5462f536d0",
     "web/src/components/TaskStart.tsx": "0e8e5ffd0a09719f30f75b5e7f3806e8cb56fc4eabca757553c2bc8d2932c54b",
     "web/src/components/VerifiedTrend.tsx": "a74bdc30fb44581d01275538db582518a630fd8df70a15f31a8380aafb7eac1e",
-    "web/src/components/chat/ChatPanel.tsx": "d3243dc4d4ba6de75d27cd227e8729b596d43807b60f1d735020e778879ff889",
+    "web/src/components/chat/ChatPanel.tsx": "63a3997d8b8a29023f1f64b718771d2095532858fd6b06452ff349bee5d70c3d",
     "web/src/components/chat/GapPrompt.tsx": "697558b0129e4ab5912d9199180be6deae129a87d0b8c7d7746912a216fc834f",
     "web/src/components/help/HelpButton.tsx": "2882e49c565e7a9e5dbdc90f6eddb1952c996214ab971c49ade60c043f97e78d",
     "web/src/components/help/HelpPanel.tsx": "edff9592d261275ecd85ad1eac094fb6be9982496b58948412f9e60d9e96f69a",
     "web/src/components/verification.tsx": "7f1330063ca71a732a333a46581e0e8a940eacce11af90085e77c9e13b25de9b",
     "web/src/state/chat.tsx": "591cf524b5e58b9cf3f3ba47763a40d1526ba5987228573f6fe65b682df11ffd",
     "web/src/state/help.tsx": "44be0123ee06357a3241456107b4238bea48722f432a75bdf16cf03d826f518b",
+    "web/src/state/panels.tsx": "2017b9cb3e1013dea4f414195b7f499f18891da45d90b5ec6672d4119ff8b127",
     "web/src/views/DecisionsView.tsx": "84cb1f7b30c7059a1fe378bb966922f241a392b482e008f0d30e885e675b9072",
     "web/src/views/DesignView.tsx": "ffda8a940d5629b72ab5efcb2b357b0c632ec6ca8fdd9f7533236bb397a087eb",
     "web/src/views/LintView.tsx": "5b62203ecb356a46dc8600b5b3086807c2a90932fe55c9e707ffd9780f20fcbc",
@@ -677,6 +682,126 @@
       "component": "web"
     },
     {
+      "req": "REQ-0064",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels-a11y.js",
+      "line": 21,
+      "symbol": "suite",
+      "text": "// reqforge: verifies REQ-0064#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels-a11y.js",
+      "line": 32,
+      "symbol": "key",
+      "text": "// reqforge: verifies REQ-0064#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels-a11y.js",
+      "line": 51,
+      "symbol": "key",
+      "text": "// reqforge: verifies REQ-0064#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels-a11y.js",
+      "line": 64,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0064#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC3",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels-a11y.js",
+      "line": 85,
+      "symbol": "key",
+      "text": "// reqforge: verifies REQ-0064#AC3",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels.js",
+      "line": 36,
+      "symbol": "phase1",
+      "text": "// reqforge: verifies REQ-0064#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC1",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels.js",
+      "line": 47,
+      "symbol": "phase1",
+      "text": "// reqforge: verifies REQ-0064#AC1",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC2",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels.js",
+      "line": 57,
+      "symbol": "sh",
+      "text": "// reqforge: verifies REQ-0064#AC2",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels.js",
+      "line": 102,
+      "symbol": "phase2",
+      "text": "// reqforge: verifies REQ-0064#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels.js",
+      "line": 109,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0064#AC4",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC5",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels.js",
+      "line": 128,
+      "symbol": "viewport",
+      "text": "// reqforge: verifies REQ-0064#AC5",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "ac": "AC4",
+      "kind": "verifies",
+      "file": "web/e2e/suites/panels.js",
+      "line": 147,
+      "symbol": "until",
+      "text": "// reqforge: verifies REQ-0064#AC4",
+      "component": "web"
+    },
+    {
       "req": "REQ-0033",
       "ac": "AC1",
       "kind": "verifies",
@@ -967,6 +1092,15 @@
       "component": "web"
     },
     {
+      "req": "REQ-0064",
+      "kind": "implements",
+      "file": "web/src/App.tsx",
+      "line": 50,
+      "symbol": "ProjectApp",
+      "text": "// reqforge: implements REQ-0064",
+      "component": "web"
+    },
+    {
       "req": "REQ-0053",
       "kind": "implements",
       "file": "web/src/components/AgentQueuePanel.tsx",
@@ -1000,6 +1134,15 @@
       "line": 152,
       "symbol": "CodeEvidencePanel",
       "text": "// reqforge: implements REQ-0031",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "kind": "implements",
+      "file": "web/src/components/PanelHandle.tsx",
+      "line": 10,
+      "symbol": "PanelHandle",
+      "text": "// reqforge: implements REQ-0064",
       "component": "web"
     },
     {
@@ -1114,9 +1257,18 @@
       "req": "REQ-0030",
       "kind": "implements",
       "file": "web/src/components/Sidebar.tsx",
-      "line": 405,
+      "line": 408,
       "symbol": "Sidebar",
       "text": "// reqforge: implements REQ-0030",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "kind": "implements",
+      "file": "web/src/components/Sidebar.tsx",
+      "line": 409,
+      "symbol": "Sidebar",
+      "text": "// reqforge: implements REQ-0064",
       "component": "web"
     },
     {
@@ -1204,7 +1356,7 @@
       "req": "REQ-0058",
       "kind": "implements",
       "file": "web/src/components/chat/ChatPanel.tsx",
-      "line": 19,
+      "line": 21,
       "symbol": "NoSnapshot",
       "text": "// reqforge: implements REQ-0058",
       "component": "web"
@@ -1213,9 +1365,18 @@
       "req": "REQ-0032",
       "kind": "implements",
       "file": "web/src/components/chat/ChatPanel.tsx",
-      "line": 36,
+      "line": 38,
       "symbol": "ChatPanel",
       "text": "// reqforge: implements REQ-0032",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "kind": "implements",
+      "file": "web/src/components/chat/ChatPanel.tsx",
+      "line": 39,
+      "symbol": "ChatPanel",
+      "text": "// reqforge: implements REQ-0064",
       "component": "web"
     },
     {
@@ -1279,6 +1440,15 @@
       "line": 25,
       "symbol": "HelpProvider",
       "text": "// reqforge: implements REQ-0048",
+      "component": "web"
+    },
+    {
+      "req": "REQ-0064",
+      "kind": "implements",
+      "file": "web/src/state/panels.tsx",
+      "line": 44,
+      "symbol": "PanelsProvider",
+      "text": "// reqforge: implements REQ-0064",
       "component": "web"
     },
     {

@@ -1,8 +1,8 @@
 {
   "component": "plugin",
   "root": "/Users/jyoti.sanyal/work/altius-indo/reqforge",
-  "commit": "af81623336074a7f9b4f18ba5bcec777f07b6c09",
-  "scanned_at": "2026-10-05T05:03:58+00:00",
+  "commit": "4a318567d40f3c88f502e18fb2553f9e9a22e856",
+  "scanned_at": "2026-10-05T05:27:39+00:00",
   "files_scanned": 23,
   "files": {
     ".github/workflows/test.yml": "63696f63a1e351b3642c372e2ca4a0a1d14a150e0ddb38c1b07da2adb316313c",
