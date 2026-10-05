@@ -6,9 +6,9 @@
   "depends_on": [],
   "description": "Append-only RF-NNNN findings via a changeset op, refresh_by from perishability, text sanitisation, lint on requirements citing refuted or stale findings.",
   "done_when": "research integration and security tests pass.",
-  "status": "todo",
+  "status": "in-progress",
   "tags": [],
-  "version": 1,
+  "version": 2,
   "created": "2026-10-05T02:32:26+00:00",
-  "updated": "2026-10-05T02:32:26+00:00"
+  "updated": "2026-10-05T02:34:52+00:00"
 }
