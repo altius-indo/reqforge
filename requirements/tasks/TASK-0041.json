@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0041",
+  "title": "Context management design: snapshot op, injection points, compaction hook",
+  "story": "STORY-0017",
+  "kind": "design",
+  "depends_on": [],
+  "description": "Define the snapshot changeset op, where the snapshot enters chat_prompt and agent_prompt, and the plugin SessionStart (compact) hook that re-supplies it.",
+  "done_when": "Design covers r1 and r2 acceptance criteria.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

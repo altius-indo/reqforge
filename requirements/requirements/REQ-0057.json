@@ -1,0 +1,37 @@
+{
+  "id": "REQ-0057",
+  "title": "Project snapshot",
+  "statement": "The system shall keep one snapshot per project in state/HOT.md with Now, Next and Watch sections and a Last reconciled date, at most 8,192 bytes, changed only by applying a proposed changeset.",
+  "type": "data",
+  "category": "model",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "A small, always-current summary lets every session start from the project's real state instead of chat history.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "state/HOT.md has the headings Now, Next and Watch in that order and a line 'Last reconciled: YYYY-MM-DD'; Next holds exactly 1 item"
+    },
+    {
+      "id": "AC2",
+      "text": "A changeset may carry a snapshot op with the full new content; the changeset card shows its diff, Apply writes and commits it, and 0 other paths write the file"
+    },
+    {
+      "id": "AC3",
+      "text": "Simulate reports an error for a snapshot over 8,192 bytes, without the 3 required headings, or with more than 1 Next item"
+    },
+    {
+      "id": "AC4",
+      "text": "Lint warns when Last reconciled is more than 21 days old"
+    }
+  ],
+  "tags": [
+    "context"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-04; adapted from canoe",
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

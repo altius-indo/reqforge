@@ -1,0 +1,37 @@
+{
+  "id": "REQ-0058",
+  "title": "Snapshot in agent context",
+  "statement": "The system shall include the project snapshot's full text in the context of every chat session and coding-agent run, and supply it again after the agent's context is compacted.",
+  "type": "functional",
+  "category": "context-management",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "A pointer to the file is not enough; the agent must see the state at start and after compaction.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The first turn of a chat session includes the snapshot text verbatim, marked as project state, not a pointer to the file"
+    },
+    {
+      "id": "AC2",
+      "text": "A coding-agent brief includes the snapshot text verbatim after the task section"
+    },
+    {
+      "id": "AC3",
+      "text": "When Claude Code compacts a chat or agent session, the snapshot is supplied again before the next model turn"
+    },
+    {
+      "id": "AC4",
+      "text": "With no snapshot file, sessions start normally and the chat panel shows 'No project snapshot' with an action to ask Claude to draft one"
+    }
+  ],
+  "tags": [
+    "context"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-04; adapted from canoe",
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

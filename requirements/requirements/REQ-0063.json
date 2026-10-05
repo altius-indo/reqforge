@@ -1,0 +1,38 @@
+{
+  "id": "REQ-0063",
+  "title": "Graded research findings",
+  "statement": "The system shall store research findings as append-only graded entries with sources and a refresh-by date, citable from a requirement's standards.",
+  "type": "data",
+  "category": "model",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "Research behind requirements goes stale; grading and refresh-by dates make staleness visible instead of remembered.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Each finding has an id RF-NNNN, claim, grade (VERIFIED, THIN or REFUTED), at least 1 source URL, date and perishability; refresh_by is the date plus 60 days for fast and 180 days for slow perishability"
+    },
+    {
+      "id": "AC2",
+      "text": "Findings are added only through changesets and never edited; a re-check appends a new finding that supersedes the old one"
+    },
+    {
+      "id": "AC3",
+      "text": "Lint warns for each requirement whose standards cite a finding that is REFUTED or past its refresh_by date"
+    },
+    {
+      "id": "AC4",
+      "text": "Claim and source text are stored with newlines and Markdown control characters removed, so 0 findings can add headings or instructions to snapshots or briefs"
+    }
+  ],
+  "tags": [
+    "context",
+    "research"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-04; adapted from canoe",
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

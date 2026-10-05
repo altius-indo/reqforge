@@ -1,0 +1,37 @@
+{
+  "id": "REQ-0059",
+  "title": "Next action per task",
+  "statement": "The system shall keep exactly one next action per task, proposed when an agent run or chat session on the task ends and shown first when the next one starts.",
+  "type": "functional",
+  "category": "context-management",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "One concrete cue written at stop time is the most reliable way to resume work after a gap.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Tasks have a next_action field of at most 280 characters that names a file path, command or record id"
+    },
+    {
+      "id": "AC2",
+      "text": "When an agent run ends, a line starting 'NEXT:' in its final message becomes a pending proposal on the task, which the user accepts, edits or rejects in the task drawer"
+    },
+    {
+      "id": "AC3",
+      "text": "A coding-agent brief and the task drawer show the task's next_action first, with the date it was set"
+    },
+    {
+      "id": "AC4",
+      "text": "Starting a new chat or closing the chat panel after a changeset was applied in the session asks the chat agent once to propose updated next actions and a snapshot Next"
+    }
+  ],
+  "tags": [
+    "context"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-04; adapted from canoe",
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

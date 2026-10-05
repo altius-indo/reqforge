@@ -1,0 +1,19 @@
+{
+  "id": "EPIC-0011",
+  "title": "Context management across sessions",
+  "description": "Durable project state that survives chat sessions, agent runs, context compaction and long gaps: snapshot, next actions, decisions, history and research.",
+  "requirements": [
+    "REQ-0057",
+    "REQ-0058",
+    "REQ-0059",
+    "REQ-0060",
+    "REQ-0061",
+    "REQ-0062",
+    "REQ-0063"
+  ],
+  "status": "todo",
+  "tags": [],
+  "version": 2,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

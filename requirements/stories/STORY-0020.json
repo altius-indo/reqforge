@@ -1,0 +1,41 @@
+{
+  "id": "STORY-0020",
+  "title": "Session and agent-run history",
+  "epic": "EPIC-0011",
+  "narrative": "As a product owner, I want a private history of sessions and agent runs, with gaps typed, so that I can see how work actually happens over months.",
+  "requirements": [
+    "REQ-0062"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "history append, privacy and compaction",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test history",
+      "covers": [
+        "REQ-0062#AC1",
+        "REQ-0062#AC2",
+        "REQ-0062#AC3",
+        "REQ-0062#AC4"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: gap prompt",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-history.xml --suite history",
+      "covers": [
+        "REQ-0062#AC4"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 3,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

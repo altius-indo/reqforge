@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0048",
+  "title": "History log, compaction and gap typing",
+  "story": "STORY-0020",
+  "kind": "code",
+  "depends_on": [],
+  "description": "Append-only history/sessions.jsonl with metadata only, daily compaction of entries older than 365 days into monthly summaries, pause-with-reason action and gap detection.",
+  "done_when": "history integration tests pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

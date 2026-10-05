@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0047",
+  "title": "Decisions tab",
+  "story": "STORY-0019",
+  "kind": "code",
+  "depends_on": [],
+  "description": "Decisions tab with status, exercised flag and linked requirements; drawer shows tagged locations.",
+  "done_when": "decisions e2e suite passes.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

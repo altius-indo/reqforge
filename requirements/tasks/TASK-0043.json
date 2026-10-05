@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0043",
+  "title": "Snapshot diff on the changeset card and empty-state action",
+  "story": "STORY-0017",
+  "kind": "code",
+  "depends_on": [],
+  "description": "Render snapshot ops with a text diff in ChangesetCard; 'No project snapshot' notice with an Ask Claude action in the chat panel.",
+  "done_when": "snapshot e2e suite passes.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

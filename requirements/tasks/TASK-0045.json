@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0045",
+  "title": "Next action in the task drawer",
+  "story": "STORY-0018",
+  "kind": "code",
+  "depends_on": [],
+  "description": "Show next_action first with its date; accept, edit or reject a pending proposal.",
+  "done_when": "next-action e2e suite passes.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

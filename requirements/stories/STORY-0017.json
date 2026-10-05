@@ -1,0 +1,46 @@
+{
+  "id": "STORY-0017",
+  "title": "Project snapshot in every agent session",
+  "epic": "EPIC-0011",
+  "narrative": "As a product owner, I want every chat and agent session to start from an approved project snapshot so that work resumes from the real state after gaps or compaction.",
+  "requirements": [
+    "REQ-0057",
+    "REQ-0058"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "snapshot store and injection",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test context -- snapshot",
+      "covers": [
+        "REQ-0057#AC1",
+        "REQ-0057#AC2",
+        "REQ-0057#AC3",
+        "REQ-0057#AC4",
+        "REQ-0058#AC1",
+        "REQ-0058#AC2",
+        "REQ-0058#AC3"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: snapshot",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-snapshot.xml --suite snapshot",
+      "covers": [
+        "REQ-0057#AC2",
+        "REQ-0058#AC4"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 5,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

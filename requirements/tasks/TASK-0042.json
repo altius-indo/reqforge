@@ -1,0 +1,14 @@
+{
+  "id": "TASK-0042",
+  "title": "Snapshot op, validation, lint and injection in the server",
+  "story": "STORY-0017",
+  "kind": "code",
+  "depends_on": [],
+  "description": "Snapshot op in changes.rs with size/heading checks, staleness lint, injection in chat.rs and agent.rs, SessionStart compact hook in the plugin.",
+  "done_when": "context snapshot integration tests pass.",
+  "status": "todo",
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

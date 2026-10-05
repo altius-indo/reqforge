@@ -3,7 +3,7 @@
   "title": "Context management across sessions (from canoe)",
   "summary": "New EPIC-0011 with 7 requirements (REQ-0057 to REQ-0063), 5 stories, 12 tasks and 10 evals: a project snapshot under an 8 KB budget loaded into every chat and agent session and re-supplied after compaction; one next action per task; DEC decision records counted once tested code uses them; metadata-only session and agent-run history kept 365 days then compacted monthly; graded research findings with refresh-by dates.",
   "rationale": "Adapted from the canoe harness. Product owner decisions on 2026-10-04: agents propose snapshot and next-action updates and the user accepts them (REQ-0041 unchanged); decisions are a DEC record kind exercised through trace tags and evidence; history is kept 365 days then compacted into monthly summaries. Research grading and refresh-by periods follow canoe: 60 days for fast-changing findings, 180 for slow. canoe's own gap is closed: its snapshot was only pointed to, never injected; REQ-0058 requires the full text.",
-  "status": "pending",
+  "status": "applied",
   "created": "2026-10-05T02:29:07+00:00",
   "valid": true,
   "ops": [
@@ -1819,5 +1819,34 @@
       ],
       "in_progress_work": []
     }
+  },
+  "applied_at": "2026-10-05T02:32:26+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "e1": "EPIC-0011",
+    "r1": "REQ-0057",
+    "r2": "REQ-0058",
+    "r3": "REQ-0059",
+    "r4": "REQ-0060",
+    "r5": "REQ-0061",
+    "r6": "REQ-0062",
+    "r7": "REQ-0063",
+    "s1": "STORY-0017",
+    "s2": "STORY-0018",
+    "s3": "STORY-0019",
+    "s4": "STORY-0020",
+    "s5": "STORY-0021",
+    "t1": "TASK-0041",
+    "t2": "TASK-0042",
+    "t3": "TASK-0043",
+    "t4": "TASK-0044",
+    "t5": "TASK-0045",
+    "t6": "TASK-0046",
+    "t7": "TASK-0047",
+    "t8": "TASK-0048",
+    "t9": "TASK-0049",
+    "t10": "TASK-0050",
+    "t11": "TASK-0051",
+    "t12": "TASK-0052"
   }
 }

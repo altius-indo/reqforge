@@ -1,0 +1,44 @@
+{
+  "id": "STORY-0019",
+  "title": "Decision records exercised by code",
+  "epic": "EPIC-0011",
+  "narrative": "As a product owner, I want design decisions recorded and marked exercised only when tested code relies on them so that I can see which decisions are real.",
+  "requirements": [
+    "REQ-0060",
+    "REQ-0061"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "decision records and exercised status",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test decisions",
+      "covers": [
+        "REQ-0060#AC1",
+        "REQ-0060#AC2",
+        "REQ-0060#AC3",
+        "REQ-0061#AC1",
+        "REQ-0061#AC2",
+        "REQ-0061#AC3"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: decisions",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-decisions.xml --suite decisions",
+      "covers": [
+        "REQ-0061#AC4"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 5,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

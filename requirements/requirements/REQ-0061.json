@@ -1,0 +1,38 @@
+{
+  "id": "REQ-0061",
+  "title": "Decisions exercised by code",
+  "statement": "The system shall mark a decision exercised when at least one code location is tagged 'reqforge: implements DEC-NNNN' and every test tagged with that id has passing evidence.",
+  "type": "functional",
+  "category": "verification",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "A decision only counts once working code relies on it; unexercised decisions are design debt.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "The code scan records DEC-NNNN implements and verifies tags in the same way as REQ tags"
+    },
+    {
+      "id": "AC2",
+      "text": "Each decision shows exercised yes or no with its tagged locations; a failing or suspect tagged test makes it no"
+    },
+    {
+      "id": "AC3",
+      "text": "Lint warns for every accepted decision not exercised within 14 days of acceptance"
+    },
+    {
+      "id": "AC4",
+      "text": "A Decisions tab lists decisions with status, exercised flag and linked requirements"
+    }
+  ],
+  "tags": [
+    "context",
+    "decisions"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-04; adapted from canoe",
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

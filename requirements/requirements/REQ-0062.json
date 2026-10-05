@@ -1,0 +1,37 @@
+{
+  "id": "REQ-0062",
+  "title": "Session and agent-run history",
+  "statement": "The system shall append one metadata-only entry per chat session and agent run to an append-only history, keep entries for 365 days and then compact them into one summary per month.",
+  "type": "data",
+  "category": "lifecycle",
+  "priority": "should",
+  "status": "proposed",
+  "rationale": "A durable, private record of when and how work happened shows gaps and patterns without storing conversation content.",
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "text": "Each entry has kind, id, project, user, start, end, outcome, changesets proposed and applied, and records touched; 0 prompt, message or tool-output text is stored"
+    },
+    {
+      "id": "AC2",
+      "text": "Entries are only appended; compaction is the only rewrite, runs at most once per day and makes 1 commit"
+    },
+    {
+      "id": "AC3",
+      "text": "Entries older than 365 days are replaced by monthly summaries with session count, total duration and outcome counts, and 0 entries younger than 365 days are removed"
+    },
+    {
+      "id": "AC4",
+      "text": "A gap of 14 days or more between sessions is recorded as deliberate when a user paused the project with a reason, otherwise as unexplained, and the next session start shows the gap and lets the user give a reason"
+    }
+  ],
+  "tags": [
+    "context"
+  ],
+  "standards": [],
+  "stakeholders": [],
+  "source": "product owner request 2026-10-04; adapted from canoe",
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "STORY-0021",
+  "title": "Graded research findings",
+  "epic": "EPIC-0011",
+  "narrative": "As a product owner, I want research behind requirements stored graded and dated so that stale or refuted findings are flagged before I rely on them.",
+  "requirements": [
+    "REQ-0063"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "findings store and lint",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test research",
+      "covers": [
+        "REQ-0063#AC1",
+        "REQ-0063#AC2",
+        "REQ-0063#AC3"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "findings sanitised",
+      "kind": "security",
+      "command": "cargo test --manifest-path server/Cargo.toml --test research -- findings_sanitised",
+      "covers": [
+        "REQ-0063#AC4"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 3,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}

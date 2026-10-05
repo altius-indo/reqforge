@@ -1,0 +1,43 @@
+{
+  "id": "STORY-0018",
+  "title": "Next action per task",
+  "epic": "EPIC-0011",
+  "narrative": "As a product owner, I want each task to carry one concrete next action written when work stops so that anyone, or any agent, can pick it up again.",
+  "requirements": [
+    "REQ-0059"
+  ],
+  "deliverable": "code",
+  "component": "server",
+  "acceptance_criteria": [],
+  "evals": [
+    {
+      "id": "E1",
+      "name": "next action capture",
+      "kind": "integration",
+      "command": "cargo test --manifest-path server/Cargo.toml --test context -- next_action",
+      "covers": [
+        "REQ-0059#AC1",
+        "REQ-0059#AC2",
+        "REQ-0059#AC3",
+        "REQ-0059#AC4"
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: next action",
+      "kind": "e2e",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-next-action.xml --suite next-action",
+      "covers": [
+        "REQ-0059#AC2",
+        "REQ-0059#AC3",
+        "REQ-0059#AC4"
+      ]
+    }
+  ],
+  "status": "todo",
+  "points": 3,
+  "tags": [],
+  "version": 1,
+  "created": "2026-10-05T02:32:26+00:00",
+  "updated": "2026-10-05T02:32:26+00:00"
+}
