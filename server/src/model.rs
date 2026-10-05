@@ -1,6 +1,8 @@
 //! Domain model: record kinds, the MECE requirement taxonomy, field schemas, validation.
 //! Pure data + pure functions shared by the CLI, REST API, MCP server and UI metadata.
 
+use std::sync::LazyLock;
+
 use serde_json::{json, Map, Value};
 
 pub type Rec = Map<String, Value>;
@@ -289,7 +291,7 @@ static STORIES: [Field; 11] = [
     f("points", FType::Int),
     f("tags", FType::List),
 ];
-static TASKS: [Field; 10] = [
+static TASKS: [Field; 14] = [
     req(f("title", FType::Str)),
     req(rf("story", FType::Ref, Kind::Stories)),
     req(en("kind", TASK_KINDS, None)),
@@ -301,7 +303,16 @@ static TASKS: [Field; 10] = [
     en("status", WORK_STATUSES, Some("todo")),
     f("estimate", FType::Str),
     f("tags", FType::List),
+    // the one concrete step to resume the task, and the date it was set (REQ-0059#AC1)
+    f("next_action", FType::Str),
+    f("next_action_set", FType::Str),
+    // a `NEXT:` line from an agent run, waiting for the user to accept, edit or reject it (REQ-0059#AC2)
+    f("next_action_proposal", FType::Str),
+    f("next_action_proposal_run", FType::Str),
 ];
+
+/// Longest next action, in characters (REQ-0059#AC1).
+pub const NEXT_ACTION_MAX: usize = 280;
 
 /// A code component: a module/service/package whose source carries trace tags.
 /// `key` is what stories reference in `component`; `path` is the local checkout (relative to the
@@ -507,6 +518,9 @@ pub fn validate(kind: Kind, rec: &Rec, exists: Option<Exists>) -> Vec<String> {
     if kind == Kind::Decisions && s(rec, "status") == "superseded" && s(rec, "superseded_by").is_empty() {
         errors.push("superseded_by: required when status is superseded".into());
     }
+    if kind == Kind::Tasks {
+        errors.extend(next_action_errors(rec));
+    }
     if kind == Kind::Stories {
         for (i, ev) in rec.get("evals").and_then(Value::as_array).into_iter().flatten().enumerate() {
             if let Some(k) = ev.get("kind").and_then(Value::as_str) {
@@ -665,4 +679,39 @@ pub fn decision_supersession_errors(rec: &Rec, all: &[std::sync::Arc<Rec>]) -> V
         cur = by.get(cur).copied().unwrap_or("");
     }
     vec![]
+}
+
+static NA_RECORD_ID: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"\b(?:REQ|EPIC|STORY|TASK|COMP|DEC|CS|RUN)-\d+").unwrap());
+static NA_PATH: LazyLock<regex::Regex> = LazyLock::new(|| {
+    regex::Regex::new(r"(?:[\w.-]+/[\w./-]*[\w-]|\b[\w-]+\.(?:rs|ts|tsx|js|jsx|mjs|cjs|py|md|json|toml|ya?ml|go|sh|css|html|txt|java|kt|rb|c|h|cpp|sql|lock|xml|csv)\b)").unwrap()
+});
+static NA_COMMAND: LazyLock<regex::Regex> = LazyLock::new(|| {
+    regex::Regex::new(r"`[^`]+`|\b(?:cargo|npm|npx|pnpm|yarn|node|python3?|pytest|make|git|reqforge|bash|sh|docker|kubectl|go (?:test|run|build|vet))\s+\S").unwrap()
+});
+
+/// Whether a next action names a file path, a command or a record id (REQ-0059#AC1).
+pub fn next_action_names_target(text: &str) -> bool {
+    NA_RECORD_ID.is_match(text) || NA_PATH.is_match(text) || NA_COMMAND.is_match(text)
+}
+
+/// Next action rules: at most 280 characters, names a file path, command or record id, and
+/// `next_action_set` is a YYYY-MM-DD date.
+// reqforge: implements REQ-0059
+pub fn next_action_errors(rec: &Rec) -> Vec<String> {
+    let mut errors = vec![];
+    let text = s(rec, "next_action").trim();
+    if !text.is_empty() {
+        let n = text.chars().count();
+        if n > NEXT_ACTION_MAX {
+            errors.push(format!("next_action: {n} characters, limit is {NEXT_ACTION_MAX}"));
+        }
+        if !next_action_names_target(text) {
+            errors.push("next_action: must name a file path, command or record id (e.g. server/src/agent.rs, `cargo test`, TASK-0001)".into());
+        }
+    }
+    let set = s(rec, "next_action_set");
+    if !set.is_empty() && chrono::NaiveDate::parse_from_str(set, "%Y-%m-%d").is_err() {
+        errors.push(format!("next_action_set: '{set}' is not a YYYY-MM-DD date"));
+    }
+    errors
 }

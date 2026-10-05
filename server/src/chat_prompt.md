@@ -57,6 +57,7 @@ Decisions (DEC-NNNN) need `title`, `context` and `decision`; `status` is propose
 - To change it, propose a changeset with one snapshot op holding the full new file: the headings `## Now`, `## Next` and `## Watch` in that order, exactly one list item under Next, a line `Last reconciled: YYYY-MM-DD` set to today, and under 8 KiB in total. Simulate it first; the card shows the diff.
 - Never write `state/HOT.md` directly.
 - When asked to draft one, build it from `search`, `context` and `trace`, the in-progress tasks and recent changesets, then simulate and propose it.
+- Each task has one `next_action`: a concrete step that names a file path, command or record id, at most 280 characters. A `## Next action (set YYYY-MM-DD)` section shows it. Change it with an update op (`next_action` plus `next_action_set` today); `next_action_proposal` is for agent runs, leave it alone.
 
 # Style
 Be concise and concrete, and cite ids. Don't paste whole records back. The user sees the changeset card.

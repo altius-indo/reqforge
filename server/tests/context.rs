@@ -1,5 +1,7 @@
 //! STORY-0017: the project snapshot (state/HOT.md) and its place in chat and agent context.
 //! Every test name starts with `snapshot_` (E1: `cargo test --test context -- snapshot`).
+//! STORY-0018: one next action per task; those tests start with `next_action_`
+//! (E1: `cargo test --test context -- next_action`).
 use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
@@ -218,8 +220,21 @@ fn snapshot_lint_stale() {
     assert_eq!(rules(&store), vec!["snapshot-invalid"]);
 }
 
-// reqforge:off  (fake claude: records the prompt on stdin per turn kind)
+// reqforge:off  (fake claude: records the prompt on stdin per turn kind; as a coding agent
+// (acceptEdits) it reports, ending with a NEXT: line unless the brief says NONEXT)
 const FAKE_CHAT: &str = r#"#!/bin/sh
+case " $* " in *" acceptEdits "*)
+  brief=$(cat)
+  printf '%s\n' "$brief" > agent-brief.txt
+  printf '%s\n' '{"type":"system","subtype":"init","session_id":"agent-1","mcp_servers":[]}'
+  printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Starting.\nNEXT: an early line that is not in the final message"}]}}'
+  case "$brief" in
+    *NONEXT*) printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Done: feature() returns 42. Tests: pytest passed."}]}}';;
+    *) printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"Done: feature() returns 42.\nTests: pytest passed.\n  NEXT:  Run `pytest tests/test_feature.py -k none` and cover the None case  \n"}]}}';;
+  esac
+  printf '%s\n' '{"type":"result","subtype":"success","session_id":"agent-1","total_cost_usd":0.0,"num_turns":2,"is_error":false}'
+  exit 0;;
+esac
 kind=first
 for a in "$@"; do [ "$a" = "--resume" ] && kind=resume; done
 cat > "prompt-$kind.txt"
@@ -236,6 +251,7 @@ fn fake_claude() {
         std::fs::write(&p, FAKE_CHAT).unwrap();
         std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
         std::env::set_var("REQFORGE_CLAUDE_BIN", &p);
+        std::env::set_var("REQFORGE_WORKTREES", d.path().join("worktrees"));
         d
     });
 }
@@ -371,4 +387,252 @@ fn snapshot_resupply_system_prompt() {
     }
     std::env::remove_var("REQFORGE_SNAPSHOT_RESUPPLY");
     assert!(!sys(runner.command_args(Some("sess-1"))).contains(&block), "hook is the default");
+}
+
+// ------------------------------------------------------------------- STORY-0018: next action per task
+
+fn task_rec(store: &Store, id: &str) -> Rec {
+    store.get(Kind::Tasks, id).unwrap()
+}
+
+fn create_err(store: &Store, data: Value) -> Vec<String> {
+    let e = store.create(Kind::Tasks, &rec(data), None).unwrap_err();
+    assert_eq!(e.status, 422, "{}", e.message);
+    e.details.iter().filter_map(Value::as_str).map(String::from).collect()
+}
+
+// reqforge: verifies REQ-0059#AC1
+#[test]
+fn next_action_field_rules() {
+    let _g = ENV.lock().unwrap_or_else(|p| p.into_inner());
+    std::env::set_var("REQFORGE_TODAY", "2026-10-04");
+    let (_dir, store) = fx();
+    seed_task(&store);
+    // the schema carries the field, its date and the pending proposal
+    let schema = reqforge::model::schemas_json();
+    for f in ["next_action", "next_action_set", "next_action_proposal", "next_action_proposal_run"] {
+        assert!(schema["tasks"][f].is_object(), "tasks.{f} missing from the schema");
+    }
+    let base = |na: &str| json!({"title": "T", "story": "STORY-0001", "kind": "code", "next_action": na});
+    // at most 280 characters
+    let long = format!("Edit server/src/agent.rs {}", "x".repeat(256));
+    assert_eq!(long.chars().count(), 281);
+    assert!(create_err(&store, base(&long)).iter().any(|e| e == "next_action: 281 characters, limit is 280"));
+    assert!(store.create(Kind::Tasks, &rec(base(&long[..280])), None).is_ok());
+    // it must name a file path, a command or a record id
+    let vague = create_err(&store, base("Keep going with the work"));
+    assert!(vague.iter().any(|e| e.starts_with("next_action: must name a file path, command or record id")), "{vague:?}");
+    for good in ["Fix the parser in server/src/model.rs", "Open README.md", "Run `make lint`", "cargo test --test context",
+                 "Ask the reviewer about REQ-0059", "Unblock TASK-0001 first", "Review DEC-0002"] {
+        let t = store.create(Kind::Tasks, &rec(base(good)), None).unwrap_or_else(|e| panic!("{good}: {} {:?}", e.message, e.details));
+        // set on create: stamped with today's date
+        assert_eq!(t["next_action_set"], json!("2026-10-04"), "{good}");
+    }
+    // the date must be a date
+    let bad_date = create_err(&store, json!({"title": "T", "story": "STORY-0001", "kind": "code", "next_action": "Open README.md", "next_action_set": "soon"}));
+    assert!(bad_date.iter().any(|e| e == "next_action_set: 'soon' is not a YYYY-MM-DD date"), "{bad_date:?}");
+    // a changed next action is re-dated; an explicit date is kept; clearing clears the date
+    std::env::set_var("REQFORGE_TODAY", "2026-10-06");
+    let upd = |patch: Value| store.update(Kind::Tasks, "TASK-0001", &rec(patch), None, None).unwrap();
+    assert_eq!(upd(json!({"next_action": "Run `pytest -x` in tests/"}))["next_action_set"], json!("2026-10-06"));
+    assert_eq!(upd(json!({"title": "Renamed"}))["next_action_set"], json!("2026-10-06"), "other edits leave the date alone");
+    assert_eq!(upd(json!({"next_action": "Open README.md", "next_action_set": "2026-10-02"}))["next_action_set"], json!("2026-10-02"));
+    assert!(reqforge::model::is_empty(upd(json!({"next_action": ""})).get("next_action_set")));
+    // changesets follow the same rules (the chat agent proposes next actions as update ops)
+    let sim = changes::simulate(&store, &json!({"ops": [{"op": "update", "id": "TASK-0001", "patch": {"next_action": "Think about it"}}]}));
+    assert_eq!(sim["valid"], json!(false));
+    assert!(sim["errors"].as_array().unwrap().iter().any(|e| e.as_str().unwrap().starts_with("TASK-0001: next_action: must name")), "{}", sim["errors"]);
+    let sim = changes::simulate(&store, &json!({"ops": [{"op": "update", "id": "TASK-0001", "patch": {"next_action": "Run `cargo test`"}}]}));
+    assert_eq!(sim["valid"], json!(true), "{}", sim["errors"]);
+    assert_eq!(sim["ops"][0]["changes"]["next_action_set"][1], json!("2026-10-06"));
+    std::env::remove_var("REQFORGE_TODAY");
+}
+
+// reqforge: verifies REQ-0059#AC2
+#[test]
+fn next_action_line_parsing() {
+    use reqforge::taskflow::next_line;
+    assert_eq!(next_line("Done.\nNEXT: Run `cargo test`\n"), Some("Run `cargo test`".into()));
+    assert_eq!(next_line("  NEXT:   Open README.md   "), Some("Open README.md".into()));
+    assert_eq!(next_line("NEXT: first\nNEXT: second"), Some("second".into()), "the last NEXT: line wins");
+    assert_eq!(next_line("NEXT:\nDone"), None, "an empty NEXT: is no proposal");
+    assert_eq!(next_line("Done. The NEXT: step is mid-line"), None, "the line must start with NEXT:");
+    assert_eq!(next_line("next: lower case"), None);
+}
+
+/// A project whose STORY-0001 has a git component, so TASK-0001 can run with the fake agent.
+fn agent_project(key: &str, description: &str) -> (TempDir, std::sync::Arc<Store>) {
+    fake_claude();
+    let dir = TempDir::new().unwrap();
+    let code = dir.path().join("code");
+    std::fs::create_dir_all(&code).unwrap();
+    std::fs::write(code.join("README.md"), "# code\n").unwrap();
+    for args in [&["init", "-q", "-b", "main"][..], &["add", "-A"], &["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "base"]] {
+        assert!(Command::new("git").arg("-C").arg(&code).args(args).status().unwrap().success());
+    }
+    let store = Store::init(dir.path().join("reqs"), key, key, None, true).unwrap();
+    store.create(Kind::Requirements, &rec(json!({"title": "Answer", "type": "functional", "category": "core", "status": "approved",
+        "statement": "The system shall answer 42.", "acceptance_criteria": [{"id": "AC1", "text": "feature() returns 42"}]})), None).unwrap();
+    store.create(Kind::Components, &rec(json!({"title": "Code", "key": "code", "path": code.display().to_string()})), None).unwrap();
+    store.create(Kind::Epics, &rec(json!({"title": "Core", "requirements": ["REQ-0001"]})), None).unwrap();
+    store.create(Kind::Stories, &rec(json!({"title": "Answer story", "epic": "EPIC-0001", "requirements": ["REQ-0001"], "component": "code"})), None).unwrap();
+    store.create(Kind::Tasks, &rec(json!({"title": "Implement feature", "story": "STORY-0001", "kind": "code", "description": description,
+        "next_action": "Read feature.py and REQ-0001", "next_action_set": "2026-10-01"})), None).unwrap();
+    (dir, std::sync::Arc::new(store))
+}
+
+fn agent_run(store: &std::sync::Arc<Store>) -> Vec<Value> {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let store = store.clone();
+    rt.block_on(async move {
+        let runner = reqforge::agent::AgentRunner::default();
+        let (tx, mut rx) = tokio::sync::mpsc::channel(256);
+        let h = tokio::spawn(async move { runner.run(store, "TASK-0001".into(), "tester".into(), tx).await });
+        let mut out = vec![];
+        while let Some(ev) = rx.recv().await {
+            out.push(ev);
+        }
+        h.await.unwrap();
+        out
+    })
+}
+
+fn result_of(evs: &[Value]) -> Value {
+    evs.iter().find(|e| e["type"] == json!("result")).cloned().unwrap_or_else(|| panic!("no result event: {evs:?}"))
+}
+
+// reqforge: verifies REQ-0059#AC2
+#[test]
+fn next_action_agent_run_proposes() {
+    let (_dir, store) = agent_project("NXA", "Implement feature() in feature.py.");
+    let r = result_of(&agent_run(&store));
+    assert_eq!(r["exit_status"], json!(0), "{r}");
+    // the NEXT: line of the final message (not the earlier one), trimmed, is pending on the task
+    let want = "Run `pytest tests/test_feature.py -k none` and cover the None case";
+    assert_eq!(r["next_proposal"], json!(want));
+    let t = task_rec(&store, "TASK-0001");
+    assert_eq!(t["next_action_proposal"], json!(want));
+    let runs = reqforge::agent::runs(&store, "TASK-0001");
+    let run_id = runs[0]["run_id"].as_str().unwrap().to_string();
+    assert_eq!(t["next_action_proposal_run"], json!(run_id));
+    assert_eq!(runs[0]["next_proposal"], json!(want));
+    // a proposal, not a change: the next action stays until the user decides
+    assert_eq!(t["next_action"], json!("Read feature.py and REQ-0001"));
+    assert_eq!(t["next_action_set"], json!("2026-10-01"));
+    // recorded in the run's commit, with the run log
+    let shown = git(&store.root, &["show", "--name-only", "--format=%s", "HEAD"]);
+    assert!(shown.starts_with(&format!("TASK-0001: agent run {run_id}")), "{shown}");
+    assert!(shown.lines().any(|l| l.starts_with("tasks/TASK-0001")), "{shown}");
+}
+
+// reqforge: verifies REQ-0059#AC2
+#[test]
+fn next_action_no_line_no_proposal() {
+    let (_dir, store) = agent_project("NXN", "NONEXT: implement feature() in feature.py.");
+    let v0 = task_rec(&store, "TASK-0001")["version"].as_i64().unwrap();
+    let r = result_of(&agent_run(&store));
+    assert_eq!(r["next_proposal"], Value::Null, "only the final message counts");
+    let t = task_rec(&store, "TASK-0001");
+    assert!(reqforge::model::is_empty(t.get("next_action_proposal")));
+    // the run started the task (one version); nothing else touched it
+    assert_eq!(t["version"].as_i64().unwrap(), v0 + 1);
+}
+
+// reqforge: verifies REQ-0059#AC2
+#[test]
+fn next_action_accept_edit_reject() {
+    let _g = ENV.lock().unwrap_or_else(|p| p.into_inner());
+    std::env::set_var("REQFORGE_TODAY", "2026-10-05");
+    use reqforge::taskflow::{propose_next_unlocked, resolve_next_proposal};
+    let (dir, store) = fx();
+    seed_task(&store);
+    let propose = |text: &str| {
+        let _l = store.lock().unwrap();
+        propose_next_unlocked(&store, "TASK-0001", "RUN-TASK-0001-1", &format!("Report.\nNEXT: {text}")).unwrap();
+        store.commit("proposal");
+    };
+    // nothing pending: nothing to resolve
+    assert_eq!(resolve_next_proposal(&store, "TASK-0001", "accept", None, None).unwrap_err().status, 409);
+    // accept: the proposal becomes the next action, dated today, and the proposal is cleared
+    propose("Run `pytest tests/test_feature.py`");
+    let r = resolve_next_proposal(&store, "TASK-0001", "accept", None, None).unwrap();
+    assert_eq!(r["task"]["next_action"], json!("Run `pytest tests/test_feature.py`"));
+    assert_eq!(r["task"]["next_action_set"], json!("2026-10-05"));
+    assert!(reqforge::model::is_empty(r["task"].get("next_action_proposal")) && reqforge::model::is_empty(r["task"].get("next_action_proposal_run")));
+    assert_eq!(git(dir.path(), &["log", "-1", "--format=%s"]), "TASK-0001: next action proposal accepted");
+    // edit: the user's text replaces it, under the same rules
+    propose("Run `pytest`");
+    let v = task_rec(&store, "TASK-0001")["version"].as_i64().unwrap();
+    assert_eq!(resolve_next_proposal(&store, "TASK-0001", "edit", Some("think harder"), Some(v)).unwrap_err().status, 422);
+    assert_eq!(resolve_next_proposal(&store, "TASK-0001", "edit", Some("Open feature.py"), Some(v - 1)).unwrap_err().status, 409, "stale version");
+    assert_eq!(task_rec(&store, "TASK-0001")["next_action_proposal"], json!("Run `pytest`"), "a failed edit keeps the proposal");
+    let r = resolve_next_proposal(&store, "TASK-0001", "edit", Some("  Open feature.py and fix the None case "), Some(v)).unwrap();
+    assert_eq!(r["task"]["next_action"], json!("Open feature.py and fix the None case"));
+    assert!(reqforge::model::is_empty(r["task"].get("next_action_proposal")));
+    // reject: the proposal goes, the next action stays as it was
+    std::env::set_var("REQFORGE_TODAY", "2026-10-07");
+    propose("Delete everything in src/");
+    let r = resolve_next_proposal(&store, "TASK-0001", "reject", None, None).unwrap();
+    assert_eq!(r["task"]["next_action"], json!("Open feature.py and fix the None case"));
+    assert_eq!(r["task"]["next_action_set"], json!("2026-10-05"));
+    assert!(reqforge::model::is_empty(r["task"].get("next_action_proposal")));
+    assert_eq!(git(dir.path(), &["log", "-1", "--format=%s"]), "TASK-0001: next action proposal rejected");
+    assert_eq!(resolve_next_proposal(&store, "TASK-0001", "maybe", None, None).unwrap_err().status, 400);
+    std::env::remove_var("REQFORGE_TODAY");
+}
+
+// reqforge: verifies REQ-0059#AC3
+#[test]
+fn next_action_first_in_brief() {
+    let (_dir, store) = fx();
+    seed_task(&store);
+    let b = reqforge::agent::brief(&store, "TASK-0001").unwrap();
+    // the next action and its date are the first section after the title line
+    assert!(b.starts_with("# Task TASK-0001: Implement feature\n\n## Next action (set 2026-10-01)\nRun pytest tests/test_feature.py and fix the failing case\n\nKind: code"), "{b}");
+    // after a change the brief shows the new action and its new date
+    store.update(Kind::Tasks, "TASK-0001", &rec(json!({"next_action": "Open feature.py", "next_action_set": "2026-10-04"})), None, None).unwrap();
+    let b = reqforge::agent::brief(&store, "TASK-0001").unwrap();
+    assert!(b.starts_with("# Task TASK-0001: Implement feature\n\n## Next action (set 2026-10-04)\nOpen feature.py\n\nKind: code"), "{b}");
+    // no next action: no section, nothing to show first
+    store.update(Kind::Tasks, "TASK-0001", &rec(json!({"next_action": ""})), None, None).unwrap();
+    let b = reqforge::agent::brief(&store, "TASK-0001").unwrap();
+    assert!(!b.contains("## Next action") && b.starts_with("# Task TASK-0001: Implement feature\n\nKind: code"), "{b}");
+    // the coding agent is told to start there and to end with a NEXT: line
+    assert!(reqforge::agent::CODING_PROMPT.contains("End your final message with one line `NEXT: <step>`"));
+}
+
+// reqforge: verifies REQ-0059#AC3
+#[test]
+fn next_action_brief_handed_to_agent() {
+    let (_dir, store) = agent_project("NXB", "Implement feature() in feature.py.");
+    agent_run(&store);
+    let wt = reqforge::agent::worktrees_root().join("NXB").join("TASK-0001");
+    let brief = std::fs::read_to_string(wt.join("agent-brief.txt")).unwrap();
+    assert!(brief.starts_with("# Task TASK-0001: Implement feature\n\n## Next action (set 2026-10-01)\nRead feature.py and REQ-0001\n"), "{brief}");
+}
+
+// reqforge: verifies REQ-0059#AC4
+#[test]
+fn next_action_wrap_up_changeset() {
+    let (dir, store) = fx();
+    seed_task(&store);
+    // what the chat agent proposes when asked to wrap up: task next actions plus the snapshot Next, in one changeset
+    let content = hot(&["Finish TASK-0001: run `pytest tests/test_feature.py`"], "2026-10-08");
+    let cs = json!({"title": "Wrap-up: next actions", "ops": [
+        {"op": "update", "id": "TASK-0001", "patch": {"next_action": "Run `pytest tests/test_feature.py -k none`", "next_action_set": "2026-10-08"}, "reason": "session ended"},
+        {"op": "snapshot", "content": content, "reason": "Next moved on"}]});
+    let p = changes::propose(&store, &cs).unwrap();
+    assert_eq!(p["valid"], json!(true), "{p}");
+    // nothing changes before Apply
+    assert_eq!(task_rec(&store, "TASK-0001")["next_action_set"], json!("2026-10-01"));
+    assert!(!dir.path().join(snapshot::PATH).exists());
+    changes::apply(&store, p["changeset_id"].as_str().unwrap(), &[]).unwrap();
+    let t = task_rec(&store, "TASK-0001");
+    assert_eq!(t["next_action"], json!("Run `pytest tests/test_feature.py -k none`"));
+    assert_eq!(t["next_action_set"], json!("2026-10-08"));
+    assert_eq!(std::fs::read_to_string(dir.path().join(snapshot::PATH)).unwrap(), content);
+    let files = git(dir.path(), &["show", "--name-only", "--format=", "HEAD"]);
+    assert!(files.lines().any(|l| l == snapshot::PATH) && files.lines().any(|l| l.starts_with("tasks/TASK-0001")), "one apply commit: {files}");
+    // the chat agent knows the rules it is asked to follow
+    assert!(reqforge::chat::SYSTEM_PROMPT.contains("`next_action`"));
 }

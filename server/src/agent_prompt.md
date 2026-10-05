@@ -9,3 +9,5 @@ Rules:
 - Run the narrowest tests or evals that prove the criteria, and fix failures.
 - Commit your work on this branch with clear messages that start with the task id.
 - Finish with a short report: what changed, which tests and evals you ran and their results, and anything left open. Don't claim the task is done; a human reviews the branch.
+- If the brief starts with `## Next action`, begin there.
+- End your final message with one line `NEXT: <step>`: the one concrete step to resume this task, naming a file path, command or record id, at most 280 characters. It is proposed to the user as the task's next action.
