@@ -1,0 +1,184 @@
+{
+  "id": "CS-0021",
+  "title": "Make TASK-0041 measurable and close the design gap in STORY-0019",
+  "summary": "Rewrites TASK-0041's done_when, which referred to the unresolved refs r1/r2, as a verifiable design document. Widens its scope to the full prompt and brief layout, including REQ-0059's next action. Adds a compaction-hook feasibility check. Adds design task TASK-0053 for the decisions record kind and makes TASK-0046 depend on it.",
+  "rationale": "Review of TASK-0041: its kind (design) and story (STORY-0017) are correct, and it does not overlap TASK-0042, which builds what it designs. Four problems: (1) done_when names changeset refs r1/r2 that were never resolved to REQ ids (an error in CS-0019) and names no artifact, so it can't be checked; (2) brief ordering is required by both REQ-0058 AC2 (snapshot after the task section) and REQ-0059 AC3 (next action first) but no task designs the combined layout; (3) re-supplying the snapshot after compaction depends on a SessionStart hook that has not been verified for headless 'claude -p --resume' chat turns or agent runs; (4) among its sibling stories, STORY-0019 adds a record kind across schema, MCP, CSV and UI with no design task.",
+  "status": "applied",
+  "created": "2026-10-05T02:46:06+00:00",
+  "valid": true,
+  "ops": [
+    {
+      "op": "update",
+      "id": "TASK-0041",
+      "patch": {
+        "description": "Write design/context-management.md (design document format, REQ-0054) defining: (1) the snapshot changeset op and its validation; (2) the layout of the chat prompt and coding-agent brief, in order: task next_action, task section, snapshot, with the snapshot marked as project state; (3) when the chat agent is asked to propose next actions and a snapshot Next; (4) how the snapshot is re-supplied after compaction, verified for headless 'claude -p --resume' chat turns and agent runs, with a fallback (re-supply every turn) if the SessionStart compact hook does not fire.",
+        "done_when": "design/context-management.md is committed with realises [REQ-0057, REQ-0058, REQ-0059], has a section addressing each acceptance criterion of REQ-0057 and REQ-0058 and REQ-0059 AC3-AC4, records the compaction-hook test result, and lint reports 0 unknown realises ids."
+      },
+      "reason": "done_when referenced unresolved refs r1/r2 and named no artifact; brief layout and compaction feasibility were undesigned"
+    },
+    {
+      "op": "create",
+      "kind": "tasks",
+      "ref": "t1",
+      "data": {
+        "title": "Decision record design: schema, DEC tags, exercised rule",
+        "story": "STORY-0019",
+        "kind": "design",
+        "description": "Write design/decisions.md (design document format) defining the decisions kind schema and file layout, changeset and MCP support, CSV columns, DEC tag grammar in the code scan, the exercised computation from evidence, and the 14-day lint rule.",
+        "done_when": "design/decisions.md is committed with realises [REQ-0060, REQ-0061], has a section addressing each of their acceptance criteria, and lint reports 0 unknown realises ids.",
+        "status": "todo"
+      },
+      "reason": "STORY-0019 adds a record kind across schema, MCP, CSV and UI with no design task"
+    },
+    {
+      "op": "update",
+      "id": "TASK-0046",
+      "patch": {
+        "depends_on": [
+          "$t1"
+        ]
+      },
+      "reason": "Build the decisions kind after its design"
+    }
+  ],
+  "impact_notes": {
+    "stories": [
+      "STORY-0017: TASK-0041's scope grows to cover the brief layout and the chat prompt to propose next actions (REQ-0059 AC3-AC4), so TASK-0044 builds against a design.",
+      "STORY-0019 gains design task TASK-0053; TASK-0046 now waits for it."
+    ],
+    "code": [
+      "None. Design output goes to design/context-management.md and design/decisions.md, shown in the Design tab (REQ-0055)."
+    ],
+    "evals": [
+      "None changed. Design tasks are checked by the realises lint (REQ-0054 AC2) rather than evals."
+    ],
+    "risks": [
+      "TASK-0041 is in progress, so its done_when changes mid-flight; whoever is on it should take up the wider scope.",
+      "TASK-0046 was startable and now waits for TASK-0053.",
+      "If the compaction hook doesn't fire in headless runs, the fallback re-supplies up to 8 KB of snapshot on every turn, which adds token cost."
+    ]
+  },
+  "base_versions": {
+    "TASK-0041": 2,
+    "TASK-0046": 2
+  },
+  "analysis": {
+    "valid": true,
+    "errors": [],
+    "ops": [
+      {
+        "i": 0,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0041",
+        "title": "Context management design: snapshot op, injection points, compaction hook",
+        "reason": "done_when referenced unresolved refs r1/r2 and named no artifact; brief layout and compaction feasibility were undesigned",
+        "changes": {
+          "description": [
+            "Define the snapshot changeset op, where the snapshot enters chat_prompt and agent_prompt, and the plugin SessionStart (compact) hook that re-supplies it.",
+            "Write design/context-management.md (design document format, REQ-0054) defining: (1) the snapshot changeset op and its validation; (2) the layout of the chat prompt and coding-agent brief, in order: task next_action, task section, snapshot, with the snapshot marked as project state; (3) when the chat agent is asked to propose next actions and a snapshot Next; (4) how the snapshot is re-supplied after compaction, verified for headless 'claude -p --resume' chat turns and agent runs, with a fallback (re-supply every turn) if the SessionStart compact hook does not fire."
+          ],
+          "done_when": [
+            "Design covers r1 and r2 acceptance criteria.",
+            "design/context-management.md is committed with realises [REQ-0057, REQ-0058, REQ-0059], has a section addressing each acceptance criterion of REQ-0057 and REQ-0058 and REQ-0059 AC3-AC4, records the compaction-hook test result, and lint reports 0 unknown realises ids."
+          ]
+        },
+        "base_version": 2
+      },
+      {
+        "i": 1,
+        "op": "create",
+        "kind": "tasks",
+        "id": "TASK-0053",
+        "ref": "t1",
+        "title": "Decision record design: schema, DEC tags, exercised rule",
+        "reason": "STORY-0019 adds a record kind across schema, MCP, CSV and UI with no design task",
+        "data": {
+          "id": "TASK-0053",
+          "status": "todo",
+          "title": "Decision record design: schema, DEC tags, exercised rule",
+          "story": "STORY-0019",
+          "kind": "design",
+          "description": "Write design/decisions.md (design document format) defining the decisions kind schema and file layout, changeset and MCP support, CSV columns, DEC tag grammar in the code scan, the exercised computation from evidence, and the 14-day lint rule.",
+          "done_when": "design/decisions.md is committed with realises [REQ-0060, REQ-0061], has a section addressing each of their acceptance criteria, and lint reports 0 unknown realises ids."
+        }
+      },
+      {
+        "i": 2,
+        "op": "update",
+        "kind": "tasks",
+        "id": "TASK-0046",
+        "title": "Decision record kind and DEC trace tags",
+        "reason": "Build the decisions kind after its design",
+        "changes": {
+          "depends_on": [
+            [],
+            [
+              "TASK-0053"
+            ]
+          ]
+        },
+        "base_version": 2
+      }
+    ],
+    "refmap": {
+      "t1": "TASK-0053"
+    },
+    "lint": {
+      "before": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "after": {
+        "error": 0,
+        "warning": 0,
+        "info": 0
+      },
+      "new": [],
+      "resolved": [],
+      "gaps_before": 0,
+      "gaps_after": 0,
+      "mece_ok": true
+    },
+    "trace": {
+      "ok_before": true,
+      "ok_after": true,
+      "metrics_before": {
+        "requirements": 63,
+        "active": 63,
+        "epics": 11,
+        "stories": 21,
+        "tasks": 52,
+        "evals": 51,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "metrics_after": {
+        "requirements": 63,
+        "active": 63,
+        "epics": 11,
+        "stories": 21,
+        "tasks": 53,
+        "evals": 51,
+        "requirement_coverage": 1.0,
+        "criteria_coverage": 1.0
+      },
+      "delta": []
+    },
+    "impact": {
+      "requirements": [],
+      "children": [],
+      "stories": [],
+      "tasks": [],
+      "evals": [],
+      "components": [],
+      "in_progress_work": []
+    }
+  },
+  "applied_at": "2026-10-05T02:46:29+00:00",
+  "excluded_ops": [],
+  "assigned_ids": {
+    "t1": "TASK-0053"
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "run_id": "RUN-TASK-0041-20261005T023452605",
+  "task": "TASK-0041",
+  "story": "STORY-0017",
+  "component": "server",
+  "branch": "reqforge/TASK-0041",
+  "worktree": "/Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0041",
+  "base": "510a1762b57253e6858ad8ab41a3f54712f3246a",
+  "user": "jyoti.sanyal (queue)",
+  "started": "2026-10-05T02:34:52+00:00",
+  "ended": "2026-10-05T02:37:51+00:00",
+  "exit_status": 0,
+  "commits": [
+    {
+      "sha": "b85a89d",
+      "message": "TASK-0041: design the project snapshot op, injection points and compaction hook"
+    }
+  ],
+  "violations": [],
+  "events": [
+    {
+      "type": "session",
+      "session_id": "d8a701da-cae1-4185-99b9-974b4db20f63"
+    },
+    {
+      "type": "text",
+      "text": "I'll start by surveying the repo layout and the existing design docs."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "The design has to fit the existing changeset, chat, agent and plugin code, so I'll read those next."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Next, how chat sessions and agent briefs are built today."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Now the store root, CLI subcommands, agent env, lint rules and the web changeset card."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "Last checks: crate dependencies, how `store.commit` stages files, and the plugin test."
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0041/server/Cargo.toml"
+    },
+    {
+      "type": "tool",
+      "name": "Read",
+      "sub": false,
+      "text": "read /Users/jyoti.sanyal/.reqforge/worktrees/REQFORGE/TASK-0041/server/src/store.rs"
+    },
+    {
+      "type": "tool",
+      "name": "Grep",
+      "sub": false,
+      "text": "Grep fn |hooks"
+    },
+    {
+      "type": "text",
+      "text": "I have enough context. Now I'll write the design doc, using the same style as `docs/agent-runs.md`."
+    },
+    {
+      "type": "tool",
+      "name": "Write",
+      "sub": false,
+      "text": "Write"
+    },
+    {
+      "type": "tool",
+      "name": "Bash",
+      "sub": false,
+      "text": "Bash"
+    },
+    {
+      "type": "text",
+      "text": "I've written the design for TASK-0041 in `docs/context.md` and committed it on `reqforge/TASK-0041` (`b85a89d`). It covers every acceptance criterion of REQ-0057 and REQ-0058. This is a design task, so I changed no code, and E1 and E2 can't pass yet because their test files don't exist.\n\n**Snapshot op (REQ-0057)**\n- **File rules:** the snapshot lives at `state/HOT.md` under each project's requirements folder. A new `server/src/snapshot.rs` checks the 8,192-byte limit, the `## Now / ## Next / ## Watch` headings in order, exactly one Next item and the `Last reconciled: YYYY-MM-DD` line.\n- **The op:** a changeset can carry `{\"op\":\"snapshot\",\"content\":…}` with the full new file. Simulate validates it, which gives the AC3 errors, and returns a line diff for the changeset card to show.\n- **Apply:** Apply writes the file in the same commit as the other changes. It refuses with \"stale\" if the file changed since the proposal, using a sha256 check.\n- **Single writer:** the only code that writes the file is the Apply step, and a test checks that structurally.\n- **Lint:** a new `snapshot-stale` warning fires when the date is more than 21 days old. A `REQFORGE_TODAY` override makes this testable.\n\n**Where the snapshot enters a session (REQ-0058)**\n- **Chat:** the snapshot goes verbatim into the first user turn, wrapped in a `<project-state …>` tag that marks it as project state. It goes there rather than into the system prompt so the system prompt stays the same on every turn.\n- **Coding agent:** the brief gets a `## Project snapshot` section right after `## Done when`.\n- **After compaction:** a new plugin file `hooks/hooks.json` registers a `SessionStart` hook for compaction that runs `reqforge snapshot --hook`. It reads the project from `REQFORGE_REPO`, which chat and agent runs already set. If that variable or the file is missing, it prints nothing, so the plugin does nothing in unrelated Claude Code sessions.\n- **No snapshot:** a new `GET /api/p/{K}/snapshot` endpoint lets the chat panel show \"No project snapshot\" with an \"Ask Claude to draft one\" button. Sessions start normally either way.\n\n**Evals:** the doc maps each acceptance criterion to a named test in a new `server/tests/context.rs` (all named `snapshot_*`, which E1 filters on) and to steps in a new `web/e2e/suites/snapshot.js` suite for E2. I didn't run either because they belong to the code tasks.\n\n**Left open**\n- A resumed chat keeps the snapshot from its first turn until the next compaction, even if a newer one is applied in between. REQ-0058 doesn't require more, but re-sending it when the file changes would close the gap.\n- Claude Code's documented behaviour is that the compaction hook fires and its added context reaches the next turn. I haven't checked that it works in the headless `claude -p` runs chat and agents use; that's for the code task.\n- The reqforge MCP server failed to connect in this session (the binary path was missing), so I read the requirements from the brief and the repo instead of the reqforge tools."
+    },
+    {
+      "type": "done",
+      "session_id": "d8a701da-cae1-4185-99b9-974b4db20f63",
+      "cost": 0.9115908,
+      "turns": 20,
+      "is_error": false,
+      "result": null
+    }
+  ]
+}

@@ -42,14 +42,15 @@
         "REQ-0052#AC1",
         "REQ-0052#AC2",
         "REQ-0052#AC3",
-        "REQ-0052#AC4"
+        "REQ-0052#AC4",
+        "REQ-0052#AC6"
       ]
     }
   ],
-  "status": "done",
+  "status": "in-progress",
   "points": 8,
   "tags": [],
-  "version": 2,
+  "version": 3,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-04T05:32:30+00:00"
+  "updated": "2026-10-05T03:02:21+00:00"
 }
