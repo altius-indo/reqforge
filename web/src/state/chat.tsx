@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { streamChat } from "@/api/client"
-import { KINDS, type ChatContextPayload, type Kind } from "@/api/types"
+import { KINDS, type ChatContextPayload, type HistoryGap, type Kind, type PendingGap } from "@/api/types"
 import { ls, pkey } from "@/lib/storage"
 import { fmt, randomId } from "@/lib/format"
 import { useApp } from "./app"
@@ -33,6 +33,12 @@ function loadLog(key: string): ChatEntry[] {
     .map((e) => ({ ...e, k: typeof e.k === "string" ? e.k : randomId(), ...(e.role === "tools" ? { live: false } : {}) }) as ChatEntry)
 }
 
+/** the gap shown at session start: pending until the user records it */
+export interface GapPrompt {
+  gap: PendingGap
+  recorded: HistoryGap | null
+}
+
 interface SendOpts {
   noCtx?: boolean
 }
@@ -57,6 +63,10 @@ interface ChatCtx {
   /** open the chat with a pre-filled prompt (does not send) */
   ask: (text: string) => void
   markAnswered: (k: string, part: number) => void
+  /** a gap of 14 days or more since the last session, shown when a new session starts (REQ-0062#AC4) */
+  gap: GapPrompt | null
+  recordGap: (reason: string) => Promise<void>
+  dismissGap: () => void
 }
 
 const Ctx = createContext<ChatCtx | null>(null)
@@ -93,6 +103,27 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [focusNonce, setFocusNonce] = useState(0)
   const [useCtx, setUseCtx] = useState(true)
   const [lastCost, setLastCost] = useState<number | null>(null)
+  const [gap, setGap] = useState<GapPrompt | null>(null)
+  // the gap (by its start) the user closed without recording: the server records it with the session
+  const dismissedRef = useRef<string | null>(null)
+  const showGap = useCallback((g: PendingGap | null | undefined) => {
+    if (!aliveRef.current || !g || dismissedRef.current === g.from) return
+    // a gap already recorded stays as recorded; a pending one picks up a pause made since it was shown
+    setGap((cur) => (cur?.recorded && cur.gap.from === g.from ? cur : { gap: g, recorded: null }))
+  }, [])
+
+  // a new session is about to start: has the project been quiet for 14 days or more?
+  useEffect(() => {
+    if (!open || sessionId) return
+    let live = true
+    api
+      .pendingGap()
+      .then((r) => live && showGap(r.gap))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [open, sessionId, api, showGap])
 
   useEffect(() => {
     ls.set(LOG_KEY, log.slice(-MAX_LOG))
@@ -173,6 +204,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             case "session":
               setSession(ev.session_id)
               break
+            case "gap":
+              showGap(ev.gap)
+              break
             case "tool": {
               const item = { text: ev.text, sub: !!ev.sub }
               if (!toolsKey) {
@@ -219,17 +253,37 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         void qc.invalidateQueries({ queryKey: ["p", project, "changesets"] })
       }
     },
-    [qc, setSession, project],
+    [qc, setSession, showGap, project],
   )
 
   const stop = useCallback(() => {
     if (chatIdRef.current) api.chatCancel(chatIdRef.current).catch(() => {})
   }, [api])
 
+  // a fresh conversation ends the current session, which writes its metadata to the history
   const reset = useCallback(() => {
+    const sid = sessionRef.current
+    if (sid) api.chatEnd(sid).catch(() => {})
     setSession(null)
     setLog([])
-  }, [setSession])
+    setGap((g) => (g?.recorded ? null : g))
+  }, [api, setSession])
+
+  // reqforge: implements REQ-0062
+  const recordGap = useCallback(
+    async (reason: string) => {
+      const rec = await api.recordGap(reason)
+      if (aliveRef.current) setGap((g) => (g ? { ...g, recorded: rec } : g))
+    },
+    [api],
+  )
+
+  const dismissGap = useCallback(() => {
+    setGap((g) => {
+      if (g) dismissedRef.current = g.gap.from
+      return null
+    })
+  }, [])
 
   const ask = useCallback(
     (text: string) => {
@@ -263,9 +317,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       reset,
       ask,
       markAnswered,
+      gap,
+      recordGap,
+      dismissGap,
     }),
     [open, setOpen, log, busy, sessionId, draft, focusNonce, useCtx, contextPayload, contextSummary, lastCost, send,
-      stop, reset, ask, markAnswered],
+      stop, reset, ask, markAnswered, gap, recordGap, dismissGap],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

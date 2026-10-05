@@ -8,6 +8,7 @@ import { useHelp } from "@/state/help"
 import { useChatStatus } from "@/state/queries"
 import { cn } from "@/lib/utils"
 import { ChatMessage } from "./ChatMessage"
+import { GapPrompt } from "./GapPrompt"
 
 // reqforge: implements REQ-0032
 export function ChatPanel() {
@@ -72,6 +73,7 @@ export function ChatPanel() {
         </Button>
       </div>
       <div ref={listRef} data-testid="chat-messages" className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3">
+        <GapPrompt />
         {chat.log.length ? (
           chat.log.map((e) => <ChatMessage key={e.k} e={e} />)
         ) : (
