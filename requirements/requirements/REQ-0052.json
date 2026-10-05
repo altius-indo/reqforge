@@ -5,7 +5,7 @@
   "type": "quality",
   "category": "security",
   "priority": "must",
-  "status": "approved",
+  "status": "implemented",
   "rationale": "Unlike the chat agent (REQ-0041), the coding agent edits code and runs commands, so its blast radius must be bounded and its runs auditable.",
   "acceptance_criteria": [
     {
@@ -43,7 +43,7 @@
   "stakeholders": [],
   "source": "product owner request 2026-10-03",
   "notes": null,
-  "version": 7,
+  "version": 8,
   "created": "2026-10-04T02:12:08+00:00",
-  "updated": "2026-10-05T03:02:21+00:00"
+  "updated": "2026-10-05T04:48:33+00:00"
 }
