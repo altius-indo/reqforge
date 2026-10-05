@@ -1,0 +1,31 @@
+{
+  "task": "TASK-0045",
+  "user": "jyoti.sanyal",
+  "started": "2026-10-05T04:23:47+00:00",
+  "branch": "reqforge/TASK-0045",
+  "target": "main",
+  "target_head": "16ae4b714b874865d828bb6e81996db87b42c81f",
+  "task_head": "a305e5bd52c4098b851113dcba3ee16408591f99",
+  "eval_scope": "story",
+  "evals": [
+    {
+      "id": "E1",
+      "name": "next action capture",
+      "command": "cargo test --manifest-path server/Cargo.toml --test context -- next_action",
+      "status": "passed",
+      "seconds": 0.9
+    },
+    {
+      "id": "E2",
+      "name": "UI e2e: next action",
+      "command": "node web/e2e/run.mjs --junit web/e2e/results/junit-next-action.xml --suite next-action",
+      "status": "failed",
+      "seconds": 14.7,
+      "output_tail": "e2e: binary /Users/jyoti.sanyal/work/altius-indo/reqforge/server/target/release/reqforge\ne2e: chrome /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\ne2e: data   /private/var/folders/9p/dzm94jm56kndj06v4l9wt2mh0000gn/T/reqforge-e2e-7P2FNa\n\n== next-action 6/10 passed in 10.6s\n   FAIL [REQ-0059#AC2] the NEXT: line becomes a pending proposal in the drawer\n        Next actionset 2026-10-01Open shop/checkout.py and read place_order\n   FAIL [REQ-0059#AC2] pending on the task, next action unchanged until the user decides\n        {\"id\":\"TASK-0001\",\"title\":\"Checkout API contract + PSP hosted-fields flow\",\"story\":\"STORY-0001\",\"kind\":\"design\",\"depends_on\":[],\"evals\":[],\"description\":\"PROPOSE-NEXT: implement the checkout step\",\"done_when\":\"reviewed and merged\",\"status\":\"in-progress\",\"tags\":[],\"version\":3,\"created\":\"2026-10-05T04\n   FAIL [REQ-0059#AC2] Accept, Edit and Reject offered\n   FAIL suite script ran to completion\n        Cannot read properties of null (reading 'click') TypeError: Cannot read properties of null (reading 'click') at acceptProposal (http://127.0.0.1:59716/:203:31) at async suite (http://127.0.0.1:59716/:168:3) at async runSuite (http://127.0.0.1:59716/:105:9) at async http://127.0.0.1:59716/:317:1\n   page diagnostics:\n     log: Failed to load resource: the server responded with a status of 404 (Not Found) http://127.0.0.1:59716/api/p/SHOP/tasks/TASK-0001/branch\n\nFAILED: 6/10 checks (next-action 6/10)\nJUnit: web/e2e/results/junit-next-action.xml\n(re-run with --keep to inspect server.log, chrome.log and the data of each suite)"
+    }
+  ],
+  "ended": "2026-10-05T04:24:03+00:00",
+  "outcome": "refused: evals failed",
+  "run_id": "COMPLETE-TASK-0045-20261005T042403771",
+  "kind": "complete"
+}
