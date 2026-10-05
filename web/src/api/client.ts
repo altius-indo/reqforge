@@ -30,6 +30,7 @@ import type {
   VerificationReport,
   CreateProjectRequest,
   DeleteProjectResult,
+  DecisionsReport,
   DeleteResult,
   DesignDoc,
   SnapshotStatus,
@@ -204,6 +205,8 @@ export function projectApi(key: string) {
     // design documents (design/<slug>.md), read-only
     designDocs: () => request<DesignDoc[]>("GET", `${b}/design`),
     designDoc: (slug: string) => request<string>("GET", `${b}/design/${encodeURIComponent(slug)}`),
+    // decisions (DEC-NNNN) with whether tested code relies on them
+    decisions: () => request<DecisionsReport>("GET", `${b}/decisions/exercised`),
     // project snapshot (state/HOT.md), read-only: it changes only through a changeset
     snapshot: () => request<SnapshotStatus>("GET", `${b}/snapshot`),
   }

@@ -7,7 +7,7 @@
 const SECTION_FOR_TAB = {
   requirements: "browse-and-filter", epics: "browse-and-filter", stories: "browse-and-filter", tasks: "browse-and-filter",
   components: "code-components", trace: "lint-and-traceability", verification: "verification-and-impact",
-  lint: "lint-and-traceability", changes: "chat-and-changesets", design: "design",
+  lint: "lint-and-traceability", changes: "chat-and-changesets", design: "design", decisions: "decisions",
 };
 const SIX_TOPICS = ["browse-and-filter", "edit-and-bulk-update", "chat-and-changesets", "lint-and-traceability",
   "verification-and-impact", "projects"];

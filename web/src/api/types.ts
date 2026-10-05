@@ -1,8 +1,9 @@
 // Wire types for the reqforge JSON API. These mirror reqforge/api.py, query.py, changes.py and
 // chat.py exactly; the Rust backend serves the same shapes, so change both sides together.
 
-export type Kind = "requirements" | "epics" | "stories" | "tasks" | "components"
+export type Kind = "requirements" | "epics" | "stories" | "tasks" | "components" | "decisions"
 export type Tab = Kind | "trace" | "verification" | "lint" | "changes" | "design"
+/** kinds with a generic list tab (decisions have their own Decisions tab) */
 export const KINDS: Kind[] = ["requirements", "epics", "stories", "tasks", "components"]
 
 // ------------------------------------------------------------------ meta
@@ -280,6 +281,40 @@ export interface RecordContext {
   code?: ReqVerification
   /** requirements only: design documents whose `realises` lists this requirement */
   design?: DesignDocRef[]
+  /** decisions only: whether tested code relies on it (same as GET /decisions/exercised) */
+  exercised?: DecisionExercised
+}
+
+// ------------------------------------------------------------------ decisions
+export type DecisionStatus = "proposed" | "accepted" | "superseded"
+/** per tagged test: passed (fresh), suspect (code changed since), failing, pending (no evidence) */
+export type DecisionTestStatus = "passed" | "suspect" | "failing" | "pending"
+
+export interface DecisionTest extends CodeLocation {
+  status: DecisionTestStatus
+  evidence: { source: string; status: string; commit?: string | null; at?: string | null }[]
+}
+
+/** One decision in GET /decisions/exercised. */
+export interface DecisionExercised {
+  id: string
+  title: string
+  status: DecisionStatus
+  requirements: string[]
+  superseded_by: string | null
+  accepted_at: string | null
+  exercised: boolean
+  /** why it is not exercised; "" when it is */
+  reason: string
+  /** code tagged `reqforge: implements DEC-…` */
+  implements: CodeLocation[]
+  /** tests tagged with the decision id */
+  tests: DecisionTest[]
+}
+
+export interface DecisionsReport {
+  summary: { decisions: number; exercised: number }
+  decisions: Record<string, DecisionExercised>
 }
 
 // ------------------------------------------------------------------ design documents
