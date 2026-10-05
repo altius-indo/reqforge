@@ -27,6 +27,7 @@ pub struct View {
     config: Value,
     pub recs: HashMap<Kind, BTreeMap<String, Arc<Rec>>>,
     design: Vec<crate::design::DesignDoc>,
+    root: Option<std::path::PathBuf>,
 }
 
 impl Source for View {
@@ -42,11 +43,22 @@ impl Source for View {
     fn design_docs(&self) -> Vec<crate::design::DesignDoc> {
         self.design.clone()
     }
+    fn root(&self) -> Option<std::path::PathBuf> {
+        self.root.clone()
+    }
 }
 
 pub fn base_view(store: &Store) -> View {
     let recs = KINDS.iter().map(|k| (*k, store.records(*k).into_iter().map(|r| (s(&r, "id").to_string(), r)).collect())).collect();
-    View { config: store.config_value(), recs, design: store.design_docs() }
+    View { config: store.config_value(), recs, design: store.design_docs(), root: Some(store.root.clone()) }
+}
+
+/// A decision becoming accepted is stamped with when, unless the op sets accepted_at itself.
+fn stamp_accepted(kind: Kind, rec: &mut Rec, was: Option<&Rec>, t: &str) {
+    let newly = was.map(|w| s(w, "status") != "accepted").unwrap_or(true);
+    if kind == Kind::Decisions && s(rec, "status") == "accepted" && newly && s(rec, "accepted_at").is_empty() {
+        rec.insert("accepted_at".into(), json!(t));
+    }
 }
 
 fn resolve(v: &Value, refmap: &Map<String, Value>) -> Value {
@@ -125,6 +137,7 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                             rec.insert(k.clone(), coerce(kind, k, v.clone()));
                         }
                     }
+                    stamp_accepted(kind, &mut rec, None, &t);
                     rec.insert("version".into(), json!(1));
                     rec.insert("created".into(), json!(t));
                     rec.insert("updated".into(), json!(t));
@@ -164,6 +177,14 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
                         let list = rec.get(k).map(as_list).unwrap_or_default().into_iter().filter(|v| !drop.contains(v)).collect();
                         rec.insert(k.clone(), Value::Array(list));
                     }
+                    if kind == Kind::Decisions && s(&rec, "accepted_at") == s(&cur, "accepted_at") {
+                        let mut fresh = rec.clone();
+                        fresh.remove("accepted_at");
+                        stamp_accepted(kind, &mut fresh, Some(&cur), &t);
+                        if fresh.contains_key("accepted_at") {
+                            rec = fresh;
+                        }
+                    }
                     let mut changes = Map::new();
                     for (k, v) in &rec {
                         if !is_system(k) && cur.get(k) != Some(v) {
@@ -185,7 +206,7 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
             errors.push(format!("op {i} ({kind_op}): {e}"));
         }
     }
-    let view = View { config: store.config_value(), recs, design: store.design_docs() };
+    let view = View { config: store.config_value(), recs, design: store.design_docs(), root: Some(store.root.clone()) };
     for r in &resolved {
         if r["op"] == json!("delete") {
             continue;
@@ -204,6 +225,11 @@ pub fn materialize(store: &Store, ops: &[Value]) -> Materialized {
             }
             if kind == Kind::Tasks {
                 for e in crate::model::task_dependency_errors(rec, &view.records(Kind::Tasks)) {
+                    errors.push(format!("{id}: {e}"));
+                }
+            }
+            if kind == Kind::Decisions {
+                for e in crate::model::decision_supersession_errors(rec, &view.records(Kind::Decisions)) {
                     errors.push(format!("{id}: {e}"));
                 }
             }
@@ -534,7 +560,10 @@ pub fn links(store: &Store) -> Arc<Value> {
         for t in store.records(Kind::Tasks) {
             push(&mut story_tasks, s(&t, "story"), s(&t, "id"));
         }
-        json!({"req_stories": req_stories, "children": children, "story_tasks": story_tasks})
+        let dec = crate::decisions::report(store);
+        let exercised: Map<String, Value> =
+            dec["decisions"].as_object().into_iter().flatten().map(|(k, v)| (k.clone(), v["exercised"].clone())).collect();
+        json!({"req_stories": req_stories, "children": children, "story_tasks": story_tasks, "decisions_exercised": exercised})
     })
 }
 
@@ -557,6 +586,11 @@ pub fn context(store: &Store, id: &str) -> Res<Value> {
         let lr = lint_memo(store);
         out["code"] = crate::verify::report(store)["requirements"][id].clone();
         out["design"] = crate::design::realising(&store.design_docs(), id);
+        out["lint"] = json!(lr["findings"].as_array().into_iter().flatten().filter(|f| f["ids"].as_array().map(|a| a.contains(&json!(id))).unwrap_or(false)).cloned().collect::<Vec<_>>());
+    }
+    if kind == Kind::Decisions {
+        out["exercised"] = crate::decisions::report(store)["decisions"][id].clone();
+        let lr = lint_memo(store);
         out["lint"] = json!(lr["findings"].as_array().into_iter().flatten().filter(|f| f["ids"].as_array().map(|a| a.contains(&json!(id))).unwrap_or(false)).cloned().collect::<Vec<_>>());
     }
     Ok(out)

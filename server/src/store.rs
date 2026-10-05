@@ -151,6 +151,19 @@ pub trait Source {
     fn design_docs(&self) -> Vec<crate::design::DesignDoc> {
         vec![]
     }
+    /// Repository root, where code indexes and evidence live (None for detached views).
+    fn root(&self) -> Option<PathBuf> {
+        None
+    }
+}
+
+/// Decisions are created and changed only through changesets.
+// reqforge: implements REQ-0060
+pub fn changeset_only(kind: Kind) -> Res<()> {
+    if kind == Kind::Decisions {
+        return Err(StoreError::new("decisions are created and changed only through changesets; propose a changeset", 403));
+    }
+    Ok(())
 }
 
 pub struct Entry {
@@ -187,6 +200,9 @@ impl Source for Store {
     }
     fn design_docs(&self) -> Vec<crate::design::DesignDoc> {
         crate::design::list(&self.root)
+    }
+    fn root(&self) -> Option<PathBuf> {
+        Some(self.root.clone())
     }
 }
 
@@ -346,6 +362,7 @@ impl Store {
         }
         let id = rec.get("id").and_then(Value::as_str).ok_or_else(|| StoreError::bad("record has no id"))?;
         let path = self.path(kind, id);
+        fs::create_dir_all(self.root.join(kind.dir())).ok(); // repositories created before a kind existed
         let tmp = path.with_extension("json.tmp");
         fs::write(&tmp, dump(&Value::Object(ordered))).map_err(|e| StoreError::bad(e.to_string()))?;
         fs::rename(&tmp, &path).map_err(|e| StoreError::bad(e.to_string()))?;
@@ -367,6 +384,9 @@ impl Store {
         }
         if kind == Kind::Tasks && errors.is_empty() {
             errors.extend(crate::model::task_dependency_errors(rec, &self.records(Kind::Tasks)));
+        }
+        if kind == Kind::Decisions && errors.is_empty() {
+            errors.extend(crate::model::decision_supersession_errors(rec, &self.records(Kind::Decisions)));
         }
         if errors.is_empty() {
             Ok(())
@@ -492,6 +512,7 @@ impl Store {
 
     // reqforge: implements REQ-0003
     pub fn create_unlocked(&self, kind: Kind, data: &Rec) -> Res<Rec> {
+        changeset_only(kind)?;
         let mut body = defaults(kind);
         for (k, v) in data {
             if !is_system(k) {
@@ -533,6 +554,7 @@ impl Store {
         add: Option<&Rec>,
         remove: Option<&Rec>,
     ) -> Res<Rec> {
+        changeset_only(kind)?;
         let cur = self.get(kind, id)?;
         let cur_v = cur.get("version").and_then(Value::as_i64).unwrap_or(0);
         if let Some(ev) = expected_version {
@@ -584,6 +606,7 @@ impl Store {
         dry_run: bool,
         message: Option<&str>,
     ) -> Res<Value> {
+        changeset_only(kind)?;
         let _g = self.lock()?;
         let targets: Vec<String> = match ids {
             Some(ids) if !ids.is_empty() => ids,
@@ -624,6 +647,7 @@ impl Store {
 
     /// Create rows without an id / unknown id; patch rows whose id exists. One commit.
     pub fn upsert_many(&self, kind: Kind, rows: &[Rec], message: Option<&str>) -> Res<Value> {
+        changeset_only(kind)?;
         let _g = self.lock()?;
         let (mut created, mut updated) = (vec![], vec![]);
         for row in rows {
@@ -646,6 +670,7 @@ impl Store {
     }
 
     pub fn delete(&self, kind: Kind, id: &str, force: bool) -> Res<Value> {
+        changeset_only(kind)?;
         let _g = self.lock()?;
         self.get(kind, id)?;
         let refs = self.references_to(id);

@@ -16,9 +16,10 @@ pub enum Kind {
     Stories,
     Tasks,
     Components,
+    Decisions,
 }
 
-pub const KINDS: [Kind; 5] = [Kind::Requirements, Kind::Epics, Kind::Stories, Kind::Tasks, Kind::Components];
+pub const KINDS: [Kind; 6] = [Kind::Requirements, Kind::Epics, Kind::Stories, Kind::Tasks, Kind::Components, Kind::Decisions];
 
 impl Kind {
     pub fn as_str(self) -> &'static str {
@@ -28,6 +29,7 @@ impl Kind {
             Kind::Stories => "stories",
             Kind::Tasks => "tasks",
             Kind::Components => "components",
+            Kind::Decisions => "decisions",
         }
     }
     pub fn prefix(self) -> &'static str {
@@ -37,6 +39,7 @@ impl Kind {
             Kind::Stories => "STORY",
             Kind::Tasks => "TASK",
             Kind::Components => "COMP",
+            Kind::Decisions => "DEC",
         }
     }
     pub fn dir(self) -> &'static str {
@@ -49,6 +52,7 @@ impl Kind {
             Kind::Stories => "story",
             Kind::Tasks => "task",
             Kind::Components => "component",
+            Kind::Decisions => "decision",
         }
     }
     pub fn parse(s: &str) -> Result<Kind, String> {
@@ -58,7 +62,8 @@ impl Kind {
             "stories" | "story" => Ok(Kind::Stories),
             "tasks" | "task" => Ok(Kind::Tasks),
             "components" | "component" | "comp" => Ok(Kind::Components),
-            _ => Err(format!("unknown kind '{s}' (expected one of requirements, epics, stories, tasks, components)")),
+            "decisions" | "decision" | "dec" => Ok(Kind::Decisions),
+            _ => Err(format!("unknown kind '{s}' (expected one of requirements, epics, stories, tasks, components, decisions)")),
         }
     }
     pub fn of_id(id: &str) -> Result<Kind, String> {
@@ -316,6 +321,21 @@ static COMPONENTS: [Field; 10] = [
     f("tags", FType::List),
 ];
 
+pub const DECISION_STATUSES: &[&str] = &["proposed", "accepted", "superseded"];
+
+/// A design decision (ADR-style). Created and changed only through changesets; `accepted_at`
+/// is stamped when it becomes accepted and drives the "not exercised in time" lint.
+static DECISIONS: [Field; 8] = [
+    req(f("title", FType::Str)),
+    req(f("context", FType::Text)),
+    req(f("decision", FType::Text)),
+    en("status", DECISION_STATUSES, Some("proposed")),
+    rf("requirements", FType::RefList, Kind::Requirements),
+    rf("superseded_by", FType::Ref, Kind::Decisions),
+    f("accepted_at", FType::Str),
+    f("tags", FType::List),
+];
+
 pub const COMPONENT_KEY_RE: &str = r"^[a-z0-9][a-z0-9._-]{0,63}$";
 
 pub fn schema(kind: Kind) -> &'static [Field] {
@@ -325,6 +345,7 @@ pub fn schema(kind: Kind) -> &'static [Field] {
         Kind::Stories => &STORIES,
         Kind::Tasks => &TASKS,
         Kind::Components => &COMPONENTS,
+        Kind::Decisions => &DECISIONS,
     }
 }
 
@@ -481,6 +502,9 @@ pub fn validate(kind: Kind, rec: &Rec, exists: Option<Exists>) -> Vec<String> {
             errors.push(format!("key: '{k}' must be lowercase letters, digits, '.', '_' or '-' (e.g. checkout-service)"));
         }
     }
+    if kind == Kind::Decisions && s(rec, "status") == "superseded" && s(rec, "superseded_by").is_empty() {
+        errors.push("superseded_by: required when status is superseded".into());
+    }
     if kind == Kind::Stories {
         for (i, ev) in rec.get("evals").and_then(Value::as_array).into_iter().flatten().enumerate() {
             if let Some(k) = ev.get("kind").and_then(Value::as_str) {
@@ -540,7 +564,7 @@ pub fn schemas_json() -> Value {
 pub fn enums_json() -> Value {
     json!({
         "priority": PRIORITIES, "req_status": REQ_STATUSES, "work_status": WORK_STATUSES,
-        "deliverable": STORY_DELIVERABLES, "task_kind": TASK_KINDS,
+        "deliverable": STORY_DELIVERABLES, "task_kind": TASK_KINDS, "decision_status": DECISION_STATUSES,
         "eval_kind": EVAL_KINDS.iter().map(|(k, _)| *k).collect::<Vec<_>>(), "stage": STAGES,
     })
 }
@@ -597,6 +621,34 @@ pub fn task_dependency_errors(rec: &Rec, all: &[std::sync::Arc<Rec>]) -> Vec<Str
     let mut path = vec![id.clone()];
     if dfs(&id, &id, &graph, &mut path, &mut Default::default()) {
         return vec![format!("depends_on: dependency cycle {}", path.join(" -> "))];
+    }
+    vec![]
+}
+
+/// Decision supersession integrity: superseded_by names another decision and the chain never
+/// loops back.
+// reqforge: implements REQ-0060
+pub fn decision_supersession_errors(rec: &Rec, all: &[std::sync::Arc<Rec>]) -> Vec<String> {
+    let id = s(rec, "id");
+    let next = s(rec, "superseded_by");
+    if next.is_empty() {
+        return vec![];
+    }
+    if next == id {
+        return vec![format!("superseded_by: {id} cannot supersede itself")];
+    }
+    let by: std::collections::HashMap<&str, &str> = all.iter().filter(|d| s(d, "id") != id).map(|d| (s(d, "id"), s(d, "superseded_by"))).collect();
+    let mut path = vec![id.to_string()];
+    let mut cur = next;
+    while !cur.is_empty() {
+        path.push(cur.to_string());
+        if cur == id {
+            return vec![format!("superseded_by: supersession cycle {}", path.join(" -> "))];
+        }
+        if path.len() > all.len() + 1 {
+            break; // a cycle not through rec; reported when one of its members is validated
+        }
+        cur = by.get(cur).copied().unwrap_or("");
     }
     vec![]
 }

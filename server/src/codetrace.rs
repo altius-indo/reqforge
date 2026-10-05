@@ -9,6 +9,7 @@
 //!     JUnit   @Tag("REQ-0042")                     Go/Rust      // REQ-0042#AC1
 //! reqforge:on
 //! A tag without `#AC…` applies to every acceptance criterion of the requirement.
+//! Decision ids (`DEC-0007`) are tagged exactly like requirement ids.
 //! Suppression: lines between `reqforge:off` and `reqforge:on` are skipped, and a file whose first
 //! 10 lines contain `reqforge:ignore-file` is skipped entirely (fixtures, docs, examples that
 //! mention ids as data). A component with `tag_mode: explicit` only honours explicit comments.
@@ -34,9 +35,9 @@ use crate::model::{s, strs, Kind, Rec};
 use crate::store::{dump, now, Res, Source, Store, StoreError};
 
 static EXPLICIT: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)reqforge:\s*(implements|implement|impl|verifies|verify|tests|test)\s+((?:REQ-\d{4,}(?:#[A-Za-z0-9_.-]+)?[\s,;]*)+)").unwrap()
+    Regex::new(r"(?i)reqforge:\s*(implements|implement|impl|verifies|verify|tests|test)\s+((?:(?:REQ|DEC)-\d{4,}(?:#[A-Za-z0-9_.-]+)?[\s,;]*)+)").unwrap()
 });
-static ID: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\b(REQ-\d{4,})(?:#([A-Za-z0-9_.-]+))?").unwrap());
+static ID: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\b((?:REQ|DEC)-\d{4,})(?:#([A-Za-z0-9_.-]+))?").unwrap());
 static TEST_FILE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(?x)(^|/)(tests?|__tests__|specs?|e2e|integration|testing)/
@@ -95,7 +96,7 @@ pub struct Index {
     pub tags: Vec<Tag>,
 }
 
-/// Requirement ids (with optional criterion) mentioned in a piece of text.
+/// Requirement and decision ids (with optional criterion) mentioned in a piece of text.
 pub fn ids_in(text: &str) -> Vec<(String, Option<String>)> {
     let mut out: Vec<(String, Option<String>)> = vec![];
     for c in ID.captures_iter(text) {
@@ -152,6 +153,7 @@ static OFF: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"reqforge:off\b").unw
 static ON: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"reqforge:on\b").unwrap());
 
 // reqforge: implements REQ-0021
+// reqforge: implements REQ-0061
 /// Extract the tags in one file's text; `explicit_only` ignores bare ids in test files.
 pub fn tags_in_mode(rel: &str, text: &str, component: &str, explicit_only: bool) -> Vec<Tag> {
     let test_file = is_test_file(rel) && !explicit_only;
@@ -170,7 +172,7 @@ pub fn tags_in_mode(rel: &str, text: &str, component: &str, explicit_only: bool)
             off = false;
             continue;
         }
-        if off || !line.contains("REQ-") {
+        if off || !(line.contains("REQ-") || line.contains("DEC-")) {
             continue;
         }
         let mut seen: Vec<(String, Option<String>)> = vec![];
