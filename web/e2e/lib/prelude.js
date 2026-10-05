@@ -60,7 +60,7 @@ const cdp = (method, params = {}) => new Promise((resolve) => {
 // these values there names other keys (27 = kVK_ANSI_Minus, 9 = V, 13 = W). Native Chrome on macOS hands an
 // unhandled key back to the window, which redispatches it from that native code as an "Unidentified"/Minus keydown,
 // itself unhandled, so one unhandled Esc became an endless keydown storm that starved later presses.
-const KEYS = { Escape: 27, Tab: 9, Enter: 13 };
+const KEYS = { Escape: 27, Tab: 9, Enter: 13, End: 35, Home: 36, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
 const pressKey = async (k, shift = false) => {
   const base = { key: k, code: k, windowsVirtualKeyCode: KEYS[k], modifiers: shift ? 8 : 0 };
   await cdp("Input.dispatchKeyEvent", { type: "keyDown", ...base, ...(k === "Enter" ? { text: "\r" } : {}) });

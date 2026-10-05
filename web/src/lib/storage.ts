@@ -33,11 +33,31 @@ export const ls = {
 
 /**
  * Per-project localStorage keys: `reqforge.<name>.<KEY>`.
- * Global keys (token, page size, chat panel open, last project) are not suffixed.
+ * Global keys (token, page size, chat panel open, panel layout, last project) are not suffixed.
  */
 export const PROJECT_SCOPED = ["tab", "open", "chat.log", "chat.session", "chat.wrap"] as const
 export type ProjectScoped = (typeof PROJECT_SCOPED)[number]
 export const pkey = (name: ProjectScoped, project: string) => `reqforge.${name}.${project}`
+
+/**
+ * Side panel layout on wide screens (REQ-0064): global, so it survives reloads and project switches.
+ * The chat panel's collapsed state is `reqforge.chat.open` (owned by the chat state).
+ */
+export const PANELS_KEY = "reqforge.panels"
+export type PanelLayout = { side: number; chat: number; sideCollapsed: boolean }
+
+export function loadPanels(fallback: PanelLayout): PanelLayout {
+  const raw = ls.get<Partial<PanelLayout> | null>(PANELS_KEY, null)
+  if (!raw || typeof raw !== "object") return fallback
+  const num = (v: unknown, d: number) => (typeof v === "number" && Number.isFinite(v) ? v : d)
+  return {
+    side: num(raw.side, fallback.side),
+    chat: num(raw.chat, fallback.chat),
+    sideCollapsed: typeof raw.sideCollapsed === "boolean" ? raw.sideCollapsed : fallback.sideCollapsed,
+  }
+}
+
+export const savePanels = (p: PanelLayout) => ls.set(PANELS_KEY, p)
 
 /** Forget everything stored for a project (after it is deleted). */
 export function clearProjectStorage(project: string) {

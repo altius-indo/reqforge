@@ -1,10 +1,13 @@
-import type { ReactNode } from "react"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { useEffect, useRef, type ReactNode } from "react"
+import { ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { PanelHandle } from "@/components/PanelHandle"
 import { VERIFICATION_STATUSES, type FacetCounts, type Kind, type TreeNode } from "@/api/types"
 import { Progress } from "@/components/ui/progress"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { SectionLabel } from "@/components/common"
 import { useApp } from "@/state/app"
+import { SIDE, usePanels } from "@/state/panels"
 import { facetParams, useFacets, useVerification } from "@/state/queries"
 import { VERIF } from "@/components/verification"
 import { compact, fmt } from "@/lib/format"
@@ -403,13 +406,82 @@ function SidebarBody() {
 }
 
 // reqforge: implements REQ-0030
+// reqforge: implements REQ-0064
 export function Sidebar() {
   const { sideOpen, setSideOpen } = useApp()
+  const panels = usePanels()
+  const collapsed = panels.sideCollapsed
+  const handleRef = useRef<HTMLDivElement>(null)
+  const expandRef = useRef<HTMLButtonElement>(null)
+  const first = useRef(true)
+
+  // collapsing or expanding removes the focused control: keep focus on the other side's toggle
+  useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    const a = document.activeElement
+    if (!a || a === document.body) (collapsed ? expandRef.current : handleRef.current)?.focus()
+  }, [collapsed])
+
   return (
     <>
-      <aside data-testid="sidebar" className="hidden min-h-0 overflow-y-auto border-r bg-card px-2 pt-1 pb-6 lg:block">
-        <SidebarBody />
-      </aside>
+      {collapsed ? (
+        <div data-testid="sidebar-rail" className="hidden min-h-0 flex-col items-center border-r bg-card pt-1.5 lg:flex">
+          <Button
+            ref={expandRef}
+            size="icon-xs"
+            variant="ghost"
+            aria-label="expand sidebar"
+            aria-expanded={false}
+            title="Expand sidebar"
+            onClick={() => panels.setSideCollapsed(false)}
+            data-testid="sidebar-expand"
+          >
+            <PanelLeftOpen />
+          </Button>
+        </div>
+      ) : (
+        <>
+          <aside
+            id="sidebar"
+            data-testid="sidebar"
+            className="hidden min-h-0 overflow-y-auto border-r bg-card px-2 pt-1 pb-6 lg:block"
+          >
+            <div className="sticky top-0 z-10 flex h-0 justify-end">
+              <Button
+                size="icon-xs"
+                variant="ghost"
+                className="mt-2 bg-card"
+                aria-label="collapse sidebar"
+                aria-expanded
+                aria-controls="sidebar"
+                title="Collapse sidebar"
+                onClick={() => panels.setSideCollapsed(true)}
+                data-testid="sidebar-collapse"
+              >
+                <PanelLeftClose />
+              </Button>
+            </div>
+            <SidebarBody />
+          </aside>
+          <PanelHandle
+            ref={handleRef}
+            label="Resize sidebar"
+            controls="sidebar"
+            value={panels.sideWidth}
+            min={SIDE.min}
+            max={panels.sideMax}
+            dir={1}
+            onResize={panels.setSideWidth}
+            onToggle={() => panels.setSideCollapsed(true)}
+            onReset={panels.resetSide}
+            style={{ left: panels.sideWidth - 4 }}
+            testId="sidebar-handle"
+          />
+        </>
+      )}
       <Sheet open={sideOpen} onOpenChange={setSideOpen}>
         <SheetContent side="left" className="w-[290px] gap-0 overflow-y-auto p-2 lg:hidden">
           <SheetHeader className="p-2">

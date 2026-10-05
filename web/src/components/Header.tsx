@@ -180,6 +180,8 @@ export function Header() {
         className="h-7"
         variant={chat.open ? "secondary" : "default"}
         onClick={() => chat.setOpen(!chat.open)}
+        id="chat-toggle"
+        aria-expanded={chat.open}
         data-testid="chat-toggle"
       >
         {chat.open ? <X /> : <MessageSquare />} Chat with Claude
