@@ -61,7 +61,7 @@ pub fn run_one_with(command: &str, workdir: &Path, story: &str, eval_id: &str, t
     let Ok(log) = fs::File::create(&out_path) else { return (false, "cannot create log".into()) };
     let mut cmd = Command::new("sh");
     if clean_env {
-        for k in ["REQFORGE_REPO", "REQFORGE_PROJECT", "REQFORGE_WORKSPACE", "REQFORGE_TASK", "REQFORGE_MCP_ROLE", "REQFORGE_MCP_PROJECT"] {
+        for k in ["REQFORGE_REPO", "REQFORGE_PROJECT", "REQFORGE_WORKSPACE", "REQFORGE_TASK", "REQFORGE_MCP_ROLE", "REQFORGE_MCP_PROJECT", "REQFORGE_BIN"] {
             cmd.env_remove(k);
         }
     }
